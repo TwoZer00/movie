@@ -6,7 +6,7 @@ Guess the movie just with the cast, every try you reveal a new cast member.
 
 - [React - Javascript](https://react.dev/)
 - [TailwindCss 3.4.17 ](https://mui.com/material-ui/)
-- [React router dom](https://reactrouter.com/en/main) ***not implemented yet***
+- [React router dom](https://reactrouter.com/en/main) *not implemented yet*
 
 ## To do
 
@@ -18,10 +18,10 @@ Guess the movie just with the cast, every try you reveal a new cast member.
   - [x] Every try shows a new cast member(up to 5).
     - [x] Ordered by popularity.
   - [x] Show every try in a list.
-  - [] Add animations.
+  - [ ] Add animations.
 - [x] Show results.
   - [x] Won or lose.
-  - [] Play a sound when lose or win.
-  - [] Show a modal with win message or lose message.  
+  - [ ] Play a sound when lose or win.
+  - [ ] Show a modal with win message or lose message.  
 - [x] Show a new movie when game finished.
-- [] Improve UI/UX.
+- [ ] Improve UI/UX.
