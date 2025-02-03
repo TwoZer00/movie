@@ -20,7 +20,7 @@ export default function Home() {
   const [gameStatus,setGameStatus] = useState(gameStatusVal.playing);
   useEffect(()=>{
     (async () => {
-      const [movie,cast] = await getValidMovie();
+      const [movie,cast] = await getValidMovie()
       setMovie(movie);
       cast.sort((item)=> item.popularity)
       const temp = [cast[0],cast[1],cast[3],cast[5],cast[6]].sort((a,b)=> b.order-a.order);
@@ -165,8 +165,8 @@ export default function Home() {
           hints?.map(item=>{
             return(
               <div className='flex flex-col' key={item.id}>
-                <div className='rounded-full overflow-hidden outline'>
-                  <img src={`${IMG_URL}${item?.profile_path}`} key={item.id} className='opacity-0 transition-opacity aspect-square object-cover' alt="" onLoad={handleLoad} />
+                <div className='rounded-full overflow-hidden outline aspect-square'>
+                  <img src={`${IMG_URL}${item?.profile_path}`} key={item.id} className='opacity-0 transition-opacity h-full w-full object-cover' alt="" onLoad={handleLoad} />
                 </div>
                 <p className='text-center'>{item?.original_name}</p>
                 <p className='text-xs text-center'>{(gameStatus===gameStatusVal.finished&&item.profile_path)&&`(${item?.character})`}</p>
@@ -176,7 +176,7 @@ export default function Home() {
         }
       </div>
       <div className='flex-1 flex flex-col'>
-        <div className='flex-1 flex flex-col py-2 gap-2 overflow-y-auto'>
+        <div className='flex-0 flex flex-col py-2 gap-2 overflow-y-auto'>
             {tries.map(item=>{
               return(
                 <div key={item.id} className='border rounded bg-slate-100 text-center'>
