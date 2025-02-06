@@ -2,12 +2,18 @@ import { useRef, useState } from 'react';
 import { useEffect } from "react"
 import { getMoviesByName, getRandomMovie, getValidMovie } from "../api/init";
 import { IMG_URL } from '../api/utils/const';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const gameStatusVal = {
   playing:2,
   won:1,
   lost:0,
   finished:3
+}
+const loadStatus = {
+  loading:0,
+  loaded:1,
+  error:2
 }
 
 export default function Home() {
@@ -17,26 +23,46 @@ export default function Home() {
   const [movie,setMovie] = useState(null)
   const [tries,setTries] = useState([]);
   const [hints,setHints] = useState([]);
+  const lStatus = useRef()
+  const location = useLocation();
   const [gameStatus,setGameStatus] = useState(gameStatusVal.playing);
-  useEffect(()=>{
-    (async () => {
-      const [movie,cast] = await getValidMovie()
-      setMovie(movie);
-      cast.sort((item)=> item.popularity)
-      const temp = [cast[0],cast[1],cast[3],cast[5],cast[6]].sort((a,b)=> b.order-a.order);
-      setHints(temp.map((item,index)=>{
-        if(index>0){
-          return {
-            id:item.id
-          }
-        }
-        else{
-          return item
-        }
-      }));
-      setCast(temp);
-    })();
-  },[]);
+  useEffect(() => {
+    const fetchMovieData = async () => {
+      // console.log("xxxx",location.state);
+      
+      lStatus.current = loadStatus.loading
+      try {
+        const [movie, cast] = await getValidMovie(location.state);
+        const sortedCast = cast
+          .sort((a, b) => b.popularity - a.popularity)
+          .slice(0, 5)
+          .sort((a, b) => b.order - a.order);
+  
+        // Set states only once with valid data
+        setMovie(movie);
+        setHints(sortedCast.map((item, index) => 
+          index === 0 ? item : { id: item.id }
+        ));
+        setCast(sortedCast);
+        // lStatus.current = loadStatus.loaded
+      } catch (error) {
+        lStatus.current = loadStatus.error
+        console.error('Error fetching movie data:', error);
+      }
+    };
+  
+    // Call the function only once
+    if(lStatus.current!=loadStatus.loading){
+      fetchMovieData();
+    }
+    
+    // Optional: Cleanup function
+    return () => {
+      // Add any cleanup if needed
+    };
+  }, []);
+  
+  
   const handleSubmit = (e)=>{
     e.preventDefault();
     if(!selectedMovie.id) return;
@@ -120,11 +146,10 @@ export default function Home() {
     setMovieSearchList([]);
     setGameStatus(gameStatusVal.playing);
     (async () => {
-      const [movie,cast] = await getValidMovie();
+      const [movie,cast] = await getValidMovie(location.state);
       setMovie(movie);
       cast.sort((item)=> item.popularity)
       const temp = [cast[0],cast[3],cast[6],cast[7],cast[8]].sort((a, b)=> b.order-a.order);
-      console.log(temp);
       setHints(temp.map((item, index)=>{
         if(index>0){
           return {
@@ -146,7 +171,7 @@ export default function Home() {
     <div className='flex flex-col max-w-screen-lg mx-auto h-[100dvh] p-1 gap-2 '>
       <h1 className='font-semibold text-xl text-center'>Guess movie name of the day by the cast</h1>
       <div className='py-4 flex flex-col items-center gap-2 max-w-xl mx-auto'>
-        <div className='aspect-[2/3] h-[300px] max-h-full flex justify-center' >{
+        <div className='aspect-[2/3] h-[300px] max-h-[25dvh] flex justify-center' >{
           gameStatus===gameStatusVal.finished ?
             <img src={`${IMG_URL}${movie?.poster_path}`} className='object-contain' alt="" />
           :
@@ -160,7 +185,7 @@ export default function Home() {
           </p>  
         </div>
       </div>
-      <div className="grid grid-cols-5 gap-3 max-w-lg mx-auto">
+      <div className="grid grid-cols-5 justify-around gap-4 max-w-lg mx-auto">
         {
           hints?.map(item=>{
             return(
@@ -168,7 +193,7 @@ export default function Home() {
                 <div className='rounded-full overflow-hidden outline aspect-square'>
                   <img src={`${IMG_URL}${item?.profile_path}`} key={item.id} className='opacity-0 transition-opacity h-full w-full object-cover' alt="" onLoad={handleLoad} />
                 </div>
-                <p className='text-center'>{item?.original_name}</p>
+                <p className='text-center'>{item?.name||item?.original_name}</p>
                 <p className='text-xs text-center'>{(gameStatus===gameStatusVal.finished&&item.profile_path)&&`(${item?.character})`}</p>
               </div>
             )
@@ -176,7 +201,7 @@ export default function Home() {
         }
       </div>
       <div className='flex-1 flex flex-col'>
-        <div className='flex-0 flex flex-col py-2 gap-2 overflow-y-auto'>
+        <div className='flex-0 h-full flex flex-col py-2 gap-2 overflow-y-auto'>
             {tries.map(item=>{
               return(
                 <div key={item.id} className='border rounded bg-slate-100 text-center'>
