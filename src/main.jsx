@@ -5,15 +5,27 @@ import './index.css'
 import { RouterProvider } from 'react-router-dom'
 import Home from './pages/Home'
 import Menu from './pages/Menu'
+import Init from './pages/Init'
+import LinkGame from './pages/LinkGame'
 
 const router = createBrowserRouter([
   {
-    path: "/play",
-    element:<Home/>,
-  },
-  {
     path: "/",
-    element: <Menu/>,
+    element: <Init/>,
+    children: [
+      {
+        path: "/play",
+        element: <Home/>,
+      },
+      {
+        path: "/",
+        element: <Menu/>,
+      },
+      {
+        path: "/link",
+        element: <LinkGame/>,
+      }
+    ]
   }
 ]);
 

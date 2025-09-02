@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
 import { useEffect } from "react"
-import { getMoviesByName, getRandomMovie, getValidMovie } from "../api/init";
-import { IMG_URL } from '../api/utils/const';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { getMoviesByName, getValidMovie } from "../api/init";
+import { IMG_URL, PROFILE_SIZE, BACKDROP_SIZE, POSTER_SIZE } from '../api/utils/const';
+import { useLocation, useSearchParams } from 'react-router-dom';
+import genres from '../resources/genre.json'
 
 const gameStatusVal = {
   playing:2,
@@ -27,42 +28,10 @@ export default function Home() {
   const location = useLocation();
   const [gameStatus,setGameStatus] = useState(gameStatusVal.playing);
   useEffect(() => {
-    const fetchMovieData = async () => {
-      // console.log("xxxx",location.state);
-      
-      lStatus.current = loadStatus.loading
-      try {
-        const [movie, cast] = await getValidMovie(location.state);
-        const sortedCast = cast
-          .sort((a, b) => b.popularity - a.popularity)
-          .slice(0, 5)
-          .sort((a, b) => b.order - a.order);
-  
-        // Set states only once with valid data
-        setMovie(movie);
-        setHints(sortedCast.map((item, index) => 
-          index === 0 ? item : { id: item.id }
-        ));
-        setCast(sortedCast);
-        // lStatus.current = loadStatus.loaded
-      } catch (error) {
-        lStatus.current = loadStatus.error
-        console.error('Error fetching movie data:', error);
-      }
-    };
-  
-    // Call the function only once
     if(lStatus.current!=loadStatus.loading){
-      fetchMovieData();
+      fetchData();
     }
-    
-    // Optional: Cleanup function
-    return () => {
-      // Add any cleanup if needed
-    };
   }, []);
-  
-  
   const handleSubmit = (e)=>{
     e.preventDefault();
     if(!selectedMovie.id) return;
@@ -141,94 +110,131 @@ export default function Home() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[gameStatus])
-  const reset = ()=>{
+  const reset = async ()=>{
     setTries([]);
     setMovieSearchList([]);
     setGameStatus(gameStatusVal.playing);
-    (async () => {
-      const [movie,cast] = await getValidMovie(location.state);
-      setMovie(movie);
-      cast.sort((item)=> item.popularity)
-      const temp = [cast[0],cast[3],cast[6],cast[7],cast[8]].sort((a, b)=> b.order-a.order);
-      setHints(temp.map((item, index)=>{
-        if(index>0){
-          return {
-            id:item.id
-          }
-        }
-        else{
-          return item
-        }
-      }));
-      setCast(temp);
-      setSelectedMovie({original_title:""});
-    })();
+    fetchData();
+    setSelectedMovie({original_title:""});
   }
   const showHints = ()=>{
     setHints([...cast]);
   }
+
+  const fetchData = async ()=>{
+    lStatus.current = loadStatus.loading
+    try {
+      const [movie, cast] = await getValidMovie(location.state);
+      const sortedCast = cast
+        .sort((a, b) => b.popularity - a.popularity)
+        .slice(0, 5)
+        .sort((a, b) => b.order - a.order);
+
+      // Set states only once with valid data
+      setMovie(movie);
+      setHints(sortedCast.map((item, index) => 
+        index === 0 ? item : { id: item.id }
+      ));
+      setCast(sortedCast);
+      // lStatus.current = loadStatus.loaded
+    } catch (error) {
+      lStatus.current = loadStatus.error
+      console.error('Error fetching movie data:', error);
+    }
+  }
   return (
-    <div className='flex flex-col max-w-screen-lg mx-auto h-[100dvh] p-1 gap-2 '>
-      <h1 className='font-semibold text-xl text-center'>Guess movie name of the day by the cast</h1>
-      <div className='py-4 flex flex-col items-center gap-2 max-w-xl mx-auto'>
-        <div className='aspect-[2/3] h-[300px] max-h-[25dvh] flex justify-center' >{
-          gameStatus===gameStatusVal.finished ?
-            <img src={`${IMG_URL}${movie?.poster_path}`} className='object-contain' alt="" />
-          :
-          <div className='w-full h-full bg-gray-100 rounded'></div>
-        }
+    <>
+      <div  className='flex-1 flex flex-col gap-2 px-1'>
+        <div className='py-4 flex flex-col items-center gap-2 max-w-xl mx-auto'>
+          <div className='aspect-[2/3] h-[300px] max-h-[25dvh] flex justify-center' >{
+            gameStatus===gameStatusVal.finished ?
+              <img src={`${IMG_URL}${POSTER_SIZE.lg}/${movie?.poster_path}`} className='object-contain' alt="" />
+            :
+            <div className='w-full h-full bg-gray-100 rounded'></div>
+          }
+          </div>
+          <p className='text-center'>Title:</p>
+          <div className='flex-1 flex flex-col min-w-[20ch]'>
+            <p className='w-full border rounded py-2 px-4 bg-gray-100 h-[4ch] text-center'>
+                {gameStatus===gameStatusVal.finished && (movie?.title||movie?.original_title)}
+            </p>  
+          </div>
         </div>
-        <p className='text-center'>Title:</p>
-        <div className='flex-1 flex flex-col min-w-[20ch]'>
-          <p className='w-full border rounded py-2 px-4 bg-gray-100 h-[4ch] text-center'>
-              {gameStatus===gameStatusVal.finished && movie?.original_title}
-          </p>  
-        </div>
-      </div>
-      <div className="grid grid-cols-5 justify-around gap-4 max-w-lg mx-auto">
-        {
-          hints?.map(item=>{
-            return(
-              <div className='flex flex-col' key={item.id}>
-                <div className='rounded-full overflow-hidden outline aspect-square'>
-                  <img src={`${IMG_URL}${item?.profile_path}`} key={item.id} className='opacity-0 transition-opacity h-full w-full object-cover' alt="" onLoad={handleLoad} />
-                </div>
-                <p className='text-center'>{item?.name||item?.original_name}</p>
-                <p className='text-xs text-center'>{(gameStatus===gameStatusVal.finished&&item.profile_path)&&`(${item?.character})`}</p>
-              </div>
-            )
-          }) 
-        }
-      </div>
-      <div className='flex-1 flex flex-col'>
-        <div className='flex-0 h-full flex flex-col py-2 gap-2 overflow-y-auto'>
-            {tries.map(item=>{
+        <div className="flex-0 grid grid-cols-5 justify-around gap-4 max-w-lg mx-auto">
+          {
+            hints?.map(item=>{
               return(
-                <div key={item.id} className='border rounded bg-slate-100 text-center'>
-                  <p>{item.original_title} ({new Date(item.release_date).getFullYear()})</p>
+                <div className='flex flex-col' key={item.id}>
+                  <div className='rounded-full overflow-hidden outline outline-2 aspect-square'>
+                    <img src={`${IMG_URL}${PROFILE_SIZE.md}/${item?.profile_path}`} key={item.id} className='opacity-0 transition-opacity h-full w-full object-cover' alt="" onLoad={handleLoad} />
+                  </div>
+                  <p className='text-center'>{item?.name||item?.original_name}</p>
+                  <p className='text-xs text-center'>{(gameStatus===gameStatusVal.finished&&item.profile_path)&&`(${item?.character})`}</p>
                 </div>
               )
-            })}
+            }) 
+          }
         </div>
-        <form onSubmit={handleSubmit} className='relative flex flex-col justify-between gap-2'>
-          <div className='relative'>
-            <input placeholder='Search for movie title' type="text" className='border rounded w-full text-lg py-2 px-2' onBlur={handleBlur} value={selectedMovie?.original_title} onChange={handleChange} />
-            <ul className={`shadow-xl border-2 border-slate-200 rounded-tl rounded-tr absolute bottom-full left-0 w-full flex flex-col divide-y bg-white max-h-[50ch] overflow-y-auto ${visible?"":"hidden"}`}>
-              {
-                movieSearchList.map(item=>{
-                  return(
-                    <li key={item.id} className='cursor-pointer hover:bg-gray-100 p-2' onClick={()=>setSelectedMovie(item)}>{item.original_title} ({new Date(item.release_date).getFullYear()})</li>
+        <div className='flex-1 border px-2 rounded flex flex-col gap-2'>
+          <p className='text-right'>Tries {Math.abs(tries.length-5)}/5</p>
+          {tries.map(item=>{
+            return(
+              <div key={item.id} className='px-1 flex flex-row border items-center justify-between rounded bg-slate-100 text-center'>
+                <p className='flex-none text-center'>{item.title||item.original_title}
+                </p>
+                <p className='flex-none text-center'>
+                  {
+                    (<span className={`${(new Date(item.release_date).getFullYear())===new Date(movie.release_date).getFullYear()?"bg-green-200/60":""}`}>{new Date(item.release_date).getFullYear()}</span>)
+                  }
+                </p>
+                <p className='w-[10ch] text-right'>
+                  {item.genre_ids.map(item=>{
+                  return(<span key={item} className={`px-1 rounded ml-1 text-xs italic ${ item===movie?.genre_ids.find(genre=>genre===item)?"bg-green-200/60":"text-gray-500"}`}>{
+                    genres.find(genre=>genre.id===item)?.name
+                  } </span>
                   )
-                })
-              }
-            </ul>
-          </div>
-          <input type="submit" value={"Try"} className='self-end px-4 py-1  bg-blue-500 text-white font-semibold rounded'/>
+                })}
+                </p>
+              </div>
+            )
+          })}
+        </div>
+        <form onSubmit={handleSubmit} className='flex-0 relative flex flex-row justify-between'>
+            <div className='relative flex-1'>
+              <input placeholder='Search for movie title' type="text" className='rounded-r-none rounded w-full text-lg py-2 px-2 border focus-within:outline-none' onBlur={handleBlur} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
+              <ul className={`shadow-xl border-2 border-slate-200 rounded-tl rounded-tr absolute bottom-full left-0 w-full flex flex-col divide-y bg-white max-h-[50ch] overflow-y-auto ${visible?"":"hidden"}`}>
+                {
+                  movieSearchList.map(item=>{
+                    return(
+                      <li key={item.id} className='cursor-pointer hover:bg-gray-100 p-2' onClick={()=>setSelectedMovie(item)}>{item.title||item.original_title} ({new Date(item.release_date).getFullYear()})</li>
+                    )
+                  })
+                }
+              </ul>
+            </div>
+            <input type="submit" value={"Try"} className='rounded-l-none self-end bg-blue-500 text-white font-semibold rounded h-full px-4'/>
         </form>
       </div>
-      <footer>
-        <p className='text-center text-sm text-gray-500'>Made by <a href="https://twozer00.dev" className='underline'>TwoZer00</a> powered by <a className="underline" href="https://www.themoviedb.org/">TheMovieDB</a> API Services</p>
-      </footer>
-    </div>
+      {
+        gameStatus===gameStatusVal.finished &&
+        <Ad/>
+      }
+    </>
+  )
+}
+function Ad() {
+  return (
+    <>
+      <div className='absolute top-0 w-dvw h-dvh bg-black/60 flex flex-col justify-center items-center'>
+        <amp-ad width="100vw" height="320"
+          type="adsense"
+          data-ad-client="ca-pub-7731037445831235"
+          data-ad-slot="5105136682"
+          data-auto-format="rspv"
+          data-full-width="">
+          <div overflow=""></div>
+        </amp-ad>
+      </div>
+    </>
   )
 }

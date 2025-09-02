@@ -5,7 +5,7 @@ const getCountries = async ()=>{
         data = filterRealCountries(JSON.parse(data))
         return data
     }
-    data = await (await fetch(`${apiURL}/all`)
+    data = await (await fetch(`${apiURL}/all?fields=name,cca2,region,unMember`,)
         .catch(error => {
             throw `${error.message}`
         }

@@ -6,26 +6,25 @@ export default function Menu() {
   const [options,setOptions] = useState({})
   const navigate = useNavigate();
   return (
-    <div className='flex flex-col h-dvh'>
-      <h1 className="font-bold text-4xl text-center">Guess the movie</h1>
-      <p className="font-thin text-center">Guess the movie by its cast</p>
+    <div className='flex flex-col flex-1'>
       <div className='px-1'>
         <form action="" className='flex flex-row gap-1 justify-around'>
           <GenreSelect options={setOptions}/>
-          <DecadeSelect options={setOptions} />
+          <DecadeSelect options={setOptions}/>
           <RegionSelect options={setOptions}/>
         </form>
       </div>
-      <div className='flex-1 flex justify-center text-center items-center'>
+      <div className='flex-1 flex flex-col gap-2 justify-center text-center items-center'>
         <button className='bg-blue-500 text-white rounded-md py-2 px-8 h-fit' onClick={()=>{navigate("/play",{ state:options})
         }} >Play</button>
+        <button className='bg-blue-500 text-white rounded-md py-2 px-8 h-fit' onClick={()=>{navigate("/play?movie=today", { state:options})
+        }} >Movie of the day</button>
+        <button className='bg-blue-500 text-white rounded-md py-2 px-8 h-fit' onClick={()=>{navigate("/link", { state:options})
+        }} >Link</button>
       </div>
     </div>
   )
 }
-
-//primary_release.lte
-//primary_release_date.lte
 
 
 const GenreSelect = ({options}) => {

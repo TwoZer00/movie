@@ -1,4 +1,8 @@
 const URL = 'https://api.themoviedb.org/3';
+//get client lang format en-US
+const LANG = 'en-US';
+
+
 
 const getMovies = async () => {
   const options = {
@@ -14,6 +18,8 @@ const getMovies = async () => {
 };
 
 const getCastFromMovie = async (movieId) => {
+  const optionsURL = new URLSearchParams();
+  optionsURL.append("language", LANG);
   const options = {
     method: "GET",
     headers: {
@@ -21,7 +27,7 @@ const getCastFromMovie = async (movieId) => {
       Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
     }
   }
-  const response = await fetch(`${URL}/movie/${movieId}/credits?language=en-US`, options);
+  const response = await fetch(`${URL}/movie/${movieId}/credits?${optionsURL.toString()}`, options);
   const data = await response.json();
   return data;
 };
@@ -40,6 +46,9 @@ const getMovie = async (movieId) => {
 };
 
 const getMoviesByName = async (movieName) => {
+  const optionsURL = new URLSearchParams();
+  optionsURL.append("language", LANG);
+  optionsURL.append("query", movieName);
   const options = {
     method: "GET",
     headers: {
@@ -47,7 +56,7 @@ const getMoviesByName = async (movieName) => {
       Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
     }
   }
-  const response = await fetch(`${URL}/search/movie?query=${movieName}&language=en-US`, options);
+  const response = await fetch(`${URL}/search/movie?${optionsURL.toString()}`, options);
   const data = await response.json();
   return data;
 };
@@ -81,7 +90,11 @@ const getGenres = async () => {
   return data.genres;
 };
 const getCustomSearchMovie = async (options) => {
-  const response = await fetch(`${URL}/discover/movie?${new URLSearchParams(options).toString()}`, {
+  const optionsURL = new URLSearchParams(options);
+  optionsURL.append("language", LANG);
+  let endpoint = `${!window.location.search.includes("movie") ? "discover" : "trending"}/movie`
+  endpoint = `${endpoint}${window.location.search.includes("movie") ? "/day" : ""}`
+  const response = await fetch(`${URL}/${endpoint}?${optionsURL.toString()}`, {
     method: "GET",
     headers: {
       accept: 'application/json',
@@ -119,5 +132,23 @@ const getValidMovie = async (options) => {
   
   return [movie, cast];
 };
+// const getLinkedMovie = async (peopleId) => {
+//   const options = {
+//     method: "GET",
+//     headers: {
+//       accept: 'application/json',
+//       Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
+//     }
+//   }
+//   const response = await fetch(`${URL}/discover/movie/recommendations?language=en-US`, options);
+//   const data = await response.json();
+//   const movies = data.results;
+//   const movie = movies[Math.floor(Math.random() * movies.length)];
+//   return movie;
+// };
+
+// const getLinkedPeopleFromMovie
+
+
 
 export { getMovies, getCastFromMovie, getMovie, getMoviesByName, getRandomMovie, getValidMovie, getGenres };
