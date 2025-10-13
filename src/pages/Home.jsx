@@ -219,19 +219,4 @@ export default function Home() {
     </>
   )
 }
-function Ad() {
-  return (
-    <>
-      <div className='100% max-w-lg mx-auto'>
-        <amp-ad width="100%" height="320"
-          type="adsense"
-          data-ad-client="ca-pub-7731037445831235"
-          data-ad-slot="5105136682"
-          data-auto-format="rspv"
-          data-full-width="">
-          <div overflow=""></div>
-        </amp-ad>
-      </div>
-    </>
-  )
-}
+

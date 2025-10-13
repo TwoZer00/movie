@@ -6,21 +6,32 @@ export default function Menu() {
   const [options,setOptions] = useState({})
   const navigate = useNavigate();
   return (
-    <div className='flex flex-col flex-1'>
-      <div className='px-1'>
-        <form action="" className='flex flex-row gap-1 justify-around'>
-          <GenreSelect options={setOptions}/>
-          <DecadeSelect options={setOptions}/>
-          <RegionSelect options={setOptions}/>
-        </form>
-      </div>
-      <div className='flex-1 flex flex-col gap-2 justify-center text-center items-center'>
-        <button className='bg-blue-500 text-white rounded-md py-2 px-8 h-fit' onClick={()=>{navigate("/play",{ state:options})
+    <div className='flex flex-col flex-1  items-center'>
+      <div className='w-fit h-2/3 p-1 flex flex-col gap-4'>
+        <div className=''>
+          <form action="" className='flex flex-row gap-3'>
+            <GenreSelect options={setOptions}/>
+            <DecadeSelect options={setOptions}/>
+            <RegionSelect options={setOptions}/>
+          </form>
+        </div>
+      <div className='flex flex-1 gap-2  text-center items-start'>
+        {/* <button className='bg-blue-500 text-white rounded-md py-2 px-8 h-fit' onClick={()=>{navigate("/play",{ state:options})
         }} >Play</button>
         <button className='bg-blue-500 text-white rounded-md py-2 px-8 h-fit' onClick={()=>{navigate("/play?movie=today", { state:options})
         }} >Movie of the day</button>
         <button className='bg-blue-500 text-white rounded-md py-2 px-8 h-fit' onClick={()=>{navigate("/link", { state:options})
-        }} >Link</button>
+        }} >Link</button> */}
+        <button className='w-full py-2 shadow-md text-2xl font-semibold uppercase rounded-lg bg-gray-200  hover:bg-gray-300 transition-all' onClick={()=>{navigate("/play",{ state:options})}}>
+          Play
+        </button>
+        {/* <button className='w-36 py-8 text-2xl font-semibold uppercase rounded-lg border border-sky-600 hover:border-2 hover:shadow' onClick={()=>{navigate("/play?movie=today", { state:options})}}>
+          Movie of the day
+        </button>
+        <button className='w-36 py-8 text-2xl font-semibold uppercase rounded-lg border border-sky-600 hover:border-2 hover:shadow' onClick={()=>{navigate("/link", { state:options})}}>
+          Link
+        </button> */}
+      </div>
       </div>
     </div>
   )
@@ -57,7 +68,7 @@ const GenreSelect = ({options}) => {
   },[selected])
   return (
     <div className='flex flex-row items-center'>
-      <select name="genre" className="bg-gray-200 rounded-md p-2 w-[12ch]" onChange={(e)=> setSelected(e.target.value)  }>
+      <select name="genre" className="bg-gray-200 rounded-md p-2 w-[12ch] shadow-md" onChange={(e)=> setSelected(e.target.value)  }>
         <option value="" defaultValue hidden >Genre</option>
         {genres?.map((genre) => (
           <option key={genre.id} value={genre.id}>{genre.name}</option>
@@ -96,7 +107,7 @@ const DecadeSelect = ({options})=>{
   },[rangeDate])
   return (
     <div className='flex flex-row items-center'>
-      <select name="decade"  className="bg-gray-200 rounded-md p-2 w-[12ch]" onChange={handleSelect}>
+      <select name="decade"  className="bg-gray-200 rounded-md shadow-md p-2 w-[12ch]" onChange={handleSelect}>
       <option value="" defaultValue hidden >Decade</option>
       {decades.map((genre) => (
         <option key={genre.id} value={genre.rangeYear}>{genre.name}</option>
@@ -172,7 +183,7 @@ const RegionSelect = ({options})=>{
   },[selectedCountries])
   return (
     <div className='flex flex-row items-center'>
-      <select name="region" className="bg-gray-200 rounded-md p-2 w-[12ch]" onChange={handleChange} value={region}>
+      <select name="region" className="bg-gray-200 rounded-md p-2 shadow-md w-[12ch]" onChange={handleChange} value={region}>
       <option value="" defaultValue hidden >Region</option>
       {regions?.map((region) => (
         <option key={region} value={region}>{region}</option>

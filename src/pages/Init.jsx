@@ -3,8 +3,9 @@ import { Outlet } from 'react-router-dom'
 
 export default function Init() {
   return (
-    <div className='flex flex-col h-dvh max-w-screen-lg mx-auto'>
+    <div className='flex flex-col w-dvw h-dvh justify-center'>
       <Header/>
+      <Ad/>
       <Outlet/>
       <Footer/>
     </div>
@@ -33,8 +34,25 @@ const Header = ()=>{
 
 const Footer = ()=>{
   return (
-    <footer>
-      <p className='text-center text-sm text-gray-500'>Made by <a href="https://twozer00.dev" className='underline'>TwoZer00</a> powered by <a className="underline" href="https://www.themoviedb.org/">TheMovieDB</a> API Services</p>
+    <footer className='text-center text-sm text-gray-500'>
+      <p>
+        Guess the movie by its cast. You have 5 tries to guess the movie. After each guess, you&#39;ll get hints about the cast of the movie.
+      </p>
+      <p>Made by <a href="https://twozer00.dev" className='underline'>TwoZer00</a> using <a className="underline" href="https://www.themoviedb.org/">TheMovieDB</a> API Services</p>
     </footer>
+  )
+}
+const Ad = ()=> {
+  return (
+    <>
+      <amp-ad width="100vw" height="320"
+        type="adsense"
+        data-ad-client="ca-pub-7731037445831235"
+        data-ad-slot="5105136682"
+        data-auto-format="rspv"
+        data-full-width="">
+       <div overflow=""></div>
+      </amp-ad>
+    </>
   )
 }
