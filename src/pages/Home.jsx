@@ -144,7 +144,8 @@ export default function Home() {
   }
   return (
     <>
-      <div  className='flex-1 flex flex-col gap-2 px-1'>
+      <div className='flex-1 flex flex-col gap-2 px-1'>
+        {/* <Ad/> */}
         <div className='py-4 flex flex-col items-center gap-2 max-w-xl mx-auto'>
           <div className='aspect-[2/3] h-[300px] max-h-[25dvh] flex justify-center' >{
             gameStatus===gameStatusVal.finished ?
@@ -215,18 +216,14 @@ export default function Home() {
             <input type="submit" value={"Try"} className='rounded-l-none self-end bg-blue-500 text-white font-semibold rounded h-full px-4'/>
         </form>
       </div>
-      {
-        gameStatus===gameStatusVal.finished &&
-        <Ad/>
-      }
     </>
   )
 }
 function Ad() {
   return (
     <>
-      <div className='absolute top-0 w-dvw h-dvh bg-black/60 flex flex-col justify-center items-center'>
-        <amp-ad width="100vw" height="320"
+      <div className='100% max-w-lg mx-auto'>
+        <amp-ad width="100%" height="320"
           type="adsense"
           data-ad-client="ca-pub-7731037445831235"
           data-ad-slot="5105136682"
