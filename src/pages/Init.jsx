@@ -1,7 +1,12 @@
+import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Outlet } from 'react-router-dom'
 
 export default function Init() {
+  useEffect(() => {
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+  }
+  , [])
   return (
     <div className='flex flex-col w-dvw h-dvh justify-center'>
       <Header/>
