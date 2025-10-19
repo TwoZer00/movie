@@ -5,7 +5,12 @@ export default function Init() {
   return (
     <div className='flex flex-col w-dvw h-dvh justify-center'>
       <Header/>
-      <Ad/>
+      <ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-7731037445831235"
+     data-ad-slot="5105136682"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
       <Outlet/>
       <Footer/>
     </div>
@@ -40,19 +45,5 @@ const Footer = ()=>{
       </p>
       <p>Made by <a href="https://twozer00.dev" className='underline'>TwoZer00</a> using <a className="underline" href="https://www.themoviedb.org/">TheMovieDB</a> API Services</p>
     </footer>
-  )
-}
-const Ad = ()=> {
-  return (
-    <>
-      <amp-ad width="100vw" height="320"
-        type="adsense"
-        data-ad-client="ca-pub-7731037445831235"
-        data-ad-slot="5105136682"
-        data-auto-format="rspv"
-        data-full-width="">
-       <div overflow=""></div>
-      </amp-ad>
-    </>
   )
 }
