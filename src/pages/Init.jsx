@@ -5,8 +5,8 @@ export default function Init() {
   return (
     <div className='flex flex-col w-dvw h-dvh justify-center'>
       <Header/>
-      <ins class="adsbygoogle"
-     style="display:block"
+      <ins className="adsbygoogle"
+     style={{display:'block'}}
      data-ad-client="ca-pub-7731037445831235"
      data-ad-slot="5105136682"
      data-ad-format="auto"
