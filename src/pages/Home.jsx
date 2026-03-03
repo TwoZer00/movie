@@ -551,8 +551,10 @@ export default function Home() {
       </div>
       
       {/* Fixed bottom ad */}
-      <div className='fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t dark:border-gray-700 z-40 max-h-[100px] overflow-hidden'>
-        <AdSense />
+      <div className='fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t dark:border-gray-700 z-40 h-[90px] overflow-hidden flex items-center justify-center'>
+        <div className='w-full h-full'>
+          <AdSense />
+        </div>
       </div>
     </>
   )

@@ -12,11 +12,11 @@ export default function AdSense() {
   return (
     <ins 
       className="adsbygoogle"
-      style={{ display: 'block' }}
+      style={{ display: 'block', width: '100%', height: '90px' }}
       data-ad-client="ca-pub-7731037445831235"
       data-ad-slot="5105136682"
-      data-ad-format="auto"
-      data-full-width-responsive="true"
+      data-ad-format="horizontal"
+      data-full-width-responsive="false"
     />
   );
 }
