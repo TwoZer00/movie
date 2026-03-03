@@ -10,7 +10,7 @@ const CastMember = memo(({item, index, gameStatus, gameStatusVal}) => {
 
   return (
     <div className='flex flex-col animate-fadeIn' style={{animationDelay: `${index * 100}ms`}}>
-      <div className='rounded-lg overflow-hidden shadow-md border-2 border-gray-200 aspect-square bg-gray-100'>
+      <div className='rounded-lg overflow-hidden shadow-md dark:shadow-gray-800 border-2 border-gray-200 dark:border-gray-700 aspect-square bg-gray-100 dark:bg-gray-700'>
         <img 
           src={imageUrl} 
           className={`transition-opacity duration-300 h-full w-full object-cover ${loaded ? 'opacity-100' : 'opacity-0'}`}
@@ -19,9 +19,9 @@ const CastMember = memo(({item, index, gameStatus, gameStatusVal}) => {
           loading="lazy"
         />
       </div>
-      <p className='text-center text-xs sm:text-sm font-medium mt-1 line-clamp-2'>{item?.name||item?.original_name}</p>
+      <p className='text-center text-xs sm:text-sm font-medium mt-1 line-clamp-2 dark:text-white'>{item?.name||item?.original_name}</p>
       {gameStatus===gameStatusVal.finished && item.profile_path && (
-        <p className='text-xs text-center text-gray-500 italic'>{item?.character}</p>
+        <p className='text-xs text-center text-gray-500 dark:text-gray-400 italic'>{item?.character}</p>
       )}
     </div>
   );

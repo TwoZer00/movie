@@ -18,6 +18,11 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
+@keyframes unblur {
+  from { filter: blur(20px); }
+  to { filter: blur(0); }
+}
+
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out forwards;
 }

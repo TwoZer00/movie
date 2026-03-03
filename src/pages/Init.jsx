@@ -4,6 +4,10 @@ import { Outlet } from 'react-router-dom'
 
 export default function Init() {
   useEffect(() => {
+    // Apply dark mode on load
+    const darkMode = localStorage.getItem('darkMode') === 'true';
+    document.documentElement.classList.toggle('dark', darkMode);
+    
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch (e) {
@@ -12,10 +16,10 @@ export default function Init() {
   }, [])
   
   return (
-    <div className='flex flex-col w-dvw h-dvh'>
+    <div className='flex flex-col w-dvw h-dvh dark:bg-gray-900 dark:text-white'>
       <Header/>
       <Outlet/>
-      <div className='w-full py-2 bg-gray-50 border-t'>
+      <div className='w-full py-2 bg-gray-50 dark:bg-gray-800 border-t dark:border-gray-700'>
         <ins className="adsbygoogle"
           style={{display:'block'}}
           data-ad-client="ca-pub-7731037445831235"
@@ -32,17 +36,17 @@ const Header = ()=>{
   const navigate = useNavigate();
   const location = useLocation();
   return (
-    <header className='flex flex-row justify-center relative'>
+    <header className='flex flex-row justify-center relative bg-white dark:bg-gray-800 border-b dark:border-gray-700'>
       {
         location && location.pathname!="/" && 
-        <button onClick={()=>navigate('/')} className='h-full absolute left-2'><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+        <button onClick={()=>navigate('/')} className='h-full absolute left-2 text-gray-800 dark:text-white'><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
       </svg>
       </button>
       }
       <div className='flex flex-col relative max-h-dvh'>
-        <h1 className="font-bold text-4xl text-center">Guess the movie</h1>
-        <p className="font-thin text-center">Guess the movie by its cast</p>
+        <h1 className="font-bold text-4xl text-center text-gray-900 dark:text-white">Guess the movie</h1>
+        <p className="font-thin text-center text-gray-600 dark:text-gray-400">Guess the movie by its cast</p>
       </div>
     </header>
   )
@@ -50,7 +54,7 @@ const Header = ()=>{
 
 const Footer = ()=>{
   return (
-    <footer className='text-center text-sm text-gray-500'>
+    <footer className='text-center text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border-t dark:border-gray-700 py-4'>
       <p>
         Guess the movie by its cast. You have 5 tries to guess the movie. After each guess, you&#39;ll get hints about the cast of the movie.
       </p>

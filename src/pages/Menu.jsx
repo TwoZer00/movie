@@ -22,14 +22,18 @@ export default function Menu() {
         </div>
         
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          <button className='py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg bg-gray-200 hover:bg-gray-300 transition-all' onClick={()=>{navigate("/play",{ state:options})}}>
+          <button className='py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-all' onClick={()=>{navigate("/play",{ state:options})}}>
             Play
           </button>
-          <button className={`py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg transition-all relative ${dailyCompleted ? 'bg-gray-300 cursor-not-allowed opacity-60' : 'bg-yellow-200 hover:bg-yellow-300'}`} onClick={()=>{navigate("/play?daily=true")}} disabled={dailyCompleted}>
+          <button className={`py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg transition-all relative ${dailyCompleted ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed opacity-60' : 'bg-yellow-200 dark:bg-yellow-700 dark:text-white hover:bg-yellow-300 dark:hover:bg-yellow-600'}`} onClick={()=>{navigate("/play?daily=true")}} disabled={dailyCompleted}>
             Daily Challenge
             {dailyCompleted && <span className='absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>✓ Completed</span>}
           </button>
         </div>
+        
+        <button className='py-3 shadow-lg text-lg font-semibold uppercase rounded-lg bg-blue-100 dark:bg-blue-900 dark:text-white hover:bg-blue-200 dark:hover:bg-blue-800 transition-all' onClick={()=>navigate('/settings')}>
+          ⚙️ Settings
+        </button>
         
         <CountdownTimer />
       </div>
@@ -68,14 +72,14 @@ const GenreSelect = ({options}) => {
   },[selected])
   return (
     <div className='flex flex-row items-center'>
-      <select name="genre" className="bg-gray-200 rounded-md p-2 w-[12ch] shadow-md" onChange={(e)=> setSelected(e.target.value)  }>
+      <select name="genre" className="bg-gray-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 rounded-md p-2 w-[12ch] shadow-md border dark:border-gray-600" onChange={(e)=> setSelected(e.target.value)  }>
         <option value="" defaultValue hidden >Genre</option>
         {genres?.map((genre) => (
           <option key={genre.id} value={genre.id}>{genre.name}</option>
         ))}
       </select>
       {selected && 
-      <button type='button' onClick={handleClear}>
+      <button type='button' onClick={handleClear} className='dark:text-white'>
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
       </svg>
@@ -107,14 +111,14 @@ const DecadeSelect = ({options})=>{
   },[rangeDate])
   return (
     <div className='flex flex-row items-center'>
-      <select name="decade"  className="bg-gray-200 rounded-md shadow-md p-2 w-[12ch]" onChange={handleSelect}>
+      <select name="decade"  className="bg-gray-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 rounded-md shadow-md p-2 w-[12ch] border dark:border-gray-600" onChange={handleSelect}>
       <option value="" defaultValue hidden >Decade</option>
       {decades.map((genre) => (
         <option key={genre.id} value={genre.rangeYear}>{genre.name}</option>
       ))}
     </select>
     {rangeDate &&
-    <button type='button' onClick={handleClear}>
+    <button type='button' onClick={handleClear} className='dark:text-white'>
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
         </svg>
@@ -183,14 +187,14 @@ const RegionSelect = ({options})=>{
   },[selectedCountries])
   return (
     <div className='flex flex-row items-center'>
-      <select name="region" className="bg-gray-200 rounded-md p-2 shadow-md w-[12ch]" onChange={handleChange} value={region}>
+      <select name="region" className="bg-gray-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 rounded-md p-2 shadow-md w-[12ch] border dark:border-gray-600" onChange={handleChange} value={region}>
       <option value="" defaultValue hidden >Region</option>
       {regions?.map((region) => (
         <option key={region} value={region}>{region}</option>
       ))}
     </select>
     {selectedCountries.length > 0 &&
-    <button type='button' onClick={handleClear}>
+    <button type='button' onClick={handleClear} className='dark:text-white'>
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
         </svg>

@@ -9,6 +9,8 @@ import CastMember from '../components/CastMember';
 import TryItem from '../components/TryItem';
 import Modal from '../components/Modal';
 import { Loader, SkipButton } from '../components/UIComponents';
+import { CastSkeleton } from '../components/Skeleton';
+import { Toast } from '../components/Toast';
 import { gameStatusVal, loadStatus } from '../utils/constants';
 
 export default function Home() {
@@ -33,6 +35,7 @@ export default function Home() {
   const [visible,setVisible] = useState(false);
   const [selectedIndex,setSelectedIndex] = useState(-1);
   const [expandedTries,setExpandedTries] = useState([]);
+  const [toast, setToast] = useState(null);
 
   const fetchData = useCallback(async ()=>{
     lStatus.current = loadStatus.loading
@@ -48,9 +51,9 @@ export default function Home() {
       }
       
       const sortedCast = cast
-        .sort((a, b) => b.popularity - a.popularity)
+        .sort((a, b) => a.order - b.order)
         .slice(0, 5)
-        .sort((a, b) => b.order - a.order);
+        .reverse();
 
       setMovie(movie);
       setHints(sortedCast.map((item, index) => 
@@ -62,8 +65,8 @@ export default function Home() {
       lStatus.current = loadStatus.error
       console.error('Error fetching movie data:', error);
       setLoading(false);
-      alert('Failed to load movie. Please try again.');
-      navigate('/');
+      setToast({ message: 'Failed to load movie. Please try again.', type: 'error' });
+      setTimeout(() => navigate('/'), 2000);
     }
   },[isDailyChallenge, location.state, navigate]);
 
@@ -234,17 +237,18 @@ export default function Home() {
 
   return (
     <>
-      {showModal && <Modal isWin={isWin} movie={movie} onClose={isDailyChallenge ? ()=>navigate('/') : reset} isDailyChallenge={isDailyChallenge} soundEnabled={soundEnabled} setSoundEnabled={setSoundEnabled} />}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {showModal && <Modal isWin={isWin} movie={movie} onClose={isDailyChallenge ? ()=>navigate('/') : reset} isDailyChallenge={isDailyChallenge} triesUsed={tries.length} revealedCast={cast} />}
       {loading && <Loader />}
       <SkipButton onSkip={handleSkip} disabled={isDailyChallenge} />
-      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden'>
+      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900'>
         <div className='py-2 flex flex-row items-start gap-3 sm:gap-4 max-w-4xl mx-auto'>
           <div className='flex-shrink-0'>
-            <div className='aspect-[2/3] w-24 sm:w-32 flex justify-center shadow-lg rounded overflow-hidden' >{
+            <div className='aspect-[2/3] w-24 sm:w-32 flex justify-center shadow-lg rounded overflow-hidden dark:shadow-gray-800' >{
               gameStatus===gameStatusVal.finished ?
-                <img src={posterUrl} className='object-cover w-full h-full animate-fadeIn' loading="lazy" alt="Movie poster" />
+                <img src={posterUrl} className='object-cover w-full h-full animate-fadeIn blur-sm animate-[unblur_1s_ease-out_forwards]' loading="lazy" alt="Movie poster" style={{animationDelay: '0.3s'}} />
               :
-              <div className='w-full h-full bg-gray-200 flex items-center justify-center'>
+              <div className='w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center'>
                 <span className='text-4xl'>?</span>
               </div>
             }
@@ -252,9 +256,9 @@ export default function Home() {
           </div>
           <div className='flex-1 flex flex-col gap-2'>
             <div>
-              <p className='text-xs text-gray-500 uppercase tracking-wide mb-1'>Movie Title</p>
-              <div className='border-2 rounded-lg py-3 px-4 bg-gradient-to-r from-gray-50 to-gray-100 min-h-[3rem] flex items-center justify-center'>
-                <p className='font-bold text-lg text-center'>
+              <p className='text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1'>Movie Title</p>
+              <div className='border-2 rounded-lg py-3 px-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 dark:border-gray-600 min-h-[3rem] flex items-center justify-center'>
+                <p className='font-bold text-lg text-center dark:text-white'>
                   {gameStatus===gameStatusVal.finished ? (movie?.title||movie?.original_title) : '???'}
                 </p>
               </div>
@@ -271,24 +275,27 @@ export default function Home() {
             )}
           </div>
         </div>
-        <div className='bg-white rounded-lg shadow-md p-3 sm:p-4'>
-          <p className='text-xs text-gray-500 uppercase tracking-wide mb-3 text-center'>Cast Members</p>
+        <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-800 p-3 sm:p-4'>
+          <p className='text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3 text-center'>Cast Members</p>
           <div className="grid grid-cols-5 gap-2 sm:gap-3 max-w-2xl mx-auto">
             {
-              hints?.map((item,index)=>(
-                <CastMember 
-                  key={item.id} 
-                  item={item} 
-                  index={index} 
-                  gameStatus={gameStatus}
-                  gameStatusVal={gameStatusVal}
-                />
-              ))
+              loading ? 
+                Array(5).fill(0).map((_, i) => <CastSkeleton key={i} />)
+              :
+                hints?.map((item,index)=>(
+                  <CastMember 
+                    key={item.id} 
+                    item={item} 
+                    index={index} 
+                    gameStatus={gameStatus}
+                    gameStatusVal={gameStatusVal}
+                  />
+                ))
             }
           </div>
         </div>
-        <div className='flex-1 border px-2 rounded flex flex-col gap-1 overflow-y-auto min-h-0'>
-          <p className='text-right font-semibold sticky top-0 bg-white py-1'>Tries {Math.abs(tries.length-5)}/5</p>
+        <div className='flex-1 border dark:border-gray-700 px-2 rounded flex flex-col gap-1 overflow-y-auto min-h-0 dark:bg-gray-800'>
+          <p className='text-right font-semibold sticky top-0 bg-white dark:bg-gray-800 dark:text-white py-1'>Tries {Math.abs(tries.length-5)}/5</p>
           {tries.map((item,index)=>(
             <TryItem 
               key={item.id} 
@@ -302,24 +309,24 @@ export default function Home() {
         </div>
         <form onSubmit={handleSubmit} className='flex-0 relative flex flex-col gap-2'>
             <div className='relative flex-1'>
-              <input placeholder='Search for movie title' type="text" className='rounded w-full text-base sm:text-lg py-2 px-2 border focus-within:outline-none' onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
-              <ul className={`shadow-xl border-2 border-slate-200 rounded-tl rounded-tr absolute bottom-full left-0 w-full flex flex-col divide-y bg-white max-h-[50ch] overflow-y-auto ${visible?"":"hidden"}`}>
+              <input placeholder='Search for movie title' type="text" className='rounded w-full text-base sm:text-lg py-2 px-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white focus-within:outline-none' onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
+              <ul className={`shadow-xl border-2 border-slate-200 dark:border-gray-600 rounded-tl rounded-tr absolute bottom-full left-0 w-full flex flex-col divide-y dark:divide-gray-600 bg-white dark:bg-gray-800 max-h-[50ch] overflow-y-auto ${visible?"":"hidden"}`}>
                 {
                   movieSearchList.length > 0 ? (
                     movieSearchList.map((item,index)=>{
                       return(
-                        <li key={item.id} className={`cursor-pointer hover:bg-gray-100 p-2 ${selectedIndex === index ? 'bg-blue-100' : ''}`} onClick={()=>setSelectedMovie(item)}>
+                        <li key={item.id} className={`cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-2 dark:text-white ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`} onClick={()=>setSelectedMovie(item)}>
                           {highlightMatch(item.title||item.original_title, selectedMovie.original_title)} ({new Date(item.release_date).getFullYear()})
                         </li>
                       )
                     })
                   ) : (
-                    <li className='p-4 text-center text-gray-500'>No movies found</li>
+                    <li className='p-4 text-center text-gray-500 dark:text-gray-400'>No movies found</li>
                   )
                 }
               </ul>
             </div>
-            <input type="submit" value={"Try"} className='w-full rounded bg-blue-500 text-white font-semibold py-2 px-4'/>
+            <input type="submit" value={"Try"} className='w-full rounded bg-blue-500 text-white font-semibold py-2 px-4 hover:bg-blue-600 dark:hover:bg-blue-700'/>
         </form>
       </div>
     </>

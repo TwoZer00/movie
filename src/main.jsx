@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import Menu from './pages/Menu'
 import Init from './pages/Init'
 import LinkGame from './pages/LinkGame'
+import Settings from './pages/Settings'
 import ErrorBoundary from './ErrorBoundary'
 
 const router = createBrowserRouter([
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
       {
         path: "/link",
         element: <LinkGame/>,
+      },
+      {
+        path: "/settings",
+        element: <Settings/>,
       }
     ]
   }

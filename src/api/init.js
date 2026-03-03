@@ -99,6 +99,10 @@ const getCustomSearchMovie = async (options) => {
     optionsURL.append("vote_count.gte", "1000");
   }
   
+  // Random page between 1-50 for variety (safer range)
+  const randomPage = Math.floor(Math.random() * 50) + 1;
+  optionsURL.append("page", randomPage);
+  
   let endpoint = `${!window.location.search.includes("movie") ? "discover" : "trending"}/movie`
   endpoint = `${endpoint}${window.location.search.includes("movie") ? "/day" : ""}`
   const response = await fetch(`${URL}/${endpoint}?${optionsURL.toString()}`, {
@@ -110,6 +114,21 @@ const getCustomSearchMovie = async (options) => {
   });
   const data = await response.json();
   const movies = data.results;
+  
+  if (!movies || movies.length === 0) {
+    // Retry with page 1 if no results
+    optionsURL.set("page", "1");
+    const retryResponse = await fetch(`${URL}/${endpoint}?${optionsURL.toString()}`, {
+      method: "GET",
+      headers: {
+        accept: 'application/json',
+        Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
+      }
+    });
+    const retryData = await retryResponse.json();
+    return retryData.results[Math.floor(Math.random() * retryData.results.length)];
+  }
+  
   const movie = movies[Math.floor(Math.random() * movies.length)];
   return movie;
 };
