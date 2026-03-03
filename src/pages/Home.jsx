@@ -1,5 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
-import { useEffect } from "react"
+import { useRef, useState, useCallback, useEffect, useMemo, memo } from 'react';
 import { getMoviesByName, getValidMovie, getDailyMovie, getCastFromMovie } from "../api/init";
 import { IMG_URL, PROFILE_SIZE, BACKDROP_SIZE, POSTER_SIZE } from '../api/utils/const';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -37,6 +36,11 @@ export default function Home() {
   const [soundEnabled,setSoundEnabled] = useState(localStorage.getItem('soundEnabled') !== 'false');
   const winAudio = useRef(new Audio(winSound));
   const lossAudio = useRef(new Audio(lossSound));
+  const searchTimeout = useRef(null);
+  const [visible,setVisible] = useState(false);
+  const [selectedIndex,setSelectedIndex] = useState(-1);
+  const [expandedTries,setExpandedTries] = useState([]);
+
   useEffect(() => {
     if(lStatus.current!=loadStatus.loading){
       const isDaily = new URLSearchParams(window.location.search).get('daily') === 'true';
@@ -60,6 +64,11 @@ export default function Home() {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const showHints = useCallback(()=>{
+    setHints([...cast]);
+  },[cast]);
+
   const handleSubmit = useCallback((e)=>{
     e.preventDefault();
     if(!selectedMovie.id) return;
@@ -68,7 +77,6 @@ export default function Home() {
         const today = new Date().toISOString().split('T')[0];
         localStorage.setItem(`daily_${today}`, 'completed');
       }
-      // Update stats
       const stats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"losses":0,"currentStreak":0,"maxStreak":0}');
       stats.wins++;
       stats.currentStreak++;
@@ -86,7 +94,6 @@ export default function Home() {
         const today = new Date().toISOString().split('T')[0];
         localStorage.setItem(`daily_${today}`, 'completed');
       }
-      // Update stats
       const stats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"losses":0,"currentStreak":0,"maxStreak":0}');
       stats.losses++;
       stats.currentStreak = 0;
@@ -109,8 +116,8 @@ export default function Home() {
       return temp;
     });
     e.target.querySelector("input").focus();
-  },[selectedMovie, movie, tries.length, cast, isDailyChallenge]);
-  let searchTimeout = useRef(null);
+  },[selectedMovie, movie, tries.length, cast, isDailyChallenge, soundEnabled]);
+
   const handleChange = useCallback((e) => {
     const movie = {original_title:e.target.value}
   
@@ -137,9 +144,6 @@ export default function Home() {
       setMovieSearchList([]);
     }
   },[]);
-  const [visible,setVisible] = useState(false);
-  const [selectedIndex,setSelectedIndex] = useState(-1);
-  const [expandedTries,setExpandedTries] = useState([]);
   
   const handleKeyDown = useCallback((e) => {
     if (!visible || movieSearchList.length === 0) return;
@@ -160,30 +164,28 @@ export default function Home() {
     }
   },[visible, movieSearchList, selectedIndex]);
   
-  const highlightMatch = (text, query) => {
+  const highlightMatch = useCallback((text, query) => {
     if (!query) return text;
     const parts = text.split(new RegExp(`(${query})`, 'gi'));
     return parts.map((part, i) => 
       part.toLowerCase() === query.toLowerCase() ? 
         <strong key={i}>{part}</strong> : part
     );
-  };
+  },[]);
   
   const handleBlur = useCallback(()=>{
     setTimeout(()=>{
       setVisible(false);
     },100)
   },[]);
-  const handleLoad = useCallback((e)=>{
-    e.target.style.opacity = 1;
-  },[]);
+
   useEffect(()=>{
     if(gameStatus===gameStatusVal.finished){
       showHints();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[gameStatus])
-  const reset = async ()=>{
+  },[gameStatus, showHints])
+
+  const reset = useCallback(async ()=>{
     setLoading(true);
     setTries([]);
     setMovieSearchList([]);
@@ -191,10 +193,7 @@ export default function Home() {
     setShowModal(false);
     fetchData();
     setSelectedMovie({original_title:""});
-  }
-  const showHints = ()=>{
-    setHints([...cast]);
-  }
+  },[]);
 
   const fetchData = async ()=>{
     lStatus.current = loadStatus.loading
@@ -228,18 +227,30 @@ export default function Home() {
       navigate('/');
     }
   }
+
+  const posterUrl = useMemo(() => 
+    movie?.poster_path ? `${IMG_URL}${POSTER_SIZE.lg}/${movie.poster_path}` : null,
+    [movie?.poster_path]
+  );
+
+  const handleSkip = useCallback(() => {
+    setIsWin(false);
+    setShowModal(true);
+    setGameStatus(gameStatusVal.finished);
+    showHints();
+  }, [showHints]);
+
   return (
     <>
       {showModal && <Modal isWin={isWin} movie={movie} onClose={isDailyChallenge ? ()=>navigate('/') : reset} isDailyChallenge={isDailyChallenge} soundEnabled={soundEnabled} setSoundEnabled={setSoundEnabled} />}
       {loading && <Loader />}
-      <SkipButton onSkip={()=>{setIsWin(false);setShowModal(true);setGameStatus(gameStatusVal.finished);showHints();}} disabled={isDailyChallenge} />
+      <SkipButton onSkip={handleSkip} disabled={isDailyChallenge} />
       <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden'>
-        {/* <Ad/> */}
         <div className='py-2 flex flex-row items-start gap-3 sm:gap-4 max-w-4xl mx-auto'>
           <div className='flex-shrink-0'>
             <div className='aspect-[2/3] w-24 sm:w-32 flex justify-center shadow-lg rounded overflow-hidden' >{
               gameStatus===gameStatusVal.finished ?
-                <img src={`${IMG_URL}${POSTER_SIZE.lg}/${movie?.poster_path}`} className='object-cover w-full h-full animate-fadeIn' loading="lazy" alt="" />
+                <img src={posterUrl} className='object-cover w-full h-full animate-fadeIn' loading="lazy" alt="Movie poster" />
               :
               <div className='w-full h-full bg-gray-200 flex items-center justify-center'>
                 <span className='text-4xl'>?</span>
@@ -272,70 +283,30 @@ export default function Home() {
           <p className='text-xs text-gray-500 uppercase tracking-wide mb-3 text-center'>Cast Members</p>
           <div className="grid grid-cols-5 gap-2 sm:gap-3 max-w-2xl mx-auto">
             {
-              hints?.map((item,index)=>{
-                return(
-                  <div className='flex flex-col animate-fadeIn' key={item.id} style={{animationDelay: `${index * 100}ms`}}>
-                    <div className='rounded-lg overflow-hidden shadow-md border-2 border-gray-200 aspect-square bg-gray-100'>
-                      <img src={`${IMG_URL}${PROFILE_SIZE.md}/${item?.profile_path}`} key={item.id} className='opacity-0 transition-opacity h-full w-full object-cover' alt="" onLoad={handleLoad} loading="lazy" />
-                    </div>
-                    <p className='text-center text-xs sm:text-sm font-medium mt-1 line-clamp-2'>{item?.name||item?.original_name}</p>
-                    {gameStatus===gameStatusVal.finished && item.profile_path && (
-                      <p className='text-xs text-center text-gray-500 italic'>{item?.character}</p>
-                    )}
-                  </div>
-                )
-              }) 
+              hints?.map((item,index)=>(
+                <CastMember 
+                  key={item.id} 
+                  item={item} 
+                  index={index} 
+                  gameStatus={gameStatus}
+                  gameStatusVal={gameStatusVal}
+                />
+              ))
             }
           </div>
         </div>
         <div className='flex-1 border px-2 rounded flex flex-col gap-1 overflow-y-auto min-h-0'>
           <p className='text-right font-semibold sticky top-0 bg-white py-1'>Tries {Math.abs(tries.length-5)}/5</p>
-          {tries.map((item,index)=>{
-            const isExpanded = expandedTries.includes(index);
-            const guessYear = new Date(item.release_date).getFullYear();
-            const targetYear = new Date(movie.release_date).getFullYear();
-            const yearDiff = Math.abs(guessYear - targetYear);
-            const isMatch = guessYear === targetYear;
-            const isClose = yearDiff <= 5;
-            const genreMatches = item.genre_ids.filter(id => movie?.genre_ids.includes(id)).length;
-            const totalGenres = item.genre_ids.length;
-            
-            return(
-              <div key={item.id} className='p-2 border-2 rounded-lg bg-white shadow-sm animate-slideIn hover:shadow-md transition-shadow cursor-pointer' style={{animationDelay: `${index * 50}ms`}} onClick={()=>setExpandedTries(prev => prev.includes(index) ? prev.filter(i=>i!==index) : [...prev, index])}>
-                <div className='flex justify-between items-center gap-2'>
-                  <p className='font-semibold text-sm flex-1'>{item.title||item.original_title}</p>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${
-                    isMatch ? "bg-green-500 text-white" : 
-                    isClose ? "bg-yellow-400 text-black" : 
-                    "bg-red-400 text-white"
-                  }`}>
-                    {guessYear}
-                    {!isMatch && (guessYear < targetYear ? " ↑" : " ↓")}
-                  </span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    genreMatches === totalGenres ? "bg-green-500 text-white" :
-                    genreMatches > 0 ? "bg-yellow-400 text-black" :
-                    "bg-gray-200 text-gray-600"
-                  }`}>
-                    {genreMatches}/{totalGenres}
-                  </span>
-                  <span className='text-gray-400'>{isExpanded ? '▲' : '▼'}</span>
-                </div>
-                {isExpanded && (
-                  <div className='flex flex-wrap gap-1 mt-2'>
-                    {item.genre_ids.map(genreId=>{
-                      const isMatch = genreId===movie?.genre_ids.find(genre=>genre===genreId);
-                      return(
-                        <span key={genreId} className={`px-2 py-0.5 rounded-full text-xs font-medium ${isMatch?"bg-green-500 text-white":"bg-gray-200 text-gray-600"}`}>
-                          {genres.find(genre=>genre.id===genreId)?.name}
-                        </span>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            )
-          })}
+          {tries.map((item,index)=>(
+            <TryItem 
+              key={item.id} 
+              item={item} 
+              index={index} 
+              movie={movie}
+              expandedTries={expandedTries}
+              setExpandedTries={setExpandedTries}
+            />
+          ))}
         </div>
         <form onSubmit={handleSubmit} className='flex-0 relative flex flex-col gap-2'>
             <div className='relative flex-1'>
@@ -363,25 +334,109 @@ export default function Home() {
   )
 }
 
+const CastMember = memo(({item, index, gameStatus, gameStatusVal}) => {
+  const [loaded, setLoaded] = useState(false);
+  const imageUrl = useMemo(() => 
+    `${IMG_URL}${PROFILE_SIZE.md}/${item?.profile_path}`,
+    [item?.profile_path]
+  );
 
-const Modal = ({isWin, movie, onClose, isDailyChallenge, soundEnabled, setSoundEnabled}) => {
+  return (
+    <div className='flex flex-col animate-fadeIn' style={{animationDelay: `${index * 100}ms`}}>
+      <div className='rounded-lg overflow-hidden shadow-md border-2 border-gray-200 aspect-square bg-gray-100'>
+        <img 
+          src={imageUrl} 
+          className={`transition-opacity duration-300 h-full w-full object-cover ${loaded ? 'opacity-100' : 'opacity-0'}`}
+          alt={item?.name || item?.original_name}
+          onLoad={() => setLoaded(true)}
+          loading="lazy"
+        />
+      </div>
+      <p className='text-center text-xs sm:text-sm font-medium mt-1 line-clamp-2'>{item?.name||item?.original_name}</p>
+      {gameStatus===gameStatusVal.finished && item.profile_path && (
+        <p className='text-xs text-center text-gray-500 italic'>{item?.character}</p>
+      )}
+    </div>
+  );
+});
+
+const TryItem = memo(({item, index, movie, expandedTries, setExpandedTries}) => {
+  const isExpanded = expandedTries.includes(index);
+  
+  const yearData = useMemo(() => {
+    const guessYear = new Date(item.release_date).getFullYear();
+    const targetYear = new Date(movie.release_date).getFullYear();
+    const yearDiff = Math.abs(guessYear - targetYear);
+    const isMatch = guessYear === targetYear;
+    const isClose = yearDiff <= 5;
+    return { guessYear, targetYear, isMatch, isClose };
+  }, [item.release_date, movie.release_date]);
+
+  const genreData = useMemo(() => {
+    const genreMatches = item.genre_ids.filter(id => movie?.genre_ids.includes(id)).length;
+    const totalGenres = item.genre_ids.length;
+    return { genreMatches, totalGenres };
+  }, [item.genre_ids, movie?.genre_ids]);
+
+  const toggleExpand = useCallback(() => {
+    setExpandedTries(prev => prev.includes(index) ? prev.filter(i=>i!==index) : [...prev, index]);
+  }, [index, setExpandedTries]);
+
+  return (
+    <div className='p-2 border-2 rounded-lg bg-white shadow-sm animate-slideIn hover:shadow-md transition-shadow cursor-pointer' style={{animationDelay: `${index * 50}ms`}} onClick={toggleExpand}>
+      <div className='flex justify-between items-center gap-2'>
+        <p className='font-semibold text-sm flex-1'>{item.title||item.original_title}</p>
+        <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${
+          yearData.isMatch ? "bg-green-500 text-white" : 
+          yearData.isClose ? "bg-yellow-400 text-black" : 
+          "bg-red-400 text-white"
+        }`}>
+          {yearData.guessYear}
+          {!yearData.isMatch && (yearData.guessYear < yearData.targetYear ? " ↑" : " ↓")}
+        </span>
+        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+          genreData.genreMatches === genreData.totalGenres ? "bg-green-500 text-white" :
+          genreData.genreMatches > 0 ? "bg-yellow-400 text-black" :
+          "bg-gray-200 text-gray-600"
+        }`}>
+          {genreData.genreMatches}/{genreData.totalGenres}
+        </span>
+        <span className='text-gray-400'>{isExpanded ? '▲' : '▼'}</span>
+      </div>
+      {isExpanded && (
+        <div className='flex flex-wrap gap-1 mt-2'>
+          {item.genre_ids.map(genreId=>{
+            const isMatch = genreId===movie?.genre_ids.find(genre=>genre===genreId);
+            return(
+              <span key={genreId} className={`px-2 py-0.5 rounded-full text-xs font-medium ${isMatch?"bg-green-500 text-white":"bg-gray-200 text-gray-600"}`}>
+                {genres.find(genre=>genre.id===genreId)?.name}
+              </span>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  );
+});
+
+const Modal = memo(({isWin, movie, onClose, isDailyChallenge, soundEnabled, setSoundEnabled}) => {
   const [copied, setCopied] = useState(false);
   const stats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"losses":0,"currentStreak":0,"maxStreak":0}');
   const totalGames = stats.wins + stats.losses;
   const winRate = totalGames > 0 ? Math.round((stats.wins / totalGames) * 100) : 0;
   
-  const toggleSound = () => {
+  const toggleSound = useCallback(() => {
     const newValue = !soundEnabled;
     setSoundEnabled(newValue);
     localStorage.setItem('soundEnabled', newValue);
-  };
+  },[soundEnabled, setSoundEnabled]);
   
-  const resetStats = () => {
+  const resetStats = useCallback(() => {
     if(confirm('Reset all statistics?')) {
       localStorage.setItem('gameStats', JSON.stringify({wins:0,losses:0,currentStreak:0,maxStreak:0}));
       window.location.reload();
     }
-  };
+  },[]);
   
   useEffect(() => {
     if (isWin) {
@@ -424,7 +479,7 @@ const Modal = ({isWin, movie, onClose, isDailyChallenge, soundEnabled, setSoundE
     }
   }, [isWin]);
   
-  const shareResults = () => {
+  const shareResults = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
     const emoji = isWin ? '🎬' : '❌';
     const result = isWin ? 'Won' : 'Lost';
@@ -437,7 +492,7 @@ Play at: ${window.location.origin}`;
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
-  };
+  },[isWin, isDailyChallenge]);
   
   return (
     <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fadeIn' onClick={onClose}>
@@ -486,9 +541,7 @@ Play at: ${window.location.origin}`;
       </div>
     </div>
   )
-}
-
-
+});
 
 const Loader = () => {
   return (
@@ -500,26 +553,7 @@ const Loader = () => {
   )
 }
 
-
-const CompletedModal = ({navigate}) => {
-  return (
-    <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fadeIn'>
-      <div className='bg-white rounded-lg p-8 max-w-md mx-4 text-center animate-scaleIn'>
-        <h2 className='text-3xl font-bold mb-4'>Already Completed!</h2>
-        <p className='text-lg mb-6'>You already completed today's challenge. Come back tomorrow!</p>
-        <button onClick={()=>navigate('/')} className='bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors'>
-          Back to Menu
-        </button>
-      </div>
-    </div>
-  )
-}
-
-
-
-
-
-const SkipButton = ({onSkip, disabled}) => {
+const SkipButton = memo(({onSkip, disabled}) => {
   useEffect(() => {
     if (!disabled) {
       const header = document.querySelector('header');
@@ -534,4 +568,4 @@ const SkipButton = ({onSkip, disabled}) => {
   }, [onSkip, disabled]);
   
   return null;
-};
+});
