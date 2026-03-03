@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import Menu from './pages/Menu'
 import Init from './pages/Init'
 import LinkGame from './pages/LinkGame'
+import ErrorBoundary from './ErrorBoundary'
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <ErrorBoundary>
+      <RouterProvider router={router} />
+    </ErrorBoundary>
   </StrictMode>,
 )

@@ -4,34 +4,34 @@ import { getCountries } from '../api/utils/utils'
 import { useNavigate } from 'react-router-dom'
 export default function Menu() {
   const [options,setOptions] = useState({})
+  const [dailyCompleted,setDailyCompleted] = useState(false)
   const navigate = useNavigate();
+  
+  useEffect(()=>{
+    const today = new Date().toISOString().split('T')[0];
+    const completed = localStorage.getItem(`daily_${today}`);
+    setDailyCompleted(!!completed);
+  },[]);
   return (
-    <div className='flex flex-col flex-1  items-center'>
-      <div className='w-fit h-2/3 p-1 flex flex-col gap-4'>
-        <div className=''>
-          <form action="" className='flex flex-row gap-3'>
-            <GenreSelect options={setOptions}/>
-            <DecadeSelect options={setOptions}/>
-            <RegionSelect options={setOptions}/>
-          </form>
+    <div className='flex flex-col flex-1 items-center justify-center gap-8 p-4'>
+      <div className='w-full max-w-2xl flex flex-col gap-6'>
+        <div className='flex flex-row gap-3 justify-center flex-wrap'>
+          <GenreSelect options={setOptions}/>
+          <DecadeSelect options={setOptions}/>
+          <RegionSelect options={setOptions}/>
         </div>
-      <div className='flex flex-1 gap-2  text-center items-start'>
-        {/* <button className='bg-blue-500 text-white rounded-md py-2 px-8 h-fit' onClick={()=>{navigate("/play",{ state:options})
-        }} >Play</button>
-        <button className='bg-blue-500 text-white rounded-md py-2 px-8 h-fit' onClick={()=>{navigate("/play?movie=today", { state:options})
-        }} >Movie of the day</button>
-        <button className='bg-blue-500 text-white rounded-md py-2 px-8 h-fit' onClick={()=>{navigate("/link", { state:options})
-        }} >Link</button> */}
-        <button className='w-full py-2 shadow-md text-2xl font-semibold uppercase rounded-lg bg-gray-200  hover:bg-gray-300 transition-all' onClick={()=>{navigate("/play",{ state:options})}}>
-          Play
-        </button>
-        {/* <button className='w-36 py-8 text-2xl font-semibold uppercase rounded-lg border border-sky-600 hover:border-2 hover:shadow' onClick={()=>{navigate("/play?movie=today", { state:options})}}>
-          Movie of the day
-        </button>
-        <button className='w-36 py-8 text-2xl font-semibold uppercase rounded-lg border border-sky-600 hover:border-2 hover:shadow' onClick={()=>{navigate("/link", { state:options})}}>
-          Link
-        </button> */}
-      </div>
+        
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+          <button className='py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg bg-gray-200 hover:bg-gray-300 transition-all' onClick={()=>{navigate("/play",{ state:options})}}>
+            Play
+          </button>
+          <button className={`py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg transition-all relative ${dailyCompleted ? 'bg-gray-300 cursor-not-allowed opacity-60' : 'bg-yellow-200 hover:bg-yellow-300'}`} onClick={()=>{navigate("/play?daily=true")}} disabled={dailyCompleted}>
+            Daily Challenge
+            {dailyCompleted && <span className='absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>✓ Completed</span>}
+          </button>
+        </div>
+        
+        <CountdownTimer />
       </div>
     </div>
   )
@@ -191,7 +191,7 @@ const RegionSelect = ({options})=>{
     </select>
     {selectedCountries.length > 0 &&
     <button type='button' onClick={handleClear}>
-      <svg xmlns="XXXXXXXXXXXXXXXXXXXXXXXXXX" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
         </svg>
     </button>}
@@ -202,3 +202,34 @@ const RegionSelect = ({options})=>{
 const getCountriesFromRegion = (region,countries) => {
   return countries.filter(country => country.region === region).map(item=> item.cca2)
 }
+
+
+const CountdownTimer = () => {
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    const updateTimer = () => {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      
+      const diff = tomorrow - now;
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <p className='text-center text-sm text-gray-500 mt-2'>
+      Next challenge in: {timeLeft}
+    </p>
+  );
+};

@@ -92,6 +92,13 @@ const getGenres = async () => {
 const getCustomSearchMovie = async (options) => {
   const optionsURL = new URLSearchParams(options);
   optionsURL.append("language", LANG);
+  
+  // Easy mode: if no filters, use recent popular movies
+  if (!options || Object.keys(options).length === 0) {
+    optionsURL.append("primary_release_date.gte", "2015-01-01");
+    optionsURL.append("vote_count.gte", "1000");
+  }
+  
   let endpoint = `${!window.location.search.includes("movie") ? "discover" : "trending"}/movie`
   endpoint = `${endpoint}${window.location.search.includes("movie") ? "/day" : ""}`
   const response = await fetch(`${URL}/${endpoint}?${optionsURL.toString()}`, {
@@ -107,28 +114,20 @@ const getCustomSearchMovie = async (options) => {
   return movie;
 };
 const getValidMovie = async (options) => {
-  // console.log(options,new URLSearchParams(options).toString());
   console.log("getting movies");
   const movie = await getCustomSearchMovie(options);
-  // const movie = await getRandomMovie();
-  // const movie = await getMovie(550);
   const credits = await getCastFromMovie(movie.id)
   if (credits.cast.length < 10) {
-    getValidMovie()
-    console.log("error a");
+    return getValidMovie(options);
   }
   if (!credits.cast.find(item => item.order === 0)?.profile_path) {
-    getValidMovie()
-    console.log("error b");
+    return getValidMovie(options);
   }
 
   const cast = credits.cast.filter((item) => item?.profile_path !== null && item?.cast_id !== null && item?.id !== null);
   if (cast.length < 10) {
-    getValidMovie()
-    console.log("error c");
+    return getValidMovie(options);
   }
-  
-  // console.log("movie returned:", movie.id);
   
   return [movie, cast];
 };
@@ -151,4 +150,52 @@ const getValidMovie = async (options) => {
 
 
 
-export { getMovies, getCastFromMovie, getMovie, getMoviesByName, getRandomMovie, getValidMovie, getGenres };
+const getDailyMovie = async () => {
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Simple hash function for better distribution
+  const hash = today.split('').reduce((acc, char) => {
+    return ((acc << 5) - acc) + char.charCodeAt(0);
+  }, 0);
+  
+  let pageNumber = (Math.abs(hash) % 500) + 1;
+  let movieIndex = Math.abs(hash >> 8) % 20;
+  let attempts = 0;
+  
+  while (attempts < 10) {
+    const optionsURL = new URLSearchParams();
+    optionsURL.append("language", LANG);
+    optionsURL.append("primary_release_date.gte", "2015-01-01");
+    optionsURL.append("vote_count.gte", "1000");
+    optionsURL.append("page", pageNumber);
+    
+    const response = await fetch(`${URL}/discover/movie?${optionsURL.toString()}`, {
+      method: "GET",
+      headers: {
+        accept: 'application/json',
+        Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
+      }
+    });
+    const data = await response.json();
+    const movies = data.results;
+    const movie = movies[movieIndex] || movies[0];
+    
+    // Validate movie has enough cast with photos
+    const credits = await getCastFromMovie(movie.id);
+    const validCast = credits.cast.filter((item) => item?.profile_path !== null && item?.cast_id !== null && item?.id !== null);
+    
+    if (validCast.length >= 10 && credits.cast.find(item => item.order === 0)?.profile_path) {
+      return movie;
+    }
+    
+    // Try next movie
+    attempts++;
+    movieIndex = (movieIndex + 1) % 20;
+  }
+  
+  // Fallback to regular getValidMovie if no valid daily movie found
+  const [movie] = await getValidMovie();
+  return movie;
+};
+
+export { getMovies, getCastFromMovie, getMovie, getMoviesByName, getRandomMovie, getValidMovie, getGenres, getDailyMovie };
