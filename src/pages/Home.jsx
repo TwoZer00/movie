@@ -1,22 +1,15 @@
-import { useRef, useState, useCallback, useEffect, useMemo, memo } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { getMoviesByName, getValidMovie, getDailyMovie, getCastFromMovie } from "../api/init";
-import { IMG_URL, PROFILE_SIZE, BACKDROP_SIZE, POSTER_SIZE } from '../api/utils/const';
+import { IMG_URL, POSTER_SIZE } from '../api/utils/const';
 import { useLocation, useNavigate } from 'react-router-dom';
 import genres from '../resources/genre.json'
 import winSound from '../resources/win_sound.wav'
 import lossSound from '../resources/loss_sound.wav'
-
-const gameStatusVal = {
-  playing:2,
-  won:1,
-  lost:0,
-  finished:3
-}
-const loadStatus = {
-  loading:0,
-  loaded:1,
-  error:2
-}
+import CastMember from '../components/CastMember';
+import TryItem from '../components/TryItem';
+import Modal from '../components/Modal';
+import { Loader, SkipButton } from '../components/UIComponents';
+import { gameStatusVal, loadStatus } from '../utils/constants';
 
 export default function Home() {
   const [cast,setCast] = useState([]);
@@ -41,6 +34,39 @@ export default function Home() {
   const [selectedIndex,setSelectedIndex] = useState(-1);
   const [expandedTries,setExpandedTries] = useState([]);
 
+  const fetchData = useCallback(async ()=>{
+    lStatus.current = loadStatus.loading
+    try {
+      let movie, cast;
+      
+      if(isDailyChallenge) {
+        movie = await getDailyMovie();
+        const credits = await getCastFromMovie(movie.id);
+        cast = credits.cast.filter((item) => item?.profile_path !== null && item?.cast_id !== null && item?.id !== null);
+      } else {
+        [movie, cast] = await getValidMovie(location.state);
+      }
+      
+      const sortedCast = cast
+        .sort((a, b) => b.popularity - a.popularity)
+        .slice(0, 5)
+        .sort((a, b) => b.order - a.order);
+
+      setMovie(movie);
+      setHints(sortedCast.map((item, index) => 
+        index === 0 ? item : { id: item.id }
+      ));
+      setCast(sortedCast);
+      setLoading(false);
+    } catch (error) {
+      lStatus.current = loadStatus.error
+      console.error('Error fetching movie data:', error);
+      setLoading(false);
+      alert('Failed to load movie. Please try again.');
+      navigate('/');
+    }
+  },[isDailyChallenge, location.state, navigate]);
+
   useEffect(() => {
     if(lStatus.current!=loadStatus.loading){
       const isDaily = new URLSearchParams(window.location.search).get('daily') === 'true';
@@ -62,8 +88,7 @@ export default function Home() {
         clearTimeout(searchTimeout.current);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchData, navigate]);
 
   const showHints = useCallback(()=>{
     setHints([...cast]);
@@ -193,40 +218,7 @@ export default function Home() {
     setShowModal(false);
     fetchData();
     setSelectedMovie({original_title:""});
-  },[]);
-
-  const fetchData = async ()=>{
-    lStatus.current = loadStatus.loading
-    try {
-      let movie, cast;
-      
-      if(isDailyChallenge) {
-        movie = await getDailyMovie();
-        const credits = await getCastFromMovie(movie.id);
-        cast = credits.cast.filter((item) => item?.profile_path !== null && item?.cast_id !== null && item?.id !== null);
-      } else {
-        [movie, cast] = await getValidMovie(location.state);
-      }
-      
-      const sortedCast = cast
-        .sort((a, b) => b.popularity - a.popularity)
-        .slice(0, 5)
-        .sort((a, b) => b.order - a.order);
-
-      setMovie(movie);
-      setHints(sortedCast.map((item, index) => 
-        index === 0 ? item : { id: item.id }
-      ));
-      setCast(sortedCast);
-      setLoading(false);
-    } catch (error) {
-      lStatus.current = loadStatus.error
-      console.error('Error fetching movie data:', error);
-      setLoading(false);
-      alert('Failed to load movie. Please try again.');
-      navigate('/');
-    }
-  }
+  },[fetchData]);
 
   const posterUrl = useMemo(() => 
     movie?.poster_path ? `${IMG_URL}${POSTER_SIZE.lg}/${movie.poster_path}` : null,
@@ -333,239 +325,3 @@ export default function Home() {
     </>
   )
 }
-
-const CastMember = memo(({item, index, gameStatus, gameStatusVal}) => {
-  const [loaded, setLoaded] = useState(false);
-  const imageUrl = useMemo(() => 
-    `${IMG_URL}${PROFILE_SIZE.md}/${item?.profile_path}`,
-    [item?.profile_path]
-  );
-
-  return (
-    <div className='flex flex-col animate-fadeIn' style={{animationDelay: `${index * 100}ms`}}>
-      <div className='rounded-lg overflow-hidden shadow-md border-2 border-gray-200 aspect-square bg-gray-100'>
-        <img 
-          src={imageUrl} 
-          className={`transition-opacity duration-300 h-full w-full object-cover ${loaded ? 'opacity-100' : 'opacity-0'}`}
-          alt={item?.name || item?.original_name}
-          onLoad={() => setLoaded(true)}
-          loading="lazy"
-        />
-      </div>
-      <p className='text-center text-xs sm:text-sm font-medium mt-1 line-clamp-2'>{item?.name||item?.original_name}</p>
-      {gameStatus===gameStatusVal.finished && item.profile_path && (
-        <p className='text-xs text-center text-gray-500 italic'>{item?.character}</p>
-      )}
-    </div>
-  );
-});
-
-const TryItem = memo(({item, index, movie, expandedTries, setExpandedTries}) => {
-  const isExpanded = expandedTries.includes(index);
-  
-  const yearData = useMemo(() => {
-    const guessYear = new Date(item.release_date).getFullYear();
-    const targetYear = new Date(movie.release_date).getFullYear();
-    const yearDiff = Math.abs(guessYear - targetYear);
-    const isMatch = guessYear === targetYear;
-    const isClose = yearDiff <= 5;
-    return { guessYear, targetYear, isMatch, isClose };
-  }, [item.release_date, movie.release_date]);
-
-  const genreData = useMemo(() => {
-    const genreMatches = item.genre_ids.filter(id => movie?.genre_ids.includes(id)).length;
-    const totalGenres = item.genre_ids.length;
-    return { genreMatches, totalGenres };
-  }, [item.genre_ids, movie?.genre_ids]);
-
-  const toggleExpand = useCallback(() => {
-    setExpandedTries(prev => prev.includes(index) ? prev.filter(i=>i!==index) : [...prev, index]);
-  }, [index, setExpandedTries]);
-
-  return (
-    <div className='p-2 border-2 rounded-lg bg-white shadow-sm animate-slideIn hover:shadow-md transition-shadow cursor-pointer' style={{animationDelay: `${index * 50}ms`}} onClick={toggleExpand}>
-      <div className='flex justify-between items-center gap-2'>
-        <p className='font-semibold text-sm flex-1'>{item.title||item.original_title}</p>
-        <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${
-          yearData.isMatch ? "bg-green-500 text-white" : 
-          yearData.isClose ? "bg-yellow-400 text-black" : 
-          "bg-red-400 text-white"
-        }`}>
-          {yearData.guessYear}
-          {!yearData.isMatch && (yearData.guessYear < yearData.targetYear ? " ↑" : " ↓")}
-        </span>
-        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-          genreData.genreMatches === genreData.totalGenres ? "bg-green-500 text-white" :
-          genreData.genreMatches > 0 ? "bg-yellow-400 text-black" :
-          "bg-gray-200 text-gray-600"
-        }`}>
-          {genreData.genreMatches}/{genreData.totalGenres}
-        </span>
-        <span className='text-gray-400'>{isExpanded ? '▲' : '▼'}</span>
-      </div>
-      {isExpanded && (
-        <div className='flex flex-wrap gap-1 mt-2'>
-          {item.genre_ids.map(genreId=>{
-            const isMatch = genreId===movie?.genre_ids.find(genre=>genre===genreId);
-            return(
-              <span key={genreId} className={`px-2 py-0.5 rounded-full text-xs font-medium ${isMatch?"bg-green-500 text-white":"bg-gray-200 text-gray-600"}`}>
-                {genres.find(genre=>genre.id===genreId)?.name}
-              </span>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  );
-});
-
-const Modal = memo(({isWin, movie, onClose, isDailyChallenge, soundEnabled, setSoundEnabled}) => {
-  const [copied, setCopied] = useState(false);
-  const stats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"losses":0,"currentStreak":0,"maxStreak":0}');
-  const totalGames = stats.wins + stats.losses;
-  const winRate = totalGames > 0 ? Math.round((stats.wins / totalGames) * 100) : 0;
-  
-  const toggleSound = useCallback(() => {
-    const newValue = !soundEnabled;
-    setSoundEnabled(newValue);
-    localStorage.setItem('soundEnabled', newValue);
-  },[soundEnabled, setSoundEnabled]);
-  
-  const resetStats = useCallback(() => {
-    if(confirm('Reset all statistics?')) {
-      localStorage.setItem('gameStats', JSON.stringify({wins:0,losses:0,currentStreak:0,maxStreak:0}));
-      window.location.reload();
-    }
-  },[]);
-  
-  useEffect(() => {
-    if (isWin) {
-      const duration = 3000;
-      const animationEnd = Date.now() + duration;
-      const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
-
-      const frame = () => {
-        const timeLeft = animationEnd - Date.now();
-        if (timeLeft <= 0) return;
-
-        const particleCount = 3;
-        for (let i = 0; i < particleCount; i++) {
-          const particle = document.createElement('div');
-          particle.style.position = 'fixed';
-          particle.style.left = Math.random() * 100 + '%';
-          particle.style.top = '-10px';
-          particle.style.width = '10px';
-          particle.style.height = '10px';
-          particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-          particle.style.borderRadius = '50%';
-          particle.style.pointerEvents = 'none';
-          particle.style.zIndex = '9999';
-          document.body.appendChild(particle);
-
-          const animation = particle.animate([
-            { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
-            { transform: `translateY(${window.innerHeight}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
-          ], {
-            duration: 2000 + Math.random() * 1000,
-            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-          });
-
-          animation.onfinish = () => particle.remove();
-        }
-
-        requestAnimationFrame(frame);
-      };
-      frame();
-    }
-  }, [isWin]);
-  
-  const shareResults = useCallback(() => {
-    const today = new Date().toISOString().split('T')[0];
-    const emoji = isWin ? '🎬' : '❌';
-    const result = isWin ? 'Won' : 'Lost';
-    const text = `${emoji} Guess the Movie ${isDailyChallenge ? today : ''}
-${result}!
-
-Play at: ${window.location.origin}`;
-    
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  },[isWin, isDailyChallenge]);
-  
-  return (
-    <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fadeIn' onClick={onClose}>
-      <div className='bg-white rounded-lg p-8 max-w-md mx-4 text-center animate-scaleIn' onClick={(e)=>e.stopPropagation()}>
-        <h2 className={`text-4xl font-bold mb-4 ${isWin?'text-green-600':'text-red-600'}`}>
-          {isWin ? '🎉 You Won!' : '😔 You Lost!'}
-        </h2>
-        <p className='text-xl mb-2'>The movie was:</p>
-        <p className='text-2xl font-semibold mb-6'>{movie?.title || movie?.original_title}</p>
-        
-        <div className='grid grid-cols-4 gap-3 mb-6 text-center'>
-          <div>
-            <p className='text-2xl font-bold'>{totalGames}</p>
-            <p className='text-xs text-gray-600'>Played</p>
-          </div>
-          <div>
-            <p className='text-2xl font-bold'>{winRate}%</p>
-            <p className='text-xs text-gray-600'>Win Rate</p>
-          </div>
-          <div>
-            <p className='text-2xl font-bold'>{stats.currentStreak}</p>
-            <p className='text-xs text-gray-600'>Current Streak</p>
-          </div>
-          <div>
-            <p className='text-2xl font-bold'>{stats.maxStreak}</p>
-            <p className='text-xs text-gray-600'>Max Streak</p>
-          </div>
-        </div>
-        <div className='flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center'>
-          <button onClick={onClose} className='bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors'>
-            {isDailyChallenge ? 'Back to Menu' : 'Play Again'}
-          </button>
-          <button onClick={shareResults} className='bg-green-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors'>
-            {copied ? '✓ Copied!' : 'Share Results'}
-          </button>
-        </div>
-        
-        <div className='flex gap-2 justify-center mt-4'>
-          <button onClick={toggleSound} className='text-gray-600 hover:text-gray-800 p-2' title={soundEnabled ? 'Mute' : 'Unmute'}>
-            {soundEnabled ? '🔊' : '🔇'}
-          </button>
-          <button onClick={resetStats} className='text-gray-600 hover:text-gray-800 p-2 text-sm' title='Reset Stats'>
-            🗑️ Reset
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-});
-
-const Loader = () => {
-  return (
-    <div className='fixed inset-0 bg-black/30 flex items-center justify-center z-50'>
-      <div className='bg-white rounded-lg p-8'>
-        <div className='w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
-      </div>
-    </div>
-  )
-}
-
-const SkipButton = memo(({onSkip, disabled}) => {
-  useEffect(() => {
-    if (!disabled) {
-      const header = document.querySelector('header');
-      const button = document.createElement('button');
-      button.className = 'absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition-colors shadow-md';
-      button.textContent = 'Skip';
-      button.onclick = onSkip;
-      header?.appendChild(button);
-      
-      return () => button.remove();
-    }
-  }, [onSkip, disabled]);
-  
-  return null;
-});
