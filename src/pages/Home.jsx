@@ -42,6 +42,9 @@ export default function Home() {
   const [collectionId, setCollectionId] = useState(null);
   const [shakeInput, setShakeInput] = useState(false);
   const [lastTryCount, setLastTryCount] = useState(0);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [matchedGenres, setMatchedGenres] = useState([]);
+  const [yearHints, setYearHints] = useState({ min: null, max: null });
 
   const fetchData = useCallback(async ()=>{
     lStatus.current = loadStatus.loading
@@ -211,6 +214,26 @@ export default function Home() {
       return temp;
     });
     
+    // Track matched genres
+    const matchingGenres = selectedMovie.genre_ids?.filter(gid => movie?.genre_ids?.includes(gid)) || [];
+    if (matchingGenres.length > 0) {
+      setMatchedGenres(prev => [...new Set([...prev, ...matchingGenres])]);
+    }
+    
+    // Track year hints
+    if (selectedMovie.release_date && movie?.release_date) {
+      const guessYear = new Date(selectedMovie.release_date).getFullYear();
+      const targetYear = new Date(movie.release_date).getFullYear();
+      const diff = Math.abs(guessYear - targetYear);
+      
+      if (diff <= 5) {
+        setYearHints(prev => ({
+          min: prev.min ? Math.max(prev.min, targetYear - 10) : targetYear - 10,
+          max: prev.max ? Math.min(prev.max, targetYear + 10) : targetYear + 10
+        }));
+      }
+    }
+    
     setLastTryCount(tries.length + 1);
     
     const title = movie.title || movie.original_title;
@@ -237,20 +260,42 @@ export default function Home() {
   
     if (movie.original_title.trim()) {
       setVisible(true);
+      setSearchLoading(true);
       searchTimeout.current = setTimeout(() => {
         getMoviesByName(movie.original_title)
           .then(data => {
-            setMovieSearchList(data.results);
+            let results = data.results;
+            
+            // Filter by matched genres
+            if (matchedGenres.length > 0) {
+              results = results.filter(m => 
+                m.genre_ids?.some(gid => matchedGenres.includes(gid))
+              );
+            }
+            
+            // Filter by year hints
+            if (yearHints.min !== null && yearHints.max !== null) {
+              results = results.filter(m => {
+                if (!m.release_date) return false;
+                const movieYear = new Date(m.release_date).getFullYear();
+                return movieYear >= yearHints.min && movieYear <= yearHints.max;
+              });
+            }
+            
+            setMovieSearchList(results);
+            setSearchLoading(false);
           })
           .catch(error => {
             console.error('Error fetching movies:', error);
             setMovieSearchList([]);
+            setSearchLoading(false);
           });
       }, 500);
     } else {
       setMovieSearchList([]);
+      setSearchLoading(false);
     }
-  },[]);
+  },[matchedGenres, yearHints]);
   
   const handleKeyDown = useCallback((e) => {
     if (!visible || movieSearchList.length === 0) return;
@@ -301,6 +346,8 @@ export default function Home() {
     setRevealedLetters([]);
     setKeywords([]);
     setDirector(null);
+    setMatchedGenres([]);
+    setYearHints({ min: null, max: null });
     setSelectedMovie({original_title:""});
     fetchData();
   },[fetchData]);
@@ -474,7 +521,14 @@ export default function Home() {
               <input placeholder='Search for movie title' type="text" className={`rounded w-full text-base sm:text-lg py-2 px-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white focus-within:outline-none ${shakeInput ? 'animate-shake border-red-500' : ''}`} onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
               <ul className={`shadow-xl border-2 border-slate-200 dark:border-gray-600 rounded-tl rounded-tr absolute bottom-full left-0 w-full flex flex-col divide-y dark:divide-gray-600 bg-white dark:bg-gray-800 max-h-[50ch] overflow-y-auto ${visible?"":"hidden"}`}>
                 {
-                  movieSearchList.length > 0 ? (
+                  searchLoading ? (
+                    <li className='p-4 text-center text-gray-500 dark:text-gray-400'>
+                      <div className='flex items-center justify-center gap-2'>
+                        <div className='w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
+                        Searching...
+                      </div>
+                    </li>
+                  ) : movieSearchList.length > 0 ? (
                     movieSearchList.map((item,index)=>{
                       return(
                         <li key={item.id} className={`cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-2 dark:text-white ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`} onClick={()=>setSelectedMovie(item)}>
