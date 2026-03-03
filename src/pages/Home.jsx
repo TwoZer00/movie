@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
-import { getMoviesByName, getValidMovie, getDailyMovie, getCastFromMovie } from "../api/init";
+import { getMoviesByName, getValidMovie, getDailyMovie, getCastFromMovie, getKeywords } from "../api/init";
 import { IMG_URL, POSTER_SIZE } from '../api/utils/const';
 import { useLocation, useNavigate } from 'react-router-dom';
 import genres from '../resources/genre.json'
@@ -36,18 +36,45 @@ export default function Home() {
   const [selectedIndex,setSelectedIndex] = useState(-1);
   const [expandedTries,setExpandedTries] = useState([]);
   const [toast, setToast] = useState(null);
+  const [revealedLetters, setRevealedLetters] = useState([]);
+  const [keywords, setKeywords] = useState([]);
+  const [director, setDirector] = useState(null);
+  const [collectionId, setCollectionId] = useState(null);
+  const [shakeInput, setShakeInput] = useState(false);
+  const [lastTryCount, setLastTryCount] = useState(0);
 
   const fetchData = useCallback(async ()=>{
     lStatus.current = loadStatus.loading
     try {
-      let movie, cast;
+      let movie, cast, credits;
       
       if(isDailyChallenge) {
         movie = await getDailyMovie();
-        const credits = await getCastFromMovie(movie.id);
+        credits = await getCastFromMovie(movie.id);
         cast = credits.cast.filter((item) => item?.profile_path !== null && item?.cast_id !== null && item?.id !== null);
       } else {
-        [movie, cast] = await getValidMovie(location.state);
+        // Get updated played movies for collection
+        const stateWithUpdatedPlayed = location.state?.collectionId ? {
+          ...location.state,
+          playedMovies: JSON.parse(localStorage.getItem(`collection_${location.state.collectionId}_played`) || '[]')
+        } : location.state;
+        
+        try {
+          [movie, cast] = await getValidMovie(stateWithUpdatedPlayed);
+          credits = await getCastFromMovie(movie.id);
+        } catch (error) {
+          if (error.message === 'COLLECTION_COMPLETE') {
+            const collectionId = location.state?.collectionId;
+            if (collectionId && confirm('You\'ve played all movies in this collection! Reset and start over?')) {
+              localStorage.removeItem(`collection_${collectionId}_played`);
+              return fetchData();
+            } else {
+              navigate('/');
+              return;
+            }
+          }
+          throw error;
+        }
       }
       
       const sortedCast = cast
@@ -55,11 +82,18 @@ export default function Home() {
         .slice(0, 5)
         .reverse();
 
+      const movieKeywords = await getKeywords(movie.id);
+      const movieDirector = credits.crew.find(person => person.job === 'Director');
+
       setMovie(movie);
       setHints(sortedCast.map((item, index) => 
         index === 0 ? item : { id: item.id }
       ));
       setCast(sortedCast);
+      setKeywords(movieKeywords);
+      setDirector(movieDirector);
+      setRevealedLetters([]);
+      setCollectionId(location.state?.collectionId || null);
       setLoading(false);
     } catch (error) {
       lStatus.current = loadStatus.error
@@ -93,6 +127,25 @@ export default function Home() {
     };
   }, [fetchData, navigate]);
 
+  useEffect(() => {
+    if(gameStatus === gameStatusVal.playing) {
+      const handleKeyDown = (e) => {
+        if(e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+          e.preventDefault();
+        }
+      };
+      const handleContextMenu = (e) => e.preventDefault();
+      
+      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('contextmenu', handleContextMenu);
+      
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+        document.removeEventListener('contextmenu', handleContextMenu);
+      };
+    }
+  }, [gameStatus]);
+
   const showHints = useCallback(()=>{
     setHints([...cast]);
   },[cast]);
@@ -101,6 +154,16 @@ export default function Home() {
     e.preventDefault();
     if(!selectedMovie.id) return;
     if(selectedMovie.original_title===movie.original_title){
+      // Save completed movie for collection
+      if(collectionId) {
+        const playedKey = `collection_${collectionId}_played`;
+        const playedMovies = JSON.parse(localStorage.getItem(playedKey) || '[]');
+        if(!playedMovies.includes(movie.id)) {
+          playedMovies.push(movie.id);
+          localStorage.setItem(playedKey, JSON.stringify(playedMovies));
+        }
+      }
+      
       if(isDailyChallenge) {
         const today = new Date().toISOString().split('T')[0];
         localStorage.setItem(`daily_${today}`, 'completed');
@@ -117,6 +180,10 @@ export default function Home() {
       setGameStatus(gameStatusVal.finished);
       return;
     }
+    
+    // Wrong answer - shake animation
+    setShakeInput(true);
+    setTimeout(() => setShakeInput(false), 500);
     if(tries.length+1>4){
       if(isDailyChallenge) {
         const today = new Date().toISOString().split('T')[0];
@@ -143,8 +210,20 @@ export default function Home() {
       temp[tries.length+1] = cast[tries.length+1];
       return temp;
     });
+    
+    setLastTryCount(tries.length + 1);
+    
+    const title = movie.title || movie.original_title;
+    const letters = title.replace(/[^a-zA-Z]/g, '').split('');
+    const maxReveals = Math.ceil(letters.length * 0.5); // Max 50% of letters
+    if(letters.length > 0 && revealedLetters.length < maxReveals) {
+      const availableIndices = letters.map((_, i) => i).filter(i => !revealedLetters.includes(i));
+      const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+      setRevealedLetters(prev => [...prev, randomIndex]);
+    }
+    
     e.target.querySelector("input").focus();
-  },[selectedMovie, movie, tries.length, cast, isDailyChallenge, soundEnabled]);
+  },[selectedMovie, movie, tries.length, cast, isDailyChallenge, soundEnabled, collectionId]);
 
   const handleChange = useCallback((e) => {
     const movie = {original_title:e.target.value}
@@ -219,21 +298,87 @@ export default function Home() {
     setMovieSearchList([]);
     setGameStatus(gameStatusVal.playing);
     setShowModal(false);
-    fetchData();
+    setRevealedLetters([]);
+    setKeywords([]);
+    setDirector(null);
     setSelectedMovie({original_title:""});
+    fetchData();
   },[fetchData]);
 
   const posterUrl = useMemo(() => 
+    movie?.backdrop_path ? `${IMG_URL}${POSTER_SIZE.lg}/${movie.backdrop_path}` : 
     movie?.poster_path ? `${IMG_URL}${POSTER_SIZE.lg}/${movie.poster_path}` : null,
-    [movie?.poster_path]
+    [movie?.backdrop_path, movie?.poster_path]
   );
 
+  const blurAmount = useMemo(() => {
+    const maxBlur = 20;
+    const minBlur = 0;
+    return Math.max(minBlur, maxBlur - (tries.length * 4));
+  }, [tries.length]);
+
+  const imageScale = useMemo(() => {
+    const maxScale = 2.5;
+    const minScale = 1;
+    const scaleStep = (maxScale - minScale) / 5;
+    return Math.max(minScale, maxScale - (tries.length * scaleStep));
+  }, [tries.length]);
+
+  const displayTitle = useMemo(() => {
+    if(gameStatus === gameStatusVal.finished) return movie?.title || movie?.original_title;
+    if(!movie || tries.length === 0) return '???';
+    
+    const title = movie.title || movie.original_title;
+    let letterIndex = -1;
+    
+    return title.split('').map((char, i) => {
+      if(/[a-zA-Z]/.test(char)) {
+        letterIndex++;
+        const isRevealed = revealedLetters.includes(letterIndex);
+        return isRevealed ? <span key={i} className='inline-block animate-popIn'>{char}</span> : '_';
+      }
+      return revealedLetters.length > 0 ? char : '_';
+    });
+  }, [movie, gameStatus, revealedLetters, tries.length]);
+
   const handleSkip = useCallback(() => {
-    setIsWin(false);
-    setShowModal(true);
-    setGameStatus(gameStatusVal.finished);
-    showHints();
-  }, [showHints]);
+    if(collectionId) {
+      if(confirm('Skip this movie and get a new one from the collection?')) {
+        reset();
+      }
+    } else {
+      setIsWin(false);
+      setShowModal(true);
+      setGameStatus(gameStatusVal.finished);
+      showHints();
+    }
+  }, [showHints, collectionId, reset]);
+
+  const handlePass = useCallback(() => {
+    if(tries.length >= 4) return;
+    
+    setTries((value) => {
+      const temp = [...value];
+      temp.push({id: `pass-${tries.length}-${Date.now()}`, original_title: '(Passed)', passed: true});
+      return temp;
+    });
+    setHints((value) => {
+      const temp = [...value];
+      temp[tries.length + 1] = cast[tries.length + 1];
+      return temp;
+    });
+    
+    setLastTryCount(tries.length + 1);
+    
+    const title = movie.title || movie.original_title;
+    const letters = title.replace(/[^a-zA-Z]/g, '').split('');
+    const maxReveals = Math.ceil(letters.length * 0.5); // Max 50% of letters
+    if(letters.length > 0 && revealedLetters.length < maxReveals) {
+      const availableIndices = letters.map((_, i) => i).filter(i => !revealedLetters.includes(i));
+      const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+      setRevealedLetters(prev => [...prev, randomIndex]);
+    }
+  }, [tries.length, cast, movie, revealedLetters]);
 
   return (
     <>
@@ -244,9 +389,11 @@ export default function Home() {
       <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900'>
         <div className='py-2 flex flex-row items-start gap-3 sm:gap-4 max-w-4xl mx-auto'>
           <div className='flex-shrink-0'>
-            <div className='aspect-[2/3] w-24 sm:w-32 flex justify-center shadow-lg rounded overflow-hidden dark:shadow-gray-800' >{
+            <div className='aspect-[16/9] w-32 sm:w-48 flex justify-center shadow-lg rounded overflow-hidden dark:shadow-gray-800 select-none' onContextMenu={(e)=>e.preventDefault()}>{
               gameStatus===gameStatusVal.finished ?
-                <img src={posterUrl} className='object-cover w-full h-full animate-fadeIn blur-sm animate-[unblur_1s_ease-out_forwards]' loading="lazy" alt="Movie poster" style={{animationDelay: '0.3s'}} />
+                <img src={posterUrl} className='object-cover w-full h-full animate-fadeIn blur-sm animate-[unblur_1s_ease-out_forwards] pointer-events-none' loading="lazy" alt="Movie backdrop" style={{animationDelay: '0.3s'}} draggable="false" />
+              : tries.length > 0 ?
+                <img src={posterUrl} className='object-cover w-full h-full transition-all duration-500 pointer-events-none' loading="lazy" alt="Movie backdrop" style={{filter: `blur(${blurAmount}px)`, transform: `scale(${imageScale})`}} draggable="false" />
               :
               <div className='w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center'>
                 <span className='text-4xl'>?</span>
@@ -258,21 +405,36 @@ export default function Home() {
             <div>
               <p className='text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1'>Movie Title</p>
               <div className='border-2 rounded-lg py-3 px-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 dark:border-gray-600 min-h-[3rem] flex items-center justify-center'>
-                <p className='font-bold text-lg text-center dark:text-white'>
-                  {gameStatus===gameStatusVal.finished ? (movie?.title||movie?.original_title) : '???'}
+                <p className='font-bold text-sm sm:text-lg text-center dark:text-white font-mono tracking-wider break-words'>
+                  {displayTitle}
                 </p>
               </div>
             </div>
-            {tries.length > 0 && gameStatus !== gameStatusVal.finished && (
-              <div className='flex flex-wrap gap-2'>
-                {tries.length >= 2 && movie?.genre_ids?.[0] && (
-                  <span className='px-3 py-1 bg-purple-100 rounded-full text-sm font-medium'>{genres.find(g=>g.id===movie.genre_ids[0])?.name}</span>
-                )}
-                {tries.length >= 3 && movie?.genre_ids?.[1] && (
-                  <span className='px-3 py-1 bg-purple-100 rounded-full text-sm font-medium'>{genres.find(g=>g.id===movie.genre_ids[1])?.name}</span>
-                )}
-              </div>
-            )}
+            <div className='min-h-[4rem]'>
+              {tries.length > 0 && gameStatus !== gameStatusVal.finished && keywords.length > 0 && (
+                <div className='flex flex-wrap gap-2 mb-2'>
+                  {keywords.slice(0, Math.min(tries.length, 3)).map((kw, i) => {
+                    const shouldAnimate = i === Math.min(tries.length, 3) - 1 && tries.length === lastTryCount;
+                    return (
+                      <span key={kw.id} className={`px-3 py-1 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 rounded-full text-xs font-medium ${shouldAnimate ? 'animate-popIn' : ''}`} style={{animationDelay: `${i * 100}ms`}}>#{kw.name}</span>
+                    );
+                  })}
+                </div>
+              )}
+              {tries.length > 0 && gameStatus !== gameStatusVal.finished && (
+                <div className='flex flex-wrap gap-2'>
+                  {tries.length >= 2 && movie?.genre_ids?.[0] && (
+                    <span className={`px-3 py-1 bg-purple-100 dark:bg-purple-900 dark:text-purple-300 rounded-full text-sm font-medium ${tries.length === 2 && lastTryCount === 2 ? 'animate-popIn' : ''}`}>{genres.find(g=>g.id===movie.genre_ids[0])?.name}</span>
+                  )}
+                  {tries.length >= 3 && movie?.genre_ids?.[1] && (
+                    <span className={`px-3 py-1 bg-purple-100 dark:bg-purple-900 dark:text-purple-300 rounded-full text-sm font-medium ${tries.length === 3 && lastTryCount === 3 ? 'animate-popIn' : ''}`} style={{animationDelay: '100ms'}}>{genres.find(g=>g.id===movie.genre_ids[1])?.name}</span>
+                  )}
+                  {tries.length >= 4 && director && (
+                    <span className={`px-3 py-1 bg-orange-100 dark:bg-orange-900 dark:text-orange-300 rounded-full text-sm font-medium ${tries.length === 4 && lastTryCount === 4 ? 'animate-popIn' : ''}`} style={{animationDelay: '200ms'}}>🎬 {director.name}</span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-800 p-3 sm:p-4'>
@@ -294,7 +456,7 @@ export default function Home() {
             }
           </div>
         </div>
-        <div className='flex-1 border dark:border-gray-700 px-2 rounded flex flex-col gap-1 overflow-y-auto min-h-0 dark:bg-gray-800'>
+        <div className='flex-1 border dark:border-gray-700 px-2 rounded flex flex-col gap-1 overflow-y-auto overflow-x-hidden min-h-0 dark:bg-gray-800'>
           <p className='text-right font-semibold sticky top-0 bg-white dark:bg-gray-800 dark:text-white py-1'>Tries {Math.abs(tries.length-5)}/5</p>
           {tries.map((item,index)=>(
             <TryItem 
@@ -309,7 +471,7 @@ export default function Home() {
         </div>
         <form onSubmit={handleSubmit} className='flex-0 relative flex flex-col gap-2'>
             <div className='relative flex-1'>
-              <input placeholder='Search for movie title' type="text" className='rounded w-full text-base sm:text-lg py-2 px-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white focus-within:outline-none' onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
+              <input placeholder='Search for movie title' type="text" className={`rounded w-full text-base sm:text-lg py-2 px-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white focus-within:outline-none ${shakeInput ? 'animate-shake border-red-500' : ''}`} onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
               <ul className={`shadow-xl border-2 border-slate-200 dark:border-gray-600 rounded-tl rounded-tr absolute bottom-full left-0 w-full flex flex-col divide-y dark:divide-gray-600 bg-white dark:bg-gray-800 max-h-[50ch] overflow-y-auto ${visible?"":"hidden"}`}>
                 {
                   movieSearchList.length > 0 ? (
@@ -326,7 +488,10 @@ export default function Home() {
                 }
               </ul>
             </div>
-            <input type="submit" value={"Try"} className='w-full rounded bg-blue-500 text-white font-semibold py-2 px-4 hover:bg-blue-600 dark:hover:bg-blue-700'/>
+            <div className='flex gap-2'>
+              <input type="submit" value={"Try"} className='flex-1 rounded bg-blue-500 text-white font-semibold py-2 px-4 hover:bg-blue-600 dark:hover:bg-blue-700'/>
+              <button type="button" onClick={handlePass} disabled={tries.length >= 4} className='rounded bg-gray-500 text-white font-semibold py-2 px-4 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'>Pass</button>
+            </div>
         </form>
       </div>
     </>

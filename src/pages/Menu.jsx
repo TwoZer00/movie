@@ -2,40 +2,230 @@ import { useEffect, useRef, useState } from 'react'
 import { getGenres } from '../api/init'
 import { getCountries } from '../api/utils/utils'
 import { useNavigate } from 'react-router-dom'
+import CreateCollectionModal from '../components/CreateCollectionModal'
+
+const COLLECTIONS = [
+  {
+    id: 'marvel',
+    name: 'Marvel Heroes',
+    emoji: '🦸',
+    filters: {
+      with_companies: '420',
+      with_genres: '28'
+    }
+  },
+  {
+    id: 'pixar',
+    name: 'Pixar Animation',
+    emoji: '🎨',
+    filters: {
+      with_companies: '3'
+    }
+  },
+  {
+    id: 'disney',
+    name: 'Disney Classics',
+    emoji: '🏰',
+    filters: {
+      with_companies: '2',
+      with_genres: '16'
+    }
+  },
+  {
+    id: 'anime',
+    name: 'Anime Films',
+    emoji: '🎌',
+    filters: {
+      with_genres: '16',
+      with_origin_country: 'JP',
+      'vote_count.gte': '100'
+    }
+  },
+  {
+    id: 'oscars2025',
+    name: '2025 Oscar Nominees',
+    emoji: '🏆',
+    filters: {
+      'primary_release_date.gte': '2024-01-01',
+      'primary_release_date.lte': '2024-12-31',
+      'vote_average.gte': '7.5',
+      'vote_count.gte': '500'
+    }
+  },
+  {
+    id: 'scifi',
+    name: 'Sci-Fi Universe',
+    emoji: '🚀',
+    filters: {
+      with_genres: '878',
+      'vote_average.gte': '6.5'
+    }
+  }
+];
+
 export default function Menu() {
   const [options,setOptions] = useState({})
   const [dailyCompleted,setDailyCompleted] = useState(false)
+  const [selectedCollection, setSelectedCollection] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [customCollections, setCustomCollections] = useState([]);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const navigate = useNavigate();
   
   useEffect(()=>{
     const today = new Date().toISOString().split('T')[0];
     const completed = localStorage.getItem(`daily_${today}`);
     setDailyCompleted(!!completed);
+    
+    const saved = localStorage.getItem('custom_collections');
+    if (saved) {
+      setCustomCollections(JSON.parse(saved));
+    }
   },[]);
+
+  const handleCollectionClick = (collection) => {
+    const playedKey = `collection_${collection.id}_played`;
+    const playedMovies = JSON.parse(localStorage.getItem(playedKey) || '[]');
+    
+    navigate('/play', { 
+      state: { 
+        ...collection.filters, 
+        collectionId: collection.id,
+        playedMovies 
+      }
+    });
+  };
+
+  const handleSaveCollection = (collection) => {
+    const updated = [...customCollections.filter(c => c.id !== collection.id), collection];
+    setCustomCollections(updated);
+    localStorage.setItem('custom_collections', JSON.stringify(updated));
+    setShowCreateModal(false);
+  };
+
+  const handleDeleteCollection = (collectionId) => {
+    if (confirm('Delete this collection?')) {
+      const updated = customCollections.filter(c => c.id !== collectionId);
+      setCustomCollections(updated);
+      localStorage.setItem('custom_collections', JSON.stringify(updated));
+      localStorage.removeItem(`collection_${collectionId}_played`);
+    }
+  };
   return (
-    <div className='flex flex-col flex-1 items-center justify-center gap-8 p-4'>
+    <div className='flex flex-col flex-1 items-center justify-center gap-8 p-4 overflow-y-auto'>
+      {showCreateModal && (
+        <CreateCollectionModal
+          onClose={() => setShowCreateModal(false)}
+          onSave={handleSaveCollection}
+        />
+      )}
       <div className='w-full max-w-2xl flex flex-col gap-6'>
-        <div className='flex flex-row gap-3 justify-center flex-wrap'>
-          <GenreSelect options={setOptions}/>
-          <DecadeSelect options={setOptions}/>
-          <RegionSelect options={setOptions}/>
-        </div>
+        <button
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className='py-2 text-sm text-blue-500 dark:text-blue-400 hover:underline self-center'
+        >
+          {showAdvanced ? '▼ Hide' : '▶ Show'} Advanced Filters
+        </button>
+        
+        {showAdvanced && (
+          <div className='flex flex-row gap-3 justify-center flex-wrap'>
+            <GenreSelect options={setOptions}/>
+            <DecadeSelect options={setOptions}/>
+            <RegionSelect options={setOptions}/>
+          </div>
+        )}
         
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           <button className='py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-all' onClick={()=>{navigate("/play",{ state:options})}}>
             Play
           </button>
-          <button className={`py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg transition-all relative ${dailyCompleted ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed opacity-60' : 'bg-yellow-200 dark:bg-yellow-700 dark:text-white hover:bg-yellow-300 dark:hover:bg-yellow-600'}`} onClick={()=>{navigate("/play?daily=true")}} disabled={dailyCompleted}>
-            Daily Challenge
-            {dailyCompleted && <span className='absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>✓ Completed</span>}
-          </button>
+          <div className='relative'>
+            <button className={`w-full py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg transition-all ${dailyCompleted ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed opacity-60' : 'bg-yellow-200 dark:bg-yellow-700 dark:text-white hover:bg-yellow-300 dark:hover:bg-yellow-600'}`} onClick={()=>{navigate("/play?daily=true")}} disabled={dailyCompleted}>
+              Daily Challenge
+              {dailyCompleted && <span className='absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>✓ Completed</span>}
+            </button>
+            {dailyCompleted && <CountdownTimer />}
+          </div>
         </div>
+        
+        <div>
+          <h3 className='text-lg font-semibold mb-3 text-center dark:text-white'>🎬 Themed Collections</h3>
+          <div className='grid grid-cols-2 md:grid-cols-3 gap-3'>
+            {COLLECTIONS.map(collection => {
+              const playedKey = `collection_${collection.id}_played`;
+              const playedMovies = JSON.parse(localStorage.getItem(playedKey) || '[]');
+              const playedCount = playedMovies.length;
+              const isOscars = collection.id === 'oscars2025';
+              
+              return (
+                <button
+                  key={collection.id}
+                  onClick={() => handleCollectionClick(collection)}
+                  className={`p-4 rounded-lg transition-all shadow-md hover:shadow-lg relative ${
+                    isOscars 
+                      ? 'bg-gradient-to-br from-yellow-200 to-amber-300 dark:from-yellow-700 dark:to-amber-800 hover:from-yellow-300 hover:to-amber-400 dark:hover:from-yellow-600 dark:hover:to-amber-700 ring-2 ring-yellow-400 dark:ring-yellow-500'
+                      : 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 hover:from-purple-200 hover:to-pink-200 dark:hover:from-purple-800 dark:hover:to-pink-800'
+                  }`}
+                >
+                  <div className='text-3xl mb-2'>{collection.emoji}</div>
+                  <div className='text-sm font-semibold dark:text-white'>{collection.name}</div>
+                  {playedCount > 0 && (
+                    <div className='absolute -top-2 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full'>
+                      {playedCount}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        
+        {customCollections.length > 0 && (
+          <div>
+            <h3 className='text-lg font-semibold mb-3 text-center dark:text-white'>✨ My Collections</h3>
+            <div className='grid grid-cols-2 md:grid-cols-3 gap-3'>
+              {customCollections.map(collection => {
+                const playedKey = `collection_${collection.id}_played`;
+                const playedMovies = JSON.parse(localStorage.getItem(playedKey) || '[]');
+                const playedCount = playedMovies.length;
+                
+                return (
+                  <div key={collection.id} className='relative group'>
+                    <button
+                      onClick={() => handleCollectionClick(collection)}
+                      className='w-full p-4 rounded-lg bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900 dark:to-cyan-900 hover:from-blue-200 hover:to-cyan-200 dark:hover:from-blue-800 dark:hover:to-cyan-800 transition-all shadow-md hover:shadow-lg'
+                    >
+                      <div className='text-3xl mb-2'>{collection.emoji}</div>
+                      <div className='text-sm font-semibold dark:text-white'>{collection.name}</div>
+                      {playedCount > 0 && (
+                        <div className='absolute -top-2 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full'>
+                          {playedCount}
+                        </div>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCollection(collection.id)}
+                      className='absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs'
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className='py-3 shadow-lg text-lg font-semibold uppercase rounded-lg bg-green-100 dark:bg-green-900 dark:text-white hover:bg-green-200 dark:hover:bg-green-800 transition-all'
+        >
+          ➕ Create Collection
+        </button>
         
         <button className='py-3 shadow-lg text-lg font-semibold uppercase rounded-lg bg-blue-100 dark:bg-blue-900 dark:text-white hover:bg-blue-200 dark:hover:bg-blue-800 transition-all' onClick={()=>navigate('/settings')}>
           ⚙️ Settings
         </button>
-        
-        <CountdownTimer />
       </div>
     </div>
   )

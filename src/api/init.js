@@ -90,11 +90,12 @@ const getGenres = async () => {
   return data.genres;
 };
 const getCustomSearchMovie = async (options) => {
-  const optionsURL = new URLSearchParams(options);
+  const { collectionId, playedMovies = [], ...filterOptions } = options || {};
+  const optionsURL = new URLSearchParams(filterOptions);
   optionsURL.append("language", LANG);
   
   // Easy mode: if no filters, use recent popular movies
-  if (!options || Object.keys(options).length === 0) {
+  if (!filterOptions || Object.keys(filterOptions).length === 0) {
     optionsURL.append("primary_release_date.gte", "2015-01-01");
     optionsURL.append("vote_count.gte", "1000");
   }
@@ -113,7 +114,12 @@ const getCustomSearchMovie = async (options) => {
     }
   });
   const data = await response.json();
-  const movies = data.results;
+  let movies = data.results;
+  
+  // Filter out played movies for collections
+  if (collectionId && playedMovies.length > 0) {
+    movies = movies.filter(m => !playedMovies.includes(m.id));
+  }
   
   if (!movies || movies.length === 0) {
     // Retry with page 1 if no results
@@ -126,7 +132,16 @@ const getCustomSearchMovie = async (options) => {
       }
     });
     const retryData = await retryResponse.json();
-    return retryData.results[Math.floor(Math.random() * retryData.results.length)];
+    movies = retryData.results;
+    if (collectionId && playedMovies.length > 0) {
+      movies = movies.filter(m => !playedMovies.includes(m.id));
+    }
+    
+    if (movies.length === 0) {
+      throw new Error('COLLECTION_COMPLETE');
+    }
+    
+    return movies[Math.floor(Math.random() * movies.length)];
   }
   
   const movie = movies[Math.floor(Math.random() * movies.length)];
@@ -134,21 +149,28 @@ const getCustomSearchMovie = async (options) => {
 };
 const getValidMovie = async (options) => {
   console.log("getting movies");
-  const movie = await getCustomSearchMovie(options);
-  const credits = await getCastFromMovie(movie.id)
-  if (credits.cast.length < 10) {
-    return getValidMovie(options);
-  }
-  if (!credits.cast.find(item => item.order === 0)?.profile_path) {
-    return getValidMovie(options);
-  }
+  try {
+    const movie = await getCustomSearchMovie(options);
+    const credits = await getCastFromMovie(movie.id)
+    if (credits.cast.length < 10) {
+      return getValidMovie(options);
+    }
+    if (!credits.cast.find(item => item.order === 0)?.profile_path) {
+      return getValidMovie(options);
+    }
 
-  const cast = credits.cast.filter((item) => item?.profile_path !== null && item?.cast_id !== null && item?.id !== null);
-  if (cast.length < 10) {
-    return getValidMovie(options);
+    const cast = credits.cast.filter((item) => item?.profile_path !== null && item?.cast_id !== null && item?.id !== null);
+    if (cast.length < 10) {
+      return getValidMovie(options);
+    }
+    
+    return [movie, cast];
+  } catch (error) {
+    if (error.message === 'COLLECTION_COMPLETE') {
+      throw error;
+    }
+    throw error;
   }
-  
-  return [movie, cast];
 };
 // const getLinkedMovie = async (peopleId) => {
 //   const options = {
@@ -168,6 +190,19 @@ const getValidMovie = async (options) => {
 // const getLinkedPeopleFromMovie
 
 
+
+const getKeywords = async (movieId) => {
+  const options = {
+    method: "GET",
+    headers: {
+      accept: 'application/json',
+      Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
+    }
+  }
+  const response = await fetch(`${URL}/movie/${movieId}/keywords`, options);
+  const data = await response.json();
+  return data.keywords || [];
+};
 
 const getDailyMovie = async () => {
   const today = new Date().toISOString().split('T')[0];
@@ -217,4 +252,4 @@ const getDailyMovie = async () => {
   return movie;
 };
 
-export { getMovies, getCastFromMovie, getMovie, getMoviesByName, getRandomMovie, getValidMovie, getGenres, getDailyMovie };
+export { getMovies, getCastFromMovie, getMovie, getMoviesByName, getRandomMovie, getValidMovie, getGenres, getDailyMovie, getKeywords };

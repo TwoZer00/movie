@@ -74,6 +74,7 @@ const Modal = memo(({isWin, movie, onClose, isDailyChallenge, triesUsed, reveale
       const duration = 3000;
       const animationEnd = Date.now() + duration;
       const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
+      let animationId;
 
       const frame = () => {
         const timeLeft = animationEnd - Date.now();
@@ -104,9 +105,18 @@ const Modal = memo(({isWin, movie, onClose, isDailyChallenge, triesUsed, reveale
           animation.onfinish = () => particle.remove();
         }
 
-        requestAnimationFrame(frame);
+        animationId = requestAnimationFrame(frame);
       };
       frame();
+      
+      return () => {
+        if (animationId) cancelAnimationFrame(animationId);
+        document.querySelectorAll('div[style*="position: fixed"]').forEach(el => {
+          if (el.style.borderRadius === '50%' && el.style.width === '10px') {
+            el.remove();
+          }
+        });
+      };
     }
   }, [isWin]);
   
