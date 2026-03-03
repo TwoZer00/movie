@@ -232,6 +232,7 @@ export default function Home() {
     <>
       {showModal && <Modal isWin={isWin} movie={movie} onClose={isDailyChallenge ? ()=>navigate('/') : reset} isDailyChallenge={isDailyChallenge} soundEnabled={soundEnabled} setSoundEnabled={setSoundEnabled} />}
       {loading && <Loader />}
+      <SkipButton onSkip={()=>{setIsWin(false);setShowModal(true);setGameStatus(gameStatusVal.finished);showHints();}} disabled={isDailyChallenge} />
       <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden'>
         {/* <Ad/> */}
         <div className='py-2 flex flex-row items-start gap-3 sm:gap-4 max-w-4xl mx-auto'>
@@ -336,9 +337,9 @@ export default function Home() {
             )
           })}
         </div>
-        <form onSubmit={handleSubmit} className='flex-0 relative flex flex-col sm:flex-row justify-between gap-2'>
+        <form onSubmit={handleSubmit} className='flex-0 relative flex flex-col gap-2'>
             <div className='relative flex-1'>
-              <input placeholder='Search for movie title' type="text" className='rounded sm:rounded-r-none w-full text-base sm:text-lg py-2 px-2 border focus-within:outline-none' onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
+              <input placeholder='Search for movie title' type="text" className='rounded w-full text-base sm:text-lg py-2 px-2 border focus-within:outline-none' onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
               <ul className={`shadow-xl border-2 border-slate-200 rounded-tl rounded-tr absolute bottom-full left-0 w-full flex flex-col divide-y bg-white max-h-[50ch] overflow-y-auto ${visible?"":"hidden"}`}>
                 {
                   movieSearchList.length > 0 ? (
@@ -355,8 +356,7 @@ export default function Home() {
                 }
               </ul>
             </div>
-            <input type="submit" value={"Try"} className='rounded sm:rounded-l-none bg-blue-500 text-white font-semibold py-2 px-4'/>
-            <button type="button" onClick={()=>{setIsWin(false);setShowModal(true);setGameStatus(gameStatusVal.finished);showHints();}} className='bg-gray-500 text-white font-semibold rounded py-2 px-4 hover:bg-gray-600' disabled={isDailyChallenge}>Skip</button>
+            <input type="submit" value={"Try"} className='w-full rounded bg-blue-500 text-white font-semibold py-2 px-4'/>
         </form>
       </div>
     </>
@@ -518,3 +518,20 @@ const CompletedModal = ({navigate}) => {
 
 
 
+
+const SkipButton = ({onSkip, disabled}) => {
+  useEffect(() => {
+    if (!disabled) {
+      const header = document.querySelector('header');
+      const button = document.createElement('button');
+      button.className = 'absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition-colors shadow-md';
+      button.textContent = 'Skip';
+      button.onclick = onSkip;
+      header?.appendChild(button);
+      
+      return () => button.remove();
+    }
+  }, [onSkip, disabled]);
+  
+  return null;
+};

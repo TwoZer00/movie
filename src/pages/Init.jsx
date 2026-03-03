@@ -4,19 +4,25 @@ import { Outlet } from 'react-router-dom'
 
 export default function Init() {
   useEffect(() => {
-    (window.adsbygoogle = window.adsbygoogle || []).push({});
-  }
-  , [])
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (e) {
+      console.error('AdSense error:', e);
+    }
+  }, [])
+  
   return (
-    <div className='flex flex-col w-dvw h-dvh justify-center'>
+    <div className='flex flex-col w-dvw h-dvh'>
       <Header/>
-      <ins className="adsbygoogle"
-     style={{display:'block'}}
-     data-ad-client="ca-pub-7731037445831235"
-     data-ad-slot="5105136682"
-     data-ad-format="auto"
-     data-full-width-responsive="true"></ins>
       <Outlet/>
+      <div className='w-full py-2 bg-gray-50 border-t'>
+        <ins className="adsbygoogle"
+          style={{display:'block'}}
+          data-ad-client="ca-pub-7731037445831235"
+          data-ad-slot="5105136682"
+          data-ad-format="auto"
+          data-full-width-responsive="true"></ins>
+      </div>
       <Footer/>
     </div>
   )
@@ -29,7 +35,7 @@ const Header = ()=>{
     <header className='flex flex-row justify-center relative'>
       {
         location && location.pathname!="/" && 
-        <button onClick={()=>navigate(-1)} className='h-full absolute left-2'><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+        <button onClick={()=>navigate('/')} className='h-full absolute left-2'><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
       </svg>
       </button>
