@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-export default function AdSense() {
+export default function AdSenseSquare() {
   useEffect(() => {
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
@@ -12,10 +12,10 @@ export default function AdSense() {
   return (
     <ins 
       className="adsbygoogle"
-      style={{ display: 'block', width: '100%', height: '60px' }}
+      style={{ display: 'block' }}
       data-ad-client="ca-pub-7731037445831235"
       data-ad-slot="5105136682"
-      data-ad-format="horizontal"
+      data-ad-format="square"
       data-full-width-responsive="false"
     />
   );

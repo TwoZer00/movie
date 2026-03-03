@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, memo, useMemo } from 'react';
+import AdSenseSquare from './AdSenseSquare';
 
 const Modal = memo(({isWin, movie, onClose, isDailyChallenge, triesUsed, revealedCast}) => {
   const [copied, setCopied] = useState(false);
@@ -238,6 +239,12 @@ Play at: ${window.location.origin}`;
           <button onClick={shareResults} className='bg-green-500 dark:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 dark:hover:bg-green-700 transition-colors'>
             {copied ? '✓ Copied!' : 'Share Results'}
           </button>
+        </div>
+        
+        <div className='mt-6 flex justify-center'>
+          <div className='w-[300px] h-[250px]'>
+            <AdSenseSquare />
+          </div>
         </div>
       </div>
     </div>

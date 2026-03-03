@@ -12,7 +12,6 @@ import { Loader, SkipButton } from '../components/UIComponents';
 import { CastSkeleton } from '../components/Skeleton';
 import { Toast } from '../components/Toast';
 import { gameStatusVal, loadStatus } from '../utils/constants';
-import AdSense from '../components/AdSense';
 
 export default function Home() {
   const [cast,setCast] = useState([]);
@@ -548,13 +547,6 @@ export default function Home() {
               <button type="button" onClick={handlePass} disabled={tries.length >= 4} className='rounded bg-gray-500 text-white font-semibold py-2 px-4 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'>Pass</button>
             </div>
         </form>
-      </div>
-      
-      {/* Fixed bottom ad */}
-      <div className='fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t dark:border-gray-700 z-40 h-[90px] overflow-hidden flex items-center justify-center'>
-        <div className='w-full h-full'>
-          <AdSense />
-        </div>
       </div>
     </>
   )
