@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, memo, useMemo } from 'react';
+import { useState, useEffect, useCallback, memo, useMemo, useRef } from 'react';
 import AdSenseSquare from './AdSenseSquare';
 
 const Modal = memo(({isWin, movie, onClose, isDailyChallenge, triesUsed, revealedCast}) => {
   const [copied, setCopied] = useState(false);
+  const modalAdKey = useRef(`modal-ad-${Date.now()}`);
   const stats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"losses":0,"currentStreak":0,"maxStreak":0}');
   const totalGames = stats.wins + stats.losses;
   const winRate = totalGames > 0 ? Math.round((stats.wins / totalGames) * 100) : 0;
@@ -242,7 +243,7 @@ Play at: ${window.location.origin}`;
         </div>
         
         <div className='mt-6 flex justify-center'>
-          <div className='w-[300px] h-[250px]'>
+          <div className='w-[300px] h-[250px]' key={modalAdKey.current}>
             <AdSenseSquare />
           </div>
         </div>
