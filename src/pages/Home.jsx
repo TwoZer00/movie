@@ -549,7 +549,7 @@ export default function Home() {
             </div>
         </form>
       </div>
-      <div className='fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-gray-900'>
+      <div className='fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-gray-900 max-h-[90px] overflow-hidden'>
         <AdSense />
       </div>
     </>
