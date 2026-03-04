@@ -19,14 +19,6 @@ export default function Init() {
     <div className='flex flex-col w-dvw h-dvh dark:bg-gray-900 dark:text-white'>
       <Header/>
       <Outlet/>
-      <div className='w-full py-2 bg-gray-50 dark:bg-gray-800 border-t dark:border-gray-700'>
-        <ins className="adsbygoogle"
-          style={{display:'block'}}
-          data-ad-client="ca-pub-7731037445831235"
-          data-ad-slot="5105136682"
-          data-ad-format="auto"
-          data-full-width-responsive="true"></ins>
-      </div>
       <Footer/>
     </div>
   )
