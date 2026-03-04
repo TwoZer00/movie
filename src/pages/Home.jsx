@@ -434,7 +434,7 @@ export default function Home() {
       {showModal && <Modal isWin={isWin} movie={movie} onClose={isDailyChallenge ? ()=>navigate('/') : reset} isDailyChallenge={isDailyChallenge} triesUsed={tries.length} revealedCast={cast} />}
       {loading && <Loader />}
       <SkipButton onSkip={handleSkip} disabled={isDailyChallenge} />
-      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900'>
+      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-16'>
         <div className='py-2 flex flex-row items-start gap-3 sm:gap-4 max-w-4xl mx-auto'>
           <div className='flex-shrink-0'>
             <div className='aspect-[16/9] w-32 sm:w-48 flex justify-center shadow-lg rounded overflow-hidden dark:shadow-gray-800 select-none' onContextMenu={(e)=>e.preventDefault()}>{
@@ -548,9 +548,9 @@ export default function Home() {
               <button type="button" onClick={handlePass} disabled={tries.length >= 4} className='rounded bg-gray-500 text-white font-semibold py-2 px-4 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'>Pass</button>
             </div>
         </form>
-        <div className='mt-2 mb-2'>
-          <AdSense />
-        </div>
+      </div>
+      <div className='fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-gray-900'>
+        <AdSense />
       </div>
     </>
   )
