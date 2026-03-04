@@ -39,8 +39,8 @@ const Header = ()=>{
         </button>
         }
         <div className='flex flex-col relative max-h-dvh'>
-          <h1 className="font-bold text-4xl text-center text-gray-900 dark:text-white">Guess the movie</h1>
-          <p className="font-thin text-center text-gray-600 dark:text-gray-400">Guess the movie by its cast</p>
+          <h1 className="font-bold text-4xl text-center text-gray-900 dark:text-white">Filmdle</h1>
+          <p className="font-thin text-center text-gray-600 dark:text-gray-400">Guess movies & build chains</p>
         </div>
         <button onClick={()=>setShowHelp(true)} className='h-full absolute right-2 text-gray-800 dark:text-white hover:text-blue-500 dark:hover:text-blue-400'>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
@@ -51,21 +51,36 @@ const Header = ()=>{
       
       {showHelp && (
         <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4' onClick={()=>setShowHelp(false)}>
-          <div className='bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full animate-scaleIn' onClick={(e)=>e.stopPropagation()}>
+          <div className='bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full animate-scaleIn max-h-[90vh] overflow-y-auto' onClick={(e)=>e.stopPropagation()}>
             <h2 className='text-2xl font-bold mb-4 text-center dark:text-white'>How to Play</h2>
-            <div className='space-y-3 text-gray-700 dark:text-gray-300'>
-              <p>🎬 <strong>Objective:</strong> Guess the movie by its cast members</p>
-              <p>🎯 <strong>Tries:</strong> You have 5 attempts to guess correctly</p>
-              <p>🔍 <strong>Hints:</strong> After each guess, a new cast member is revealed</p>
-              <p>📊 <strong>Additional clues:</strong></p>
-              <ul className='list-disc list-inside ml-4 space-y-1'>
-                <li>After 2nd try: First genre revealed</li>
-                <li>After 3rd try: Second genre revealed</li>
-                <li>After 4th try: Director revealed</li>
-                <li>Keywords appear progressively</li>
-              </ul>
-              <p>💡 <strong>Tip:</strong> Use the search box to find movies by title</p>
+            
+            <div className='mb-4'>
+              <h3 className='text-lg font-semibold mb-2 dark:text-white'>🎬 Guess by Cast</h3>
+              <div className='space-y-2 text-sm text-gray-700 dark:text-gray-300'>
+                <p>🎯 5 attempts to guess the movie</p>
+                <p>🔍 New cast member revealed after each guess</p>
+                <p>📊 Hints: genres (2nd/3rd try), director (4th try), keywords</p>
+              </div>
             </div>
+            
+            <div className='mb-4'>
+              <h3 className='text-lg font-semibold mb-2 dark:text-white'>🔗 Link Chain Mode</h3>
+              <div className='space-y-2 text-sm text-gray-700 dark:text-gray-300'>
+                <p>🎬 Movie shown → Search & type actor name</p>
+                <p>🎭 Actor shown → Search & type movie title</p>
+                <p>🚫 Can't reuse actors or movies</p>
+                <p>🏆 Build the longest chain possible!</p>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className='text-lg font-semibold mb-2 dark:text-white'>📅 Daily Challenges</h3>
+              <div className='space-y-2 text-sm text-gray-700 dark:text-gray-300'>
+                <p>One movie/link challenge per day</p>
+                <p>Same for everyone - compare results!</p>
+              </div>
+            </div>
+            
             <button onClick={()=>setShowHelp(false)} className='w-full mt-6 bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors'>
               Got it!
             </button>

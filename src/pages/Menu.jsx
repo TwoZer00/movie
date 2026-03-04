@@ -137,11 +137,11 @@ export default function Menu() {
         
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           <button className='py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-all' onClick={()=>{navigate("/play",{ state:options})}}>
-            Play
+            🎬 Play
           </button>
           <div className='relative'>
             <button className={`w-full py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg transition-all ${dailyCompleted ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed opacity-60' : 'bg-yellow-200 dark:bg-yellow-700 dark:text-white hover:bg-yellow-300 dark:hover:bg-yellow-600'}`} onClick={()=>{navigate("/play?daily=true")}} disabled={dailyCompleted}>
-              Daily Challenge
+              📅 Daily
               {dailyCompleted && <span className='absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>✓ Completed</span>}
             </button>
             {dailyCompleted && <CountdownTimer />}
@@ -149,7 +149,7 @@ export default function Menu() {
         </div>
         
         <div>
-          <h3 className='text-lg font-semibold mb-3 text-center dark:text-white'>🎬 Themed Collections</h3>
+          <h3 className='text-sm font-semibold mb-2 text-center text-gray-500 dark:text-gray-400'>🎬 Guess by Cast - Collections</h3>
           <div className='grid grid-cols-2 md:grid-cols-3 gap-3'>
             {COLLECTIONS.map(collection => {
               const playedKey = `collection_${collection.id}_played`;
@@ -218,10 +218,19 @@ export default function Menu() {
         
         <button
           onClick={() => setShowCreateModal(true)}
-          className='py-3 shadow-lg text-lg font-semibold uppercase rounded-lg bg-green-100 dark:bg-green-900 dark:text-white hover:bg-green-200 dark:hover:bg-green-800 transition-all'
+          className='py-2 shadow text-sm font-semibold uppercase rounded-lg bg-green-100 dark:bg-green-900 dark:text-white hover:bg-green-200 dark:hover:bg-green-800 transition-all'
         >
           ➕ Create Collection
         </button>
+        
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+          <button className='py-4 shadow-lg text-xl font-semibold uppercase rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all' onClick={()=>navigate('/link')}>
+            🔗 Link Chain
+          </button>
+          <button className='py-4 shadow-lg text-xl font-semibold uppercase rounded-lg bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition-all' onClick={()=>navigate('/link?daily=true')}>
+            📅 Daily Link
+          </button>
+        </div>
         
         <button className='py-3 shadow-lg text-lg font-semibold uppercase rounded-lg bg-blue-100 dark:bg-blue-900 dark:text-white hover:bg-blue-200 dark:hover:bg-blue-800 transition-all' onClick={()=>navigate('/settings')}>
           ⚙️ Settings

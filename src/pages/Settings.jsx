@@ -5,9 +5,12 @@ export default function Settings() {
   const navigate = useNavigate();
   const [soundEnabled, setSoundEnabled] = useState(localStorage.getItem('soundEnabled') !== 'false');
   const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
+  const [adultFilter, setAdultFilter] = useState(localStorage.getItem('adultFilter') !== 'false');
   const stats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"losses":0,"currentStreak":0,"maxStreak":0}');
+  const linkStats = JSON.parse(localStorage.getItem('linkChainStats') || '{}');
   const totalGames = stats.wins + stats.losses;
   const winRate = totalGames > 0 ? Math.round((stats.wins / totalGames) * 100) : 0;
+  const avgChain = linkStats.totalGames > 0 ? Math.round(linkStats.totalLinks / linkStats.totalGames) : 0;
 
   const toggleSound = () => {
     const newValue = !soundEnabled;
@@ -22,9 +25,24 @@ export default function Settings() {
     document.documentElement.classList.toggle('dark', newValue);
   };
 
+  const toggleAdultFilter = () => {
+    const newValue = !adultFilter;
+    
+    // Confirm when disabling filter
+    if (!newValue) {
+      if (!confirm('Are you sure you want to disable the adult content filter? This will show adult-rated movies.')) {
+        return;
+      }
+    }
+    
+    setAdultFilter(newValue);
+    localStorage.setItem('adultFilter', newValue);
+  };
+
   const resetStats = () => {
     if(confirm('Reset all statistics? This cannot be undone.')) {
       localStorage.setItem('gameStats', JSON.stringify({wins:0,losses:0,currentStreak:0,maxStreak:0}));
+      localStorage.setItem('linkChainStats', JSON.stringify({}));
       window.location.reload();
     }
   };
@@ -67,9 +85,28 @@ export default function Settings() {
             </div>
           </div>
 
+          {/* Content Filter */}
+          <div className='border-b dark:border-gray-700 pb-4'>
+            <h3 className='text-lg font-semibold mb-3 dark:text-white'>Content</h3>
+            <div className='flex items-center justify-between'>
+              <div>
+                <span className='text-gray-700 dark:text-gray-300'>Adult Content Filter</span>
+                <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>Hide adult-rated movies</p>
+              </div>
+              <button 
+                onClick={toggleAdultFilter}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  adultFilter ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                }`}
+              >
+                {adultFilter ? '🔒 On' : '🔓 Off'}
+              </button>
+            </div>
+          </div>
+
           {/* Statistics */}
           <div className='border-b dark:border-gray-700 pb-4'>
-            <h3 className='text-lg font-semibold mb-3 dark:text-white'>Statistics</h3>
+            <h3 className='text-lg font-semibold mb-3 dark:text-white'>Guess by Cast Stats</h3>
             <div className='grid grid-cols-2 gap-3 mb-4'>
               <div className='bg-gray-50 dark:bg-gray-700 p-3 rounded text-center'>
                 <p className='text-2xl font-bold dark:text-white'>{totalGames}</p>
@@ -88,11 +125,34 @@ export default function Settings() {
                 <p className='text-xs text-gray-600 dark:text-gray-400'>Max Streak</p>
               </div>
             </div>
+          </div>
+
+          {/* Link Chain Stats */}
+          <div className='border-b dark:border-gray-700 pb-4'>
+            <h3 className='text-lg font-semibold mb-3 dark:text-white'>Link Chain Stats</h3>
+            <div className='grid grid-cols-3 gap-3 mb-4'>
+              <div className='bg-gray-50 dark:bg-gray-700 p-3 rounded text-center'>
+                <p className='text-2xl font-bold dark:text-white'>{linkStats.totalGames || 0}</p>
+                <p className='text-xs text-gray-600 dark:text-gray-400'>Games Played</p>
+              </div>
+              <div className='bg-gray-50 dark:bg-gray-700 p-3 rounded text-center'>
+                <p className='text-2xl font-bold dark:text-white'>{linkStats.bestChain || 0}</p>
+                <p className='text-xs text-gray-600 dark:text-gray-400'>Best Chain</p>
+              </div>
+              <div className='bg-gray-50 dark:bg-gray-700 p-3 rounded text-center'>
+                <p className='text-2xl font-bold dark:text-white'>{avgChain}</p>
+                <p className='text-xs text-gray-600 dark:text-gray-400'>Avg Chain</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Reset Stats */}
+          <div className='border-b dark:border-gray-700 pb-4'>
             <button 
               onClick={resetStats}
               className='w-full bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-600 dark:hover:bg-red-700 transition-colors'
             >
-              🗑️ Reset Statistics
+              🗑️ Reset All Statistics
             </button>
           </div>
 
@@ -108,7 +168,7 @@ export default function Settings() {
       
       <footer className='text-center text-sm text-gray-500 dark:text-gray-400 mt-6 py-4'>
         <p className='mb-2'>
-          Guess the movie by its cast. You have 5 tries to guess the movie. After each guess, you'll get hints about the cast of the movie.
+          Filmdle - Guess movies by their cast or build actor-movie chains. Multiple game modes with daily challenges!
         </p>
         <p className='mb-2'>Made by <a href="https://twozer00.dev" className='underline hover:text-blue-500'>TwoZer00</a></p>
         <p className='text-xs'>

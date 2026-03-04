@@ -49,6 +49,10 @@ const getMoviesByName = async (movieName) => {
   const optionsURL = new URLSearchParams();
   optionsURL.append("language", LANG);
   optionsURL.append("query", movieName);
+  
+  const adultFilter = localStorage.getItem('adultFilter') !== 'false';
+  optionsURL.append("include_adult", adultFilter ? "false" : "true");
+  
   const options = {
     method: "GET",
     headers: {
@@ -93,6 +97,9 @@ const getCustomSearchMovie = async (options) => {
   const { collectionId, playedMovies = [], ...filterOptions } = options || {};
   const optionsURL = new URLSearchParams(filterOptions);
   optionsURL.append("language", LANG);
+  
+  const adultFilter = localStorage.getItem('adultFilter') !== 'false';
+  optionsURL.append("include_adult", adultFilter ? "false" : "true");
   
   // Easy mode: if no filters, use recent popular movies
   if (!filterOptions || Object.keys(filterOptions).length === 0) {
@@ -221,6 +228,10 @@ const getDailyMovie = async () => {
     optionsURL.append("language", LANG);
     optionsURL.append("primary_release_date.gte", "2015-01-01");
     optionsURL.append("vote_count.gte", "1000");
+    
+    const adultFilter = localStorage.getItem('adultFilter') !== 'false';
+    optionsURL.append("include_adult", adultFilter ? "false" : "true");
+    
     optionsURL.append("page", pageNumber);
     
     const response = await fetch(`${URL}/discover/movie?${optionsURL.toString()}`, {
@@ -252,4 +263,104 @@ const getDailyMovie = async () => {
   return movie;
 };
 
-export { getMovies, getCastFromMovie, getMovie, getMoviesByName, getRandomMovie, getValidMovie, getGenres, getDailyMovie, getKeywords };
+const getMoviesByActor = async (actorId) => {
+  const options = {
+    method: "GET",
+    headers: {
+      accept: 'application/json',
+      Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
+    }
+  }
+  const response = await fetch(`${URL}/person/${actorId}/movie_credits?language=${LANG}`, options);
+  const data = await response.json();
+  return data;
+};
+
+const searchPerson = async (query) => {
+  const optionsURL = new URLSearchParams();
+  optionsURL.append("language", LANG);
+  optionsURL.append("query", query);
+  const options = {
+    method: "GET",
+    headers: {
+      accept: 'application/json',
+      Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
+    }
+  }
+  const response = await fetch(`${URL}/search/person?${optionsURL.toString()}`, options);
+  const data = await response.json();
+  return data;
+};
+
+const getMovieImages = async (movieId) => {
+  const options = {
+    method: "GET",
+    headers: {
+      accept: 'application/json',
+      Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
+    }
+  }
+  const response = await fetch(`${URL}/movie/${movieId}/images`, options);
+  const data = await response.json();
+  return data;
+};
+
+const getMovieAlternativeTitles = async (movieId) => {
+  const options = {
+    method: "GET",
+    headers: {
+      accept: 'application/json',
+      Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
+    }
+  }
+  const response = await fetch(`${URL}/movie/${movieId}/alternative_titles`, options);
+  const data = await response.json();
+  return data;
+};
+
+const getDailyLinkMovie = async () => {
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Hash function for consistent daily movie
+  const hash = today.split('').reduce((acc, char) => {
+    return ((acc << 5) - acc) + char.charCodeAt(0);
+  }, 0);
+  
+  const pageNumber = (Math.abs(hash) % 100) + 1;
+  const movieIndex = Math.abs(hash >> 8) % 20;
+  
+  const optionsURL = new URLSearchParams();
+  optionsURL.append("language", LANG);
+  optionsURL.append("primary_release_date.gte", "2010-01-01");
+  optionsURL.append("vote_count.gte", "2000");
+  optionsURL.append("page", pageNumber);
+  
+  const adultFilter = localStorage.getItem('adultFilter') !== 'false';
+  optionsURL.append("include_adult", adultFilter ? "false" : "true");
+  
+  const response = await fetch(`${URL}/discover/movie?${optionsURL.toString()}`, {
+    method: "GET",
+    headers: {
+      accept: 'application/json',
+      Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
+    }
+  });
+  const data = await response.json();
+  const movie = data.results[movieIndex] || data.results[0];
+  return movie;
+};
+
+const getPersonDetails = async (personId) => {
+  const options = {
+    method: "GET",
+    headers: {
+      accept: 'application/json',
+      Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
+    }
+  }
+  const response = await fetch(`${URL}/person/${personId}?language=${LANG}`, options);
+  const data = await response.json();
+  return data;
+};
+
+export { getMovies, getCastFromMovie, getMovie, getMoviesByName, getRandomMovie, getValidMovie, getGenres, getDailyMovie, getKeywords, getMoviesByActor, searchPerson, getMovieImages, getMovieAlternativeTitles, getDailyLinkMovie, getPersonDetails };
