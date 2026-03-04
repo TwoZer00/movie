@@ -2,13 +2,11 @@ import { useEffect, useRef } from 'react';
 
 export default function AdSenseSquare() {
   const adRef = useRef(null);
-  const isAdPushed = useRef(false);
 
   useEffect(() => {
-    if (adRef.current && !isAdPushed.current) {
+    if (adRef.current && adRef.current.innerHTML === '') {
       try {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
-        isAdPushed.current = true;
       } catch (e) {
         console.error('AdSense error:', e);
       }
