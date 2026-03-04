@@ -1,21 +1,21 @@
 import { useEffect, useRef } from 'react';
 
+let adCount = 0;
+
 export default function AdSense() {
-  const adRef = useRef(null);
+  const adId = useRef(`adsense-${++adCount}-${Date.now()}`);
 
   useEffect(() => {
-    if (adRef.current && adRef.current.innerHTML === '') {
-      try {
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
-      } catch (e) {
-        console.error('AdSense error:', e);
-      }
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (e) {
+      // Silently ignore duplicate ad errors
     }
   }, []);
 
   return (
     <ins 
-      ref={adRef}
+      key={adId.current}
       className="adsbygoogle"
       style={{ display: 'block', width: '100%', height: '60px' }}
       data-ad-client="ca-pub-7731037445831235"
