@@ -3,7 +3,6 @@ import { getGenres } from '../api/init'
 import { getCountries } from '../api/utils/utils'
 import { useNavigate } from 'react-router-dom'
 import CreateCollectionModal from '../components/CreateCollectionModal'
-import AdSenseSquare from '../components/AdSenseSquare'
 
 const COLLECTIONS = [
   {
@@ -227,10 +226,6 @@ export default function Menu() {
         <button className='py-3 shadow-lg text-lg font-semibold uppercase rounded-lg bg-blue-100 dark:bg-blue-900 dark:text-white hover:bg-blue-200 dark:hover:bg-blue-800 transition-all' onClick={()=>navigate('/settings')}>
           ⚙️ Settings
         </button>
-        
-        <div className='flex justify-center mt-4'>
-          <AdSenseSquare />
-        </div>
       </div>
     </div>
   )

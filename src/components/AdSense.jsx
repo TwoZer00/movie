@@ -9,7 +9,7 @@ export default function AdSense() {
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch (e) {
-      // Silently ignore duplicate ad errors
+      // Ignore
     }
   }, []);
 
@@ -20,8 +20,8 @@ export default function AdSense() {
       style={{ display: 'block', width: '100%', height: '60px' }}
       data-ad-client="ca-pub-7731037445831235"
       data-ad-slot="5105136682"
-      data-ad-format="horizontal"
-      data-full-width-responsive="false"
+      data-ad-format="auto"
+      data-full-width-responsive="true"
     />
   );
 }
