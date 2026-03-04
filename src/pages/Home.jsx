@@ -13,6 +13,7 @@ import { CastSkeleton } from '../components/Skeleton';
 import { Toast } from '../components/Toast';
 import { gameStatusVal, loadStatus } from '../utils/constants';
 import AdSense from '../components/AdSense';
+import AdSenseVertical from '../components/AdSenseVertical';
 
 export default function Home() {
   const [cast,setCast] = useState([]);
@@ -434,10 +435,19 @@ export default function Home() {
       {showModal && <Modal isWin={isWin} movie={movie} onClose={isDailyChallenge ? ()=>navigate('/') : reset} isDailyChallenge={isDailyChallenge} triesUsed={tries.length} revealedCast={cast} />}
       {loading && <Loader />}
       <SkipButton onSkip={handleSkip} disabled={isDailyChallenge} />
-      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-20'>
+      
+      {/* Desktop: Sidebar Ads */}
+      <div className='hidden lg:block fixed left-4 top-1/2 -translate-y-1/2 z-10'>
+        <AdSenseVertical />
+      </div>
+      <div className='hidden lg:block fixed right-4 top-1/2 -translate-y-1/2 z-10'>
+        <AdSenseVertical />
+      </div>
+      
+      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-20 lg:pb-0 max-w-6xl mx-auto w-full'>
         <div className='py-2 flex flex-row items-start gap-3 sm:gap-4 max-w-4xl mx-auto'>
           <div className='flex-shrink-0'>
-            <div className='aspect-[16/9] w-32 sm:w-48 flex justify-center shadow-lg rounded overflow-hidden dark:shadow-gray-800 select-none' onContextMenu={(e)=>e.preventDefault()}>{
+            <div className='aspect-[16/9] w-32 sm:w-48 md:w-64 flex justify-center shadow-lg rounded overflow-hidden dark:shadow-gray-800 select-none' onContextMenu={(e)=>e.preventDefault()}>{
               gameStatus===gameStatusVal.finished ?
                 <img src={posterUrl} className='object-cover w-full h-full animate-fadeIn blur-sm animate-[unblur_1s_ease-out_forwards] pointer-events-none' loading="lazy" alt="Movie backdrop" style={{animationDelay: '0.3s'}} draggable="false" />
               : tries.length > 0 ?
@@ -549,7 +559,9 @@ export default function Home() {
             </div>
         </form>
       </div>
-      <div className='fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-gray-900 py-2'>
+      
+      {/* Mobile/Tablet: Bottom Ad */}
+      <div className='lg:hidden fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-gray-900 py-2'>
         <div className='max-w-screen-lg mx-auto'>
           <AdSense />
         </div>

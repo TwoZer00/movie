@@ -105,6 +105,16 @@ export default function Settings() {
           </button>
         </div>
       </div>
+      
+      <footer className='text-center text-sm text-gray-500 dark:text-gray-400 mt-6 py-4'>
+        <p className='mb-2'>
+          Guess the movie by its cast. You have 5 tries to guess the movie. After each guess, you'll get hints about the cast of the movie.
+        </p>
+        <p className='mb-2'>Made by <a href="https://twozer00.dev" className='underline hover:text-blue-500'>TwoZer00</a></p>
+        <p className='text-xs'>
+          This product uses the TMDB API but is not endorsed or certified by <a className="underline hover:text-blue-500" href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB</a>.
+        </p>
+      </footer>
     </div>
   );
 }
