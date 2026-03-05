@@ -14,6 +14,7 @@ import { Toast } from '../components/Toast';
 import { gameStatusVal, loadStatus } from '../utils/constants';
 import AdSense from '../components/AdSense';
 import AdSenseVertical from '../components/AdSenseVertical';
+import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal';
 import { trackGameStart, trackGameEnd, trackSkip, trackCollectionStart, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
 
 export default function Home() {
@@ -49,6 +50,7 @@ export default function Home() {
   const [matchedGenres, setMatchedGenres] = useState([]);
   const [yearHints, setYearHints] = useState({ min: null, max: null });
   const [startTime, setStartTime] = useState(Date.now());
+  const [showHelp, setShowHelp] = useState(false);
 
   const fetchData = useCallback(async ()=>{
     lStatus.current = loadStatus.loading
@@ -106,7 +108,7 @@ export default function Home() {
       if (location.state?.collectionId) {
         trackCollectionStart(location.state.collectionId, location.state.collectionName || 'Custom Collection');
       } else {
-        trackGameStart(isDaily ? 'guess_by_cast_daily' : 'guess_by_cast');
+        trackGameStart(isDailyChallenge ? 'guess_by_cast_daily' : 'guess_by_cast');
       }
     } catch (error) {
       lStatus.current = loadStatus.error
@@ -330,10 +332,20 @@ export default function Home() {
     
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setSelectedIndex(prev => prev < movieSearchList.length - 1 ? prev + 1 : prev);
+      setSelectedIndex(prev => {
+        const newIndex = prev < movieSearchList.length - 1 ? prev + 1 : prev;
+        document.querySelector(`#search-result-${newIndex}`)?.scrollIntoView({ block: 'nearest' });
+        return newIndex;
+      });
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+      setSelectedIndex(prev => {
+        const newIndex = prev > 0 ? prev - 1 : -1;
+        if (newIndex >= 0) {
+          document.querySelector(`#search-result-${newIndex}`)?.scrollIntoView({ block: 'nearest' });
+        }
+        return newIndex;
+      });
     } else if (e.key === 'Enter' && selectedIndex >= 0) {
       e.preventDefault();
       setSelectedMovie(movieSearchList[selectedIndex]);
@@ -364,6 +376,31 @@ export default function Home() {
       showHints();
     }
   },[gameStatus, showHints])
+
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      
+      if (e.key === '?' || e.key === '/') {
+        e.preventDefault();
+        setShowHelp(true);
+      } else if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        document.querySelector('input[type="text"]')?.focus();
+      } else if ((e.key === 'p' || e.key === 'P') && tries.length < 4 && gameStatus === gameStatusVal.playing) {
+        e.preventDefault();
+        handlePass();
+      } else if ((e.key === 'k' || e.key === 'K') && !isDailyChallenge && gameStatus === gameStatusVal.playing) {
+        e.preventDefault();
+        handleSkip();
+      } else if (e.key === 'Escape' && showHelp) {
+        setShowHelp(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [tries.length, gameStatus, isDailyChallenge, showHelp]);
 
   const reset = useCallback(async ()=>{
     setLoading(true);
@@ -460,6 +497,7 @@ export default function Home() {
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {showModal && <Modal isWin={isWin} movie={movie} onClose={isDailyChallenge ? ()=>navigate('/') : reset} isDailyChallenge={isDailyChallenge} triesUsed={tries.length} revealedCast={cast} />}
+      {showHelp && <KeyboardShortcutsModal onClose={() => setShowHelp(false)} mode='guess' />}
       {loading && <Loader />}
       <SkipButton onSkip={handleSkip} disabled={isDailyChallenge} />
       
@@ -472,6 +510,18 @@ export default function Home() {
       </div>
       
       <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-24 lg:pb-4 max-w-6xl mx-auto w-full'>
+        <div className='py-2 flex justify-between items-center'>
+          <h1 className='text-xl sm:text-2xl font-bold dark:text-white'>
+            {isDailyChallenge ? '🎯 Daily Challenge' : '🎬 Guess by Cast'}
+          </h1>
+          <button 
+            onClick={() => setShowHelp(true)}
+            className='bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-semibold'
+            title='Keyboard shortcuts (?)'
+          >
+            ⌨️
+          </button>
+        </div>
         <div className='py-2 flex flex-row items-start gap-3 sm:gap-4 max-w-4xl mx-auto'>
           <div className='flex-shrink-0'>
             <div className='aspect-[16/9] w-32 sm:w-48 md:w-64 flex justify-center shadow-lg rounded overflow-hidden dark:shadow-gray-800 select-none bg-gray-200 dark:bg-gray-700' onContextMenu={(e)=>e.preventDefault()}>{
@@ -570,7 +620,7 @@ export default function Home() {
                     movieSearchList.map((item,index)=>{
                       const showOriginal = item.original_title && item.original_title !== item.title;
                       return(
-                        <li key={item.id} className={`cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-2 dark:text-white ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`} onClick={()=>setSelectedMovie(item)}>
+                        <li id={`search-result-${index}`} key={item.id} className={`cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-2 dark:text-white ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`} onClick={()=>setSelectedMovie(item)}>
                           <div>
                             <div>{highlightMatch(item.title||item.original_title, selectedMovie.original_title)} ({new Date(item.release_date).getFullYear()})</div>
                             {showOriginal && <div className='text-xs text-gray-500 dark:text-gray-400 italic'>Original: {item.original_title}</div>}

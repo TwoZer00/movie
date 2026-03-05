@@ -5,6 +5,7 @@ import { Loader } from '../components/UIComponents';
 import genres from '../resources/genre.json';
 import { useLocation } from 'react-router-dom';
 import Confetti from '../components/Confetti';
+import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal';
 import winSound from '../resources/win_sound.wav';
 import lossSound from '../resources/loss_sound.wav';
 import { trackGameStart, trackGameEnd, trackHintUsed, trackShare, trackUndo, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
@@ -46,6 +47,8 @@ export default function LinkGame() {
   const [soundEnabled, setSoundEnabled] = useState(localStorage.getItem('soundEnabled') !== 'false');
   const successAudio = useRef(new Audio(winSound));
   const errorAudio = useRef(new Audio(lossSound));
+  const [showHelp, setShowHelp] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
 
   // Update timer every second
   useEffect(() => {
@@ -122,6 +125,35 @@ export default function LinkGame() {
     fetchInitialMovie();
   }, [fetchInitialMovie]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      
+      if (e.key === '?' || e.key === '/') {
+        e.preventDefault();
+        setShowHelp(true);
+      } else if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      } else if ((e.key === 'h' || e.key === 'H') && hintsUsed < 3 && !gameOver) {
+        e.preventDefault();
+        getHint();
+      } else if ((e.key === 'u' || e.key === 'U') && chain.length > 1 && !isDailyChallenge && !gameOver) {
+        e.preventDefault();
+        handleUndo();
+      } else if ((e.key === 'g' || e.key === 'G') && !isDailyChallenge && !gameOver) {
+        e.preventDefault();
+        reset();
+      } else if (e.key === 'Escape' && showHelp) {
+        setShowHelp(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [hintsUsed, gameOver, chain.length, isDailyChallenge, showHelp]);
+
   // Update timer every second
   useEffect(() => {
     if (!gameOver && startTime) {
@@ -163,6 +195,7 @@ export default function LinkGame() {
   const handleSearch = (query) => {
     setSearchQuery(query);
     setErrorMessage('');
+    setSelectedIndex(-1);
     
     if (!query.trim()) {
       setSearchResults([]);
@@ -434,6 +467,14 @@ export default function LinkGame() {
   const reset = () => {
     if (isDailyChallenge) return; // Can't reset daily challenge
     
+    const finalChainLength = Math.floor(chain.length / 2) + 1;
+    updateBestChain(finalChainLength);
+    
+    const now = Date.now();
+    const gameDuration = Math.floor((now - startTime) / 1000);
+    trackGameDuration('link_chain', gameDuration);
+    trackGameEnd('link_chain', 'give_up', 0, finalChainLength);
+    
     setChain([]);
     setUsedActors([]);
     setUsedMovies([]);
@@ -500,11 +541,18 @@ export default function LinkGame() {
           <span className='hidden sm:inline'>Best: <span className='font-bold'>{getBestChain()}</span></span>
         </div>
         <div className='absolute right-2 top-1/2 -translate-y-1/2 flex gap-1'>
+          <button 
+            onClick={() => setShowHelp(true)}
+            className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold'
+            title='Keyboard shortcuts (?)'
+          >
+            ⌨️
+          </button>
           {!isDailyChallenge && !gameOver && chain.length > 1 && (
             <button 
               onClick={handleUndo}
               className='bg-white/20 hover:bg-white/30 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-semibold'
-              title='Undo last move'
+              title='Undo last move (U)'
             >
               ↩️
             </button>
@@ -513,6 +561,7 @@ export default function LinkGame() {
             <button 
               onClick={reset}
               className='bg-white/20 hover:bg-white/30 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-semibold'
+              title='Give up (G)'
             >
               Give Up
             </button>
@@ -719,12 +768,36 @@ export default function LinkGame() {
                     setSearchQuery('');
                     setSearchResults([]);
                     setShowResults(false);
+                    setSelectedIndex(-1);
                   } else if (e.key === 'Enter' && searchResults.length === 1) {
                     e.preventDefault();
                     if (mode === 'guessActor') {
                       handleActorSelect(searchResults[0]);
                     } else {
                       handleMovieSelect(searchResults[0]);
+                    }
+                  } else if (e.key === 'ArrowDown' && searchResults.length > 0) {
+                    e.preventDefault();
+                    setSelectedIndex(prev => {
+                      const newIndex = prev < searchResults.length - 1 ? prev + 1 : prev;
+                      document.querySelector(`#link-result-${newIndex}`)?.scrollIntoView({ block: 'nearest' });
+                      return newIndex;
+                    });
+                  } else if (e.key === 'ArrowUp' && searchResults.length > 0) {
+                    e.preventDefault();
+                    setSelectedIndex(prev => {
+                      const newIndex = prev > 0 ? prev - 1 : -1;
+                      if (newIndex >= 0) {
+                        document.querySelector(`#link-result-${newIndex}`)?.scrollIntoView({ block: 'nearest' });
+                      }
+                      return newIndex;
+                    });
+                  } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                    e.preventDefault();
+                    if (mode === 'guessActor') {
+                      handleActorSelect(searchResults[selectedIndex]);
+                    } else {
+                      handleMovieSelect(searchResults[selectedIndex]);
                     }
                   }
                 }}
@@ -742,12 +815,13 @@ export default function LinkGame() {
               {searchResults.length > 0 && showResults && (
                 <div className='absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-gray-700 border dark:border-gray-600 rounded-lg shadow-lg max-h-64 overflow-y-auto z-10'>
                   {mode === 'guessActor' ? (
-                    searchResults.map(actor => (
+                    searchResults.map((actor, index) => (
                       <button
+                        id={`link-result-${index}`}
                         key={actor.id}
                         onClick={() => handleActorSelect(actor)}
                         disabled={loading}
-                        className='w-full p-3 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-3 text-left disabled:opacity-50'
+                        className={`w-full p-3 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-3 text-left disabled:opacity-50 ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
                       >
                         {actor.profile_path && (
                           <img 
@@ -763,12 +837,13 @@ export default function LinkGame() {
                       </button>
                     ))
                   ) : (
-                    searchResults.map(movie => (
+                    searchResults.map((movie, index) => (
                       <button
+                        id={`link-result-${index}`}
                         key={movie.id}
                         onClick={() => handleMovieSelect(movie)}
                         disabled={loading}
-                        className='w-full p-3 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-3 text-left disabled:opacity-50'
+                        className={`w-full p-3 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-3 text-left disabled:opacity-50 ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
                       >
                         {movie.poster_path && (
                           <img 
@@ -812,6 +887,7 @@ export default function LinkGame() {
         </div>
       )}
       
+      {showHelp && <KeyboardShortcutsModal onClose={() => setShowHelp(false)} mode='link' />}
       {showConfetti && <Confetti />}
     </div>
   )
