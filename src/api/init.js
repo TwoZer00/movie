@@ -214,13 +214,16 @@ const getKeywords = async (movieId) => {
 const getDailyMovie = async () => {
   const today = new Date().toISOString().split('T')[0];
   
-  // Simple hash function for better distribution
-  const hash = today.split('').reduce((acc, char) => {
-    return ((acc << 5) - acc) + char.charCodeAt(0);
-  }, 0);
+  // Fixed seed for consistent daily movie globally
+  const seed = today + '-filmdle-guess';
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+    hash = hash & hash;
+  }
   
-  let pageNumber = (Math.abs(hash) % 500) + 1;
-  let movieIndex = Math.abs(hash >> 8) % 20;
+  const pageNumber = (Math.abs(hash) % 100) + 1;
+  const movieIndex = Math.abs(hash >> 8) % 20;
   let attempts = 0;
   
   while (attempts < 10) {
@@ -228,10 +231,7 @@ const getDailyMovie = async () => {
     optionsURL.append("language", LANG);
     optionsURL.append("primary_release_date.gte", "2015-01-01");
     optionsURL.append("vote_count.gte", "1000");
-    
-    const adultFilter = localStorage.getItem('adultFilter') !== 'false';
-    optionsURL.append("include_adult", adultFilter ? "false" : "true");
-    
+    optionsURL.append("include_adult", "false");
     optionsURL.append("page", pageNumber);
     
     const response = await fetch(`${URL}/discover/movie?${optionsURL.toString()}`, {
@@ -321,10 +321,13 @@ const getMovieAlternativeTitles = async (movieId) => {
 const getDailyLinkMovie = async () => {
   const today = new Date().toISOString().split('T')[0];
   
-  // Hash function for consistent daily movie
-  const hash = today.split('').reduce((acc, char) => {
-    return ((acc << 5) - acc) + char.charCodeAt(0);
-  }, 0);
+  // Fixed seed for consistent daily movie globally
+  const seed = today + '-filmdle-link';
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+    hash = hash & hash;
+  }
   
   const pageNumber = (Math.abs(hash) % 100) + 1;
   const movieIndex = Math.abs(hash >> 8) % 20;
@@ -334,9 +337,7 @@ const getDailyLinkMovie = async () => {
   optionsURL.append("primary_release_date.gte", "2010-01-01");
   optionsURL.append("vote_count.gte", "2000");
   optionsURL.append("page", pageNumber);
-  
-  const adultFilter = localStorage.getItem('adultFilter') !== 'false';
-  optionsURL.append("include_adult", adultFilter ? "false" : "true");
+  optionsURL.append("include_adult", "false");
   
   const response = await fetch(`${URL}/discover/movie?${optionsURL.toString()}`, {
     method: "GET",
