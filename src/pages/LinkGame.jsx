@@ -9,6 +9,7 @@ import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal';
 import winSound from '../resources/win_sound.wav';
 import lossSound from '../resources/loss_sound.wav';
 import { trackGameStart, trackGameEnd, trackHintUsed, trackShare, trackUndo, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
+import { generateShareImage, downloadImage, shareImageNative } from '../utils/shareImage';
 
 const debounce = (fn, delay) => {
   let timer;
@@ -49,6 +50,8 @@ export default function LinkGame() {
   const errorAudio = useRef(new Audio(lossSound));
   const [showHelp, setShowHelp] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [showShareImage, setShowShareImage] = useState(false);
+  const [shareImageUrl, setShareImageUrl] = useState(null);
 
   // Update timer every second
   useEffect(() => {
@@ -464,6 +467,24 @@ export default function LinkGame() {
     setTimeout(() => setShowShareModal(false), 2000);
   };
 
+  const handleShareImage = async () => {
+    const chainLength = Math.floor(chain.length / 2) + 1;
+    const imageData = await generateShareImage({
+      type: 'link',
+      mode: isDailyChallenge ? '🔗 Daily Link Chain' : '🔗 Link Chain',
+      chainLength,
+      time: getElapsedTime(),
+      hintsUsed,
+      bestChain: getBestChain()
+    });
+    
+    const shared = await shareImageNative(imageData, 'Filmdle Link Chain Result', 'Check out my Filmdle Link Chain!');
+    if (!shared) {
+      setShareImageUrl(imageData);
+      setShowShareImage(true);
+    }
+  };
+
   const reset = () => {
     if (isDailyChallenge) return; // Can't reset daily challenge
     
@@ -642,6 +663,9 @@ export default function LinkGame() {
           <div className='flex gap-2 justify-center'>
             <button onClick={shareResults} className='bg-green-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600'>
               Share Results
+            </button>
+            <button onClick={handleShareImage} className='bg-purple-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-purple-600'>
+              📷 Share Image
             </button>
             {!isDailyChallenge && (
               <button onClick={reset} className='bg-blue-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-600'>
@@ -883,6 +907,19 @@ export default function LinkGame() {
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
           <div className='bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl'>
             <p className='text-lg font-semibold text-green-600 dark:text-green-400'>✔ Copied to clipboard!</p>
+          </div>
+        </div>
+      )}
+      
+      {showShareImage && (
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4' onClick={() => setShowShareImage(false)}>
+          <div className='bg-white dark:bg-gray-800 rounded-lg p-6 max-w-lg' onClick={(e) => e.stopPropagation()}>
+            <h3 className='text-xl font-bold mb-4 dark:text-white'>Share Result</h3>
+            <img src={shareImageUrl} alt='Result' className='w-full rounded mb-4' />
+            <div className='flex gap-2'>
+              <button onClick={() => downloadImage(shareImageUrl, 'filmdle-link-result.png')} className='flex-1 bg-blue-500 text-white py-2 rounded font-semibold hover:bg-blue-600'>Download</button>
+              <button onClick={() => setShowShareImage(false)} className='flex-1 bg-gray-500 text-white py-2 rounded font-semibold hover:bg-gray-600'>Close</button>
+            </div>
           </div>
         </div>
       )}

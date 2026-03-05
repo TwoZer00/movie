@@ -16,6 +16,7 @@ import AdSense from '../components/AdSense';
 import AdSenseVertical from '../components/AdSenseVertical';
 import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal';
 import { trackGameStart, trackGameEnd, trackSkip, trackCollectionStart, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
+import { generateShareImage, downloadImage, shareImageNative } from '../utils/shareImage';
 
 export default function Home() {
   const [cast,setCast] = useState([]);
@@ -51,6 +52,8 @@ export default function Home() {
   const [yearHints, setYearHints] = useState({ min: null, max: null });
   const [startTime, setStartTime] = useState(Date.now());
   const [showHelp, setShowHelp] = useState(false);
+  const [showShareImage, setShowShareImage] = useState(false);
+  const [shareImageUrl, setShareImageUrl] = useState(null);
 
   const fetchData = useCallback(async ()=>{
     lStatus.current = loadStatus.loading
@@ -493,11 +496,42 @@ export default function Home() {
     }
   }, [tries.length, cast, movie, revealedLetters]);
 
+  const handleShareImage = async () => {
+    const stats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"losses":0,"currentStreak":0,"maxStreak":0}');
+    
+    const imageData = await generateShareImage({
+      type: 'guess',
+      mode: isDailyChallenge ? '🎯 Daily Challenge' : '🎬 Guess by Cast',
+      isWin,
+      tries: tries.length + 1,
+      difficulty: 'Medium',
+      streak: stats.currentStreak
+    });
+    
+    const shared = await shareImageNative(imageData, 'Filmdle Result', 'Check out my Filmdle result!');
+    if (!shared) {
+      setShareImageUrl(imageData);
+      setShowShareImage(true);
+    }
+  };
+
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      {showModal && <Modal isWin={isWin} movie={movie} onClose={isDailyChallenge ? ()=>navigate('/') : reset} isDailyChallenge={isDailyChallenge} triesUsed={tries.length} revealedCast={cast} />}
+      {showModal && <Modal isWin={isWin} movie={movie} onClose={isDailyChallenge ? ()=>navigate('/') : reset} isDailyChallenge={isDailyChallenge} triesUsed={tries.length} revealedCast={cast} onShareImage={handleShareImage} />}
       {showHelp && <KeyboardShortcutsModal onClose={() => setShowHelp(false)} mode='guess' />}
+      {showShareImage && (
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4' onClick={() => setShowShareImage(false)}>
+          <div className='bg-white dark:bg-gray-800 rounded-lg p-6 max-w-lg' onClick={(e) => e.stopPropagation()}>
+            <h3 className='text-xl font-bold mb-4 dark:text-white'>Share Result</h3>
+            <img src={shareImageUrl} alt='Result' className='w-full rounded mb-4' />
+            <div className='flex gap-2'>
+              <button onClick={() => downloadImage(shareImageUrl, 'filmdle-result.png')} className='flex-1 bg-blue-500 text-white py-2 rounded font-semibold hover:bg-blue-600'>Download</button>
+              <button onClick={() => setShowShareImage(false)} className='flex-1 bg-gray-500 text-white py-2 rounded font-semibold hover:bg-gray-600'>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
       {loading && <Loader />}
       <SkipButton onSkip={handleSkip} disabled={isDailyChallenge} />
       
@@ -592,7 +626,7 @@ export default function Home() {
           </div>
         </div>
         <div className='flex-1 border dark:border-gray-700 px-2 rounded flex flex-col gap-1 overflow-y-auto overflow-x-hidden min-h-0 dark:bg-gray-800'>
-          <p className='text-right font-semibold sticky top-0 bg-white dark:bg-gray-800 dark:text-white py-1'>Tries {Math.abs(tries.length-5)}/5</p>
+          <p className='text-right font-semibold sticky top-0 bg-white dark:bg-gray-800 dark:text-white py-1'>Tries {5 - tries.length}/5</p>
           {tries.map((item,index)=>(
             <TryItem 
               key={item.id} 

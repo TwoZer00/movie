@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, memo, useMemo } from 'react';
 
-const Modal = memo(({isWin, movie, onClose, isDailyChallenge, triesUsed, revealedCast}) => {
+const Modal = memo(({isWin, movie, onClose, isDailyChallenge, triesUsed, revealedCast, onShareImage}) => {
   const [copied, setCopied] = useState(false);
   const stats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"losses":0,"currentStreak":0,"maxStreak":0}');
   const totalGames = stats.wins + stats.losses;
@@ -147,7 +147,7 @@ Play at: ${window.location.origin}`;
         <h2 className={`text-4xl font-bold mb-2 ${isWin?'text-green-600':'text-red-600'}`}>
           {isWin ? '🎉 You Won!' : '😔 You Lost!'}
         </h2>
-        {isWin && <p className='text-gray-600 dark:text-gray-400 mb-4'>Completed in {triesUsed}/5 tries</p>}
+        {isWin && <p className='text-gray-600 dark:text-gray-400 mb-4'>Completed in {triesUsed + 1}/5 tries</p>}
         
         <div className='flex gap-4 justify-center mb-4'>
           <div>
@@ -238,6 +238,11 @@ Play at: ${window.location.origin}`;
           <button onClick={shareResults} className='bg-green-500 dark:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 dark:hover:bg-green-700 transition-colors'>
             {copied ? '✓ Copied!' : 'Share Results'}
           </button>
+          {onShareImage && (
+            <button onClick={onShareImage} className='bg-purple-500 dark:bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-600 dark:hover:bg-purple-700 transition-colors'>
+              📷 Share Image
+            </button>
+          )}
         </div>
       </div>
     </div>
