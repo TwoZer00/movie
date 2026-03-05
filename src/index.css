@@ -5,6 +5,7 @@
 /* PWA Safe Area Support */
 @supports (padding: max(0px)) {
   body {
+    padding-top: max(0px, env(safe-area-inset-top));
     padding-left: max(0px, env(safe-area-inset-left));
     padding-right: max(0px, env(safe-area-inset-right));
     padding-bottom: max(0px, env(safe-area-inset-bottom));
@@ -59,6 +60,11 @@
   100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out forwards;
 }
@@ -86,4 +92,8 @@
 
 .animate-confetti {
   animation: confetti linear forwards;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }

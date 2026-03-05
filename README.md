@@ -39,6 +39,7 @@ Guess movies by cast or build actor-movie chains!
   - [x] Reset stats option
 - [x] Share functionality
   - [x] Copy results to clipboard
+  - [x] Share as image (canvas-based 800x600)
 
 ### Link Chain Mode
 - [x] Alternating actor-movie guessing
@@ -52,7 +53,10 @@ Guess movies by cast or build actor-movie chains!
   - [x] Search filtering after all hints used
 - [x] Movie logos instead of posters (avoid spoilers)
 - [x] Visual chain display
-  - [x] Horizontal scrollable chain
+  - [x] Horizontal scrollable chain with snap scrolling
+  - [x] Gradient overlays indicating more content
+  - [x] Auto-scroll to latest link
+  - [x] Compact mode when scrollable
   - [x] Numbered actor badges
   - [x] Hover animations
   - [x] Arrow transitions
@@ -69,9 +73,11 @@ Guess movies by cast or build actor-movie chains!
   - [x] Stats displayed in Settings
 - [x] Share functionality
   - [x] Copy results with chain length, time, hints used
+  - [x] Share as image (canvas-based 800x600)
 - [x] Daily Link Challenge
   - [x] Same starting movie for everyone
   - [x] Progress saving in localStorage
+  - [x] Progress display on Menu (shows current chain length)
   - [x] One attempt per day
   - [x] Countdown timer for next challenge
 - [x] Performance optimizations
@@ -82,7 +88,13 @@ Guess movies by cast or build actor-movie chains!
 - [x] Confetti animation
   - [x] Celebrates chains of 10+ links
 - [x] Keyboard shortcuts
+  - [x] Help modal (?)
+  - [x] Focus search (S)
+  - [x] Get hint (H)
+  - [x] Undo (U)
+  - [x] Give up (G)
   - [x] Escape to clear search
+  - [x] Arrow keys for result navigation
   - [x] Enter to select single result
 
 ### Settings & Preferences
@@ -99,8 +111,9 @@ Guess movies by cast or build actor-movie chains!
 
 ### UI/UX
 - [x] Responsive design (mobile & desktop optimized)
-- [x] Loading states
-- [x] Keyboard navigation for search
+- [x] Red/gold movie theater theme
+- [x] Loading states with themed spinner
+- [x] Keyboard navigation for search with arrow keys
 - [x] Skip button (disabled for daily challenges)
 - [x] Organized menu with mode separation
 - [x] Confetti animations for wins

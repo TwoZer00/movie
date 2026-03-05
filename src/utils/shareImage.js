@@ -4,10 +4,10 @@ export const generateShareImage = async (data) => {
   canvas.height = 600;
   const ctx = canvas.getContext('2d');
 
-  // Background gradient
+  // Movie theater gradient (dark red to gold)
   const gradient = ctx.createLinearGradient(0, 0, 800, 600);
-  gradient.addColorStop(0, '#a855f7');
-  gradient.addColorStop(1, '#ec4899');
+  gradient.addColorStop(0, '#991b1b');
+  gradient.addColorStop(1, '#d97706');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, 800, 600);
 
@@ -89,7 +89,7 @@ export const generateShareImage = async (data) => {
     
     // Best chain
     ctx.font = 'bold 24px Arial';
-    ctx.fillStyle = '#8b5cf6';
+    ctx.fillStyle = '#d97706';
     ctx.fillText('🏆 Best: ' + data.bestChain, 400, 440);
   }
 

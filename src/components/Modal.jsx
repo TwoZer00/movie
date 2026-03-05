@@ -214,7 +214,7 @@ Play at: ${window.location.origin}`;
         </div>
         
         <div className='grid grid-cols-4 gap-3 mb-6 text-center'>
-          <div className='bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg border border-blue-200 dark:border-blue-700'>
+          <div className='bg-red-50 dark:bg-red-900/30 p-3 rounded-lg border border-red-200 dark:border-red-700'>
             <p className='text-2xl font-bold text-blue-600 dark:text-blue-400'>{totalGames}</p>
             <p className='text-xs text-gray-600 dark:text-gray-400'>Played</p>
           </div>
@@ -222,8 +222,8 @@ Play at: ${window.location.origin}`;
             <p className='text-2xl font-bold text-green-600 dark:text-green-400'>{winRate}%</p>
             <p className='text-xs text-gray-600 dark:text-gray-400'>Win Rate</p>
           </div>
-          <div className='bg-purple-50 dark:bg-purple-900/30 p-3 rounded-lg border border-purple-200 dark:border-purple-700'>
-            <p className='text-2xl font-bold text-purple-600 dark:text-purple-400'>{stats.currentStreak}</p>
+          <div className='bg-amber-50 dark:bg-amber-900/30 p-3 rounded-lg border border-amber-200 dark:border-amber-700'>
+            <p className='text-2xl font-bold text-amber-600 dark:text-amber-400'>{stats.currentStreak}</p>
             <p className='text-xs text-gray-600 dark:text-gray-400'>Current</p>
           </div>
           <div className='bg-orange-50 dark:bg-orange-900/30 p-3 rounded-lg border border-orange-200 dark:border-orange-700'>
@@ -232,14 +232,14 @@ Play at: ${window.location.origin}`;
           </div>
         </div>
         <div className='flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center'>
-          <button onClick={onClose} className='bg-blue-500 dark:bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors'>
+          <button onClick={onClose} className='bg-red-600 dark:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 dark:hover:bg-red-600 transition-colors'>
             {isDailyChallenge ? 'Back to Menu' : 'Play Again'}
           </button>
           <button onClick={shareResults} className='bg-green-500 dark:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 dark:hover:bg-green-700 transition-colors'>
             {copied ? '✓ Copied!' : 'Share Results'}
           </button>
           {onShareImage && (
-            <button onClick={onShareImage} className='bg-purple-500 dark:bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-600 dark:hover:bg-purple-700 transition-colors'>
+            <button onClick={onShareImage} className='bg-amber-600 dark:bg-amber-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-amber-700 dark:hover:bg-amber-600 transition-colors'>
               📷 Share Image
             </button>
           )}

@@ -347,6 +347,21 @@ const getDailyLinkMovie = async () => {
     }
   });
   const data = await response.json();
+  
+  if (!data.results || data.results.length === 0) {
+    // Fallback to page 1 if no results
+    optionsURL.set("page", "1");
+    const retryResponse = await fetch(`${URL}/discover/movie?${optionsURL.toString()}`, {
+      method: "GET",
+      headers: {
+        accept: 'application/json',
+        Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
+      }
+    });
+    const retryData = await retryResponse.json();
+    return retryData.results[0];
+  }
+  
   const movie = data.results[movieIndex] || data.results[0];
   return movie;
 };

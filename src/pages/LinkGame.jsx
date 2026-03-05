@@ -6,6 +6,10 @@ import genres from '../resources/genre.json';
 import { useLocation } from 'react-router-dom';
 import Confetti from '../components/Confetti';
 import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal';
+import LinkChainHeader from '../components/LinkChainHeader';
+import ChainDisplay from '../components/ChainDisplay';
+import GameOverScreen from '../components/GameOverScreen';
+import SearchSection from '../components/SearchSection';
 import winSound from '../resources/win_sound.wav';
 import lossSound from '../resources/loss_sound.wav';
 import { trackGameStart, trackGameEnd, trackHintUsed, trackShare, trackUndo, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
@@ -84,18 +88,24 @@ export default function LinkGame() {
         setStartTime(data.startTime);
         setEndTime(data.endTime);
         if (!data.gameOver) {
-          const lastMovie = data.chain[data.chain.length - 1];
-          const [movieDetails, credits, keywords, images] = await Promise.all([
-            getMovie(lastMovie.data.id),
-            getCastFromMovie(lastMovie.data.id),
-            getKeywords(lastMovie.data.id),
-            getMovieImages(lastMovie.data.id)
-          ]);
-          const cast = credits.cast.filter(item => item?.profile_path && item?.id && !data.usedActors.some(a => a.id === item.id));
-          const logo = images.logos?.find(l => l.iso_639_1 === 'en') || images.logos?.[0];
-          const director = credits.crew.find(person => person.job === 'Director');
-          setCurrentMovie({...movieDetails, keywords: keywords.slice(0, 3), logo: logo?.file_path, director: director?.name});
-          setCurrentCast(cast);
+          const lastItem = data.chain[data.chain.length - 1];
+          if (lastItem.type === 'movie') {
+            const [movieDetails, credits, keywords, images] = await Promise.all([
+              getMovie(lastItem.data.id),
+              getCastFromMovie(lastItem.data.id),
+              getKeywords(lastItem.data.id),
+              getMovieImages(lastItem.data.id)
+            ]);
+            const cast = credits.cast.filter(item => item?.profile_path && item?.id && !data.usedActors.some(a => a.id === item.id));
+            const logo = images.logos?.find(l => l.iso_639_1 === 'en') || images.logos?.[0];
+            const director = credits.crew.find(person => person.job === 'Director');
+            setCurrentMovie({...movieDetails, keywords: keywords.slice(0, 3), logo: logo?.file_path, director: director?.name});
+            setCurrentCast(cast);
+            setMode('guessActor');
+          } else {
+            setCurrentActor(lastItem.data);
+            setMode('guessMovie');
+          }
         }
         setLoading(false);
         return;
@@ -542,19 +552,11 @@ export default function LinkGame() {
     setActorHints(null);
   };
 
-  if (loading && chain.length === 0) return (
-    <div className='flex-1 flex items-center justify-center dark:bg-gray-900'>
-      <div className='text-center'>
-        <div className='inline-block w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4'></div>
-        <p className='text-xl font-semibold text-gray-700 dark:text-white'>Loading Link Chain...</p>
-        <p className='text-sm text-gray-500 dark:text-gray-400 mt-2'>Preparing your challenge</p>
-      </div>
-    </div>
-  );
+  if (loading && chain.length === 0) return <Loader />;
 
   return (
     <div className='flex-1 flex flex-col gap-2 p-2 sm:p-4 overflow-hidden dark:bg-gray-900 max-w-4xl mx-auto w-full'>
-      <div className='text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 sm:p-3 rounded-lg relative'>
+      <div className='text-center bg-gradient-to-r from-red-600 to-amber-600 text-white p-2 sm:p-3 rounded-lg relative'>
         <h2 className='text-lg sm:text-xl font-bold'>🔗 {isDailyChallenge ? 'Daily Link' : 'Link Chain'}</h2>
         <div className='flex justify-center items-center gap-2 sm:gap-4 text-xs opacity-90'>
           <span>Chain: <span className='font-bold'>{Math.floor(chain.length / 2) + 1}</span></span>
@@ -591,49 +593,7 @@ export default function LinkGame() {
       </div>
 
       {/* Chain Display */}
-      <div className='flex gap-1 sm:gap-2 justify-start items-center bg-white dark:bg-gray-800 p-2 sm:p-3 rounded-lg overflow-x-auto'>
-        {chain.map((link, i) => (
-          <div key={i} className='flex items-center gap-1 sm:gap-2 animate-fadeIn'>
-            {link.type === 'movie' ? (
-              <div className='text-center flex-shrink-0 transform hover:scale-105 transition-transform'>
-                <div className='w-16 h-14 sm:w-24 sm:h-20 rounded-lg flex items-center justify-center'>
-                  {link.data.logo ? (
-                    <img 
-                      src={`${IMG_URL}w500${link.data.logo}`}
-                      alt='Movie'
-                      className='max-w-full max-h-full object-contain'
-                    />
-                  ) : (
-                    <div className='w-16 h-14 sm:w-24 sm:h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-lg flex items-center justify-center'>
-                      <span className='text-xl sm:text-3xl'>🎬</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className='text-center flex-shrink-0 transform hover:scale-105 transition-transform'>
-                <div className='relative'>
-                  <img 
-                    src={`${IMG_URL}${PROFILE_SIZE.sm}${link.data.profile_path}`}
-                    alt='Actor'
-                    className='w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-full shadow-lg border-2 border-purple-400'
-                  />
-                  <div className='absolute -bottom-1 -right-1 bg-purple-500 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-white text-xs font-bold'>
-                    {Math.floor((i + 1) / 2)}
-                  </div>
-                </div>
-              </div>
-            )}
-            {i < chain.length - 1 && (
-              <div className='flex-shrink-0 animate-slideIn'>
-                <svg className='w-4 h-4 sm:w-6 sm:h-6 text-purple-500' fill='currentColor' viewBox='0 0 20 20'>
-                  <path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' />
-                </svg>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      <ChainDisplay chain={chain} />
 
       {gameOver ? (
         <div className='text-center bg-red-50 dark:bg-red-900/30 p-4 rounded-lg'>
@@ -654,7 +614,7 @@ export default function LinkGame() {
                   <span className='font-medium dark:text-white'>
                     {link.type === 'movie' ? `🎬 ${link.data.title}` : `👤 ${link.data.name}`}
                   </span>
-                  {i < chain.length - 1 && <span className='text-purple-500'>→</span>}
+                  {i < chain.length - 1 && <span className='text-amber-600'>→</span>}
                 </span>
               ))}
             </div>
@@ -664,11 +624,11 @@ export default function LinkGame() {
             <button onClick={shareResults} className='bg-green-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600'>
               Share Results
             </button>
-            <button onClick={handleShareImage} className='bg-purple-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-purple-600'>
+            <button onClick={handleShareImage} className='bg-amber-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-amber-700'>
               📷 Share Image
             </button>
             {!isDailyChallenge && (
-              <button onClick={reset} className='bg-blue-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-600'>
+              <button onClick={reset} className='bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700'>
                 New Challenge
               </button>
             )}
@@ -685,7 +645,7 @@ export default function LinkGame() {
               <>
                 <h3 className='text-sm sm:text-base font-semibold mb-2 dark:text-white'>Current Movie:</h3>
                 <div className='flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3'>
-                  <div className='w-24 h-36 sm:w-32 sm:h-48 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-lg flex items-center justify-center flex-shrink-0 p-2'>
+                  <div className='w-24 h-36 sm:w-32 sm:h-48 bg-gradient-to-br from-red-600 to-amber-600 rounded-lg shadow-lg flex items-center justify-center flex-shrink-0 p-2'>
                     {currentMovie?.logo ? (
                       <img 
                         src={`${IMG_URL}w500${currentMovie.logo}`}
@@ -714,7 +674,7 @@ export default function LinkGame() {
                     )}
                     <div className='flex flex-wrap gap-1 justify-center sm:justify-start'>
                       {currentMovie?.genre_ids?.slice(0, 2).map(gid => (
-                        <span key={gid} className='px-2 py-0.5 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-full text-xs'>
+                        <span key={gid} className='px-2 py-0.5 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-full text-xs'>
                           {genres.find(g => g.id === gid)?.name}
                         </span>
                       ))}
@@ -826,13 +786,13 @@ export default function LinkGame() {
                   }
                 }}
                 placeholder={mode === 'guessActor' ? 'Type actor name...' : 'Type movie title...'}
-                className='w-full p-3 border dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500'
+                className='w-full p-3 border dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600'
                 disabled={loading}
               />
               
               {searching && (
                 <div className='absolute right-3 top-3'>
-                  <div className='w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin'></div>
+                  <div className='w-5 h-5 border-2 border-red-600 border-t-transparent rounded-full animate-spin'></div>
                 </div>
               )}
               
@@ -894,14 +854,7 @@ export default function LinkGame() {
         </>
       )}
 
-      {loading && chain.length > 0 && (
-        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
-          <div className='bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl text-center'>
-            <div className='inline-block w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-3'></div>
-            <p className='text-lg font-semibold text-gray-700 dark:text-gray-300'>Loading {mode === 'guessActor' ? 'next movie' : 'next actor'}...</p>
-          </div>
-        </div>
-      )}
+      {loading && chain.length > 0 && <Loader />}
 
       {showShareModal && (
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
@@ -917,7 +870,7 @@ export default function LinkGame() {
             <h3 className='text-xl font-bold mb-4 dark:text-white'>Share Result</h3>
             <img src={shareImageUrl} alt='Result' className='w-full rounded mb-4' />
             <div className='flex gap-2'>
-              <button onClick={() => downloadImage(shareImageUrl, 'filmdle-link-result.png')} className='flex-1 bg-blue-500 text-white py-2 rounded font-semibold hover:bg-blue-600'>Download</button>
+              <button onClick={() => downloadImage(shareImageUrl, 'filmdle-link-result.png')} className='flex-1 bg-red-600 text-white py-2 rounded font-semibold hover:bg-red-700'>Download</button>
               <button onClick={() => setShowShareImage(false)} className='flex-1 bg-gray-500 text-white py-2 rounded font-semibold hover:bg-gray-600'>Close</button>
             </div>
           </div>

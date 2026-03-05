@@ -526,7 +526,7 @@ export default function Home() {
             <h3 className='text-xl font-bold mb-4 dark:text-white'>Share Result</h3>
             <img src={shareImageUrl} alt='Result' className='w-full rounded mb-4' />
             <div className='flex gap-2'>
-              <button onClick={() => downloadImage(shareImageUrl, 'filmdle-result.png')} className='flex-1 bg-blue-500 text-white py-2 rounded font-semibold hover:bg-blue-600'>Download</button>
+              <button onClick={() => downloadImage(shareImageUrl, 'filmdle-result.png')} className='flex-1 bg-red-600 text-white py-2 rounded font-semibold hover:bg-red-700'>Download</button>
               <button onClick={() => setShowShareImage(false)} className='flex-1 bg-gray-500 text-white py-2 rounded font-semibold hover:bg-gray-600'>Close</button>
             </div>
           </div>
@@ -550,7 +550,7 @@ export default function Home() {
           </h1>
           <button 
             onClick={() => setShowHelp(true)}
-            className='bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-semibold'
+            className='bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-semibold'
             title='Keyboard shortcuts (?)'
           >
             ⌨️
@@ -593,10 +593,10 @@ export default function Home() {
               {tries.length > 0 && gameStatus !== gameStatusVal.finished && (
                 <div className='flex flex-wrap gap-2'>
                   {tries.length >= 2 && movie?.genre_ids?.[0] && (
-                    <span className={`px-3 py-1 bg-purple-100 dark:bg-purple-900 dark:text-purple-300 rounded-full text-sm font-medium ${tries.length === 2 && lastTryCount === 2 ? 'animate-popIn' : ''}`}>{genres.find(g=>g.id===movie.genre_ids[0])?.name}</span>
+                    <span className={`px-3 py-1 bg-red-100 dark:bg-red-900 dark:text-red-300 rounded-full text-sm font-medium ${tries.length === 2 && lastTryCount === 2 ? 'animate-popIn' : ''}`}>{genres.find(g=>g.id===movie.genre_ids[0])?.name}</span>
                   )}
                   {tries.length >= 3 && movie?.genre_ids?.[1] && (
-                    <span className={`px-3 py-1 bg-purple-100 dark:bg-purple-900 dark:text-purple-300 rounded-full text-sm font-medium ${tries.length === 3 && lastTryCount === 3 ? 'animate-popIn' : ''}`} style={{animationDelay: '100ms'}}>{genres.find(g=>g.id===movie.genre_ids[1])?.name}</span>
+                    <span className={`px-3 py-1 bg-red-100 dark:bg-red-900 dark:text-red-300 rounded-full text-sm font-medium ${tries.length === 3 && lastTryCount === 3 ? 'animate-popIn' : ''}`} style={{animationDelay: '100ms'}}>{genres.find(g=>g.id===movie.genre_ids[1])?.name}</span>
                   )}
                   {tries.length >= 4 && director && (
                     <span className={`px-3 py-1 bg-orange-100 dark:bg-orange-900 dark:text-orange-300 rounded-full text-sm font-medium ${tries.length === 4 && lastTryCount === 4 ? 'animate-popIn' : ''}`} style={{animationDelay: '200ms'}}>🎬 {director.name}</span>
@@ -646,7 +646,7 @@ export default function Home() {
                   searchLoading ? (
                     <li className='p-4 text-center text-gray-500 dark:text-gray-400'>
                       <div className='flex items-center justify-center gap-2'>
-                        <div className='w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
+                        <div className='w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin'></div>
                         Searching...
                       </div>
                     </li>
@@ -669,7 +669,7 @@ export default function Home() {
               </ul>
             </div>
             <div className='flex gap-2'>
-              <input type="submit" value={"Try"} className='flex-1 rounded bg-blue-500 text-white font-semibold py-2 px-4 hover:bg-blue-600 dark:hover:bg-blue-700'/>
+              <input type="submit" value={"Try"} className='flex-1 rounded bg-red-600 text-white font-semibold py-2 px-4 hover:bg-red-700'/>
               <button type="button" onClick={handlePass} disabled={tries.length >= 4} className='rounded bg-gray-500 text-white font-semibold py-2 px-4 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'>Pass</button>
             </div>
         </form>

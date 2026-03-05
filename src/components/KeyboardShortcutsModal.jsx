@@ -66,7 +66,7 @@ export default function KeyboardShortcutsModal({ onClose, mode = 'guess' }) {
         
         <button 
           onClick={onClose}
-          className='w-full bg-blue-500 text-white py-2 rounded-lg font-semibold hover:bg-blue-600'
+          className='w-full bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700'
         >
           Got it!
         </button>

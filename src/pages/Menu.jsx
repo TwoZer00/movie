@@ -67,6 +67,7 @@ const COLLECTIONS = [
 export default function Menu() {
   const [options,setOptions] = useState({})
   const [dailyCompleted,setDailyCompleted] = useState(false)
+  const [dailyLinkChain,setDailyLinkChain] = useState(null)
   const [selectedCollection, setSelectedCollection] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [customCollections, setCustomCollections] = useState([]);
@@ -77,6 +78,13 @@ export default function Menu() {
     const today = new Date().toISOString().split('T')[0];
     const completed = localStorage.getItem(`daily_${today}`);
     setDailyCompleted(!!completed);
+    
+    const dailyLink = localStorage.getItem(`daily_link_${today}`);
+    if (dailyLink) {
+      const data = JSON.parse(dailyLink);
+      const chainLength = Math.floor(data.chain.length / 2) + 1;
+      setDailyLinkChain(chainLength);
+    }
     
     const saved = localStorage.getItem('custom_collections');
     if (saved) {
@@ -144,11 +152,11 @@ export default function Menu() {
         )}
         
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          <button className='py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-all' onClick={()=>{navigate("/play",{ state:options})}}>
+          <button className='py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg bg-gradient-to-r from-red-600 to-amber-600 text-white hover:from-red-700 hover:to-amber-700 transition-all' onClick={()=>{navigate("/play",{ state:options})}}>
             🎬 Play
           </button>
           <div className='relative'>
-            <button className={`w-full py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg transition-all ${dailyCompleted ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed opacity-60' : 'bg-yellow-200 dark:bg-yellow-700 dark:text-white hover:bg-yellow-300 dark:hover:bg-yellow-600'}`} onClick={()=>{navigate("/play?daily=true")}} disabled={dailyCompleted}>
+            <button className={`w-full py-4 shadow-lg text-2xl font-semibold uppercase rounded-lg transition-all ${dailyCompleted ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed opacity-60' : 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white hover:from-amber-600 hover:to-yellow-600'}`} onClick={()=>{navigate("/play?daily=true")}} disabled={dailyCompleted}>
               📅 Daily
               {dailyCompleted && <span className='absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>✓ Completed</span>}
             </button>
@@ -172,7 +180,7 @@ export default function Menu() {
                   className={`p-4 rounded-lg transition-all shadow-md hover:shadow-lg relative ${
                     isOscars 
                       ? 'bg-gradient-to-br from-yellow-200 to-amber-300 dark:from-yellow-700 dark:to-amber-800 hover:from-yellow-300 hover:to-amber-400 dark:hover:from-yellow-600 dark:hover:to-amber-700 ring-2 ring-yellow-400 dark:ring-yellow-500'
-                      : 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 hover:from-purple-200 hover:to-pink-200 dark:hover:from-purple-800 dark:hover:to-pink-800'
+                      : 'bg-gradient-to-br from-red-100 to-amber-100 dark:from-red-900 dark:to-amber-900 hover:from-red-200 hover:to-amber-200 dark:hover:from-red-800 dark:hover:to-amber-800'
                   }`}
                 >
                   <div className='text-3xl mb-2'>{collection.emoji}</div>
@@ -226,21 +234,24 @@ export default function Menu() {
         
         <button
           onClick={() => setShowCreateModal(true)}
-          className='py-2 shadow text-sm font-semibold uppercase rounded-lg bg-green-100 dark:bg-green-900 dark:text-white hover:bg-green-200 dark:hover:bg-green-800 transition-all'
+          className='py-2 shadow text-sm font-semibold uppercase rounded-lg bg-amber-600 dark:bg-amber-700 text-white hover:bg-amber-700 dark:hover:bg-amber-600 transition-all'
         >
           ➕ Create Collection
         </button>
         
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          <button className='py-4 shadow-lg text-xl font-semibold uppercase rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all' onClick={()=>navigate('/link')}>
+          <button className='py-4 shadow-lg text-xl font-semibold uppercase rounded-lg bg-gradient-to-r from-red-600 to-amber-600 text-white hover:from-red-700 hover:to-amber-700 transition-all' onClick={()=>navigate('/link')}>
             🔗 Link Chain
           </button>
-          <button className='py-4 shadow-lg text-xl font-semibold uppercase rounded-lg bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition-all' onClick={()=>navigate('/link?daily=true')}>
-            📅 Daily Link
-          </button>
+          <div className='relative'>
+            <button className='w-full py-4 shadow-lg text-xl font-semibold uppercase rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 text-white hover:from-amber-600 hover:to-yellow-600 transition-all' onClick={()=>navigate('/link?daily=true')}>
+              📅 Daily Link
+              {dailyLinkChain && <span className='absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>Chain: {dailyLinkChain} 🔗</span>}
+            </button>
+          </div>
         </div>
         
-        <button className='py-3 shadow-lg text-lg font-semibold uppercase rounded-lg bg-blue-100 dark:bg-blue-900 dark:text-white hover:bg-blue-200 dark:hover:bg-blue-800 transition-all' onClick={()=>navigate('/settings')}>
+        <button className='py-3 shadow-lg text-lg font-semibold uppercase rounded-lg bg-red-800 dark:bg-red-900 text-white hover:bg-red-900 dark:hover:bg-red-800 transition-all' onClick={()=>navigate('/settings')}>
           ⚙️ Settings
         </button>
       </div>
