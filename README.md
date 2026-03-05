@@ -56,8 +56,10 @@ Guess movies by cast or build actor-movie chains!
   - [x] Numbered actor badges
   - [x] Hover animations
   - [x] Arrow transitions
+  - [x] Chain summary on game over with revealed names
 - [x] Game controls
   - [x] Give Up button (non-daily mode only)
+  - [x] Undo button (go back one step)
   - [x] Real-time timer
   - [x] Best chain tracker
 - [x] Statistics tracking
@@ -75,6 +77,13 @@ Guess movies by cast or build actor-movie chains!
 - [x] Performance optimizations
   - [x] Debounced search (300ms)
   - [x] Parallel API requests with Promise.all
+- [x] Sound effects
+  - [x] Success/error sounds (toggleable)
+- [x] Confetti animation
+  - [x] Celebrates chains of 10+ links
+- [x] Keyboard shortcuts
+  - [x] Escape to clear search
+  - [x] Enter to select single result
 
 ### Settings & Preferences
 - [x] Adult content filter (toggleable with confirmation)
@@ -94,6 +103,18 @@ Guess movies by cast or build actor-movie chains!
 - [x] Keyboard navigation for search
 - [x] Skip button (disabled for daily challenges)
 - [x] Organized menu with mode separation
+- [x] Confetti animations for wins
+- [x] Better loading screens
+- [x] Focus management
+- [x] Safe area support for notched devices
+
+### Technical
+- [x] Error boundaries for graceful error handling
+- [x] Lazy loading routes for better performance
+- [x] API retry logic with error handling
+- [x] PWA support (installable app)
+- [x] Service worker for offline functionality
+- [x] Code splitting and optimization
 
 ## TODO (Firebase Integration)
 - [ ] Multiplayer mode
@@ -104,3 +125,21 @@ Guess movies by cast or build actor-movie chains!
   - [ ] Personal insights & analytics
   - [ ] Achievement badges
   - [ ] Profile system
+
+## Installation
+
+### Development
+```bash
+npm install
+npm run dev
+```
+
+### Production
+```bash
+npm run build
+npm run preview
+```
+
+### Requirements
+- Node.js >= 22.0.0
+- TMDB API key (set in .env as VITE_ACCESS_TOKEN)
