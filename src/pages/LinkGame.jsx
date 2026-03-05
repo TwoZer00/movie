@@ -7,6 +7,7 @@ import { useLocation } from 'react-router-dom';
 import Confetti from '../components/Confetti';
 import winSound from '../resources/win_sound.wav';
 import lossSound from '../resources/loss_sound.wav';
+import { trackGameStart, trackGameEnd, trackHintUsed, trackShare, trackUndo, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
 
 const debounce = (fn, delay) => {
   let timer;
@@ -61,6 +62,8 @@ export default function LinkGame() {
     const isDaily = new URLSearchParams(window.location.search).get('daily') === 'true';
     setIsDailyChallenge(isDaily);
     setStartTime(Date.now());
+    
+    trackGameStart(isDaily ? 'link_chain_daily' : 'link_chain');
     
     let movie;
     if (isDaily) {
@@ -143,9 +146,11 @@ export default function LinkGame() {
         if (mode === 'guessActor') {
           const results = await searchPerson(query);
           setSearchResults(results.results.slice(0, 10));
+          trackSearch('link_chain', query, results.results.length);
         } else {
           const results = await getMoviesByName(query);
           setSearchResults(results.results.slice(0, 10));
+          trackSearch('link_chain', query, results.results.length);
         }
       } catch (error) {
         console.error('Search error:', error);
@@ -278,7 +283,13 @@ export default function LinkGame() {
       if (finalChainLength >= 10) {
         setShowConfetti(true);
       }
+      
+      const gameDuration = Math.floor((now - startTime) / 1000);
+      trackGameDuration(isDailyChallenge ? 'link_chain_daily' : 'link_chain', gameDuration);
+      trackGameEnd(isDailyChallenge ? 'link_chain_daily' : 'link_chain', 'complete', 0, finalChainLength);
+      
       if (isDailyChallenge) {
+        trackDailyChallengeComplete('link_chain', 'complete', 0, finalChainLength);
         const today = new Date().toISOString().split('T')[0];
         localStorage.setItem(`daily_link_${today}`, JSON.stringify({
           chain: [...chain, { type: 'actor', data: currentActor }, { type: 'movie', data: {...movie, logo: logo?.file_path} }],
@@ -330,17 +341,20 @@ export default function LinkGame() {
     if (mode === 'guessActor') {
       // Hints for guessing actor from movie - don't reveal which actor
       if (hints.length === 0) {
+        trackHintUsed('link_chain', 'actor_character');
         // Hint 1: Show character name or role
         const randomActor = currentCast[Math.floor(Math.random() * Math.min(5, currentCast.length))];
         const character = randomActor.character || 'Unknown role';
         setHints([`Plays: ${character}`]);
         setActorHints({ actorId: randomActor.id });
       } else if (hints.length === 1 && actorHints) {
+        trackHintUsed('link_chain', 'actor_birth_year');
         // Hint 2: Birth year
         const personDetails = await getPersonDetails(actorHints.actorId);
         const birthYear = personDetails.birthday ? new Date(personDetails.birthday).getFullYear() : 'Unknown';
         setHints(prev => [...prev, `Born in: ${birthYear}`]);
       } else if (hints.length === 2 && actorHints) {
+        trackHintUsed('link_chain', 'actor_first_letter');
         // Hint 3: First letter
         const actor = currentCast.find(a => a.id === actorHints.actorId);
         setHints(prev => [...prev, `Name starts with: ${actor.name[0]}`]);
@@ -348,6 +362,7 @@ export default function LinkGame() {
     } else {
       // Hints for guessing movie from actor
       if (hints.length === 0) {
+        trackHintUsed('link_chain', 'movie_year_genre');
         // Hint 1: Get random movie from actor and show year + genres
         const actorMovies = await getMoviesByActor(currentActor.id);
         const validMovies = actorMovies.cast.filter(m => !usedMovies.includes(m.id) && m.release_date);
@@ -362,6 +377,7 @@ export default function LinkGame() {
         setHints([`${year} • ${genreNames}`]);
         setActorHints({ movieId: randomMovie.id });
       } else if (hints.length === 1 && actorHints) {
+        trackHintUsed('link_chain', 'movie_cast');
         // Hint 2: Other cast members
         const credits = await getCastFromMovie(actorHints.movieId);
         const otherCast = credits.cast
@@ -371,6 +387,7 @@ export default function LinkGame() {
           .join(', ');
         setHints(prev => [...prev, `Also starring: ${otherCast || 'Unknown'}`]);
       } else if (hints.length === 2 && actorHints) {
+        trackHintUsed('link_chain', 'movie_director');
         // Hint 3: Director
         const credits = await getCastFromMovie(actorHints.movieId);
         const director = credits.crew.find(p => p.job === 'Director');
@@ -409,6 +426,7 @@ export default function LinkGame() {
     const time = getElapsedTime();
     const text = `🔗 Filmdle Link Chain ${isDailyChallenge ? '(Daily)' : ''}\n\nChain Length: ${chainLength}\nTime: ${time}\nHints Used: ${hintsUsed}\nBest: ${getBestChain()}\n\nPlay at: ${window.location.origin}`;
     navigator.clipboard.writeText(text);
+    trackShare(isDailyChallenge ? 'link_chain_daily' : 'link_chain');
     setShowShareModal(true);
     setTimeout(() => setShowShareModal(false), 2000);
   };
@@ -436,6 +454,7 @@ export default function LinkGame() {
   const handleUndo = () => {
     if (chain.length <= 1 || isDailyChallenge) return;
     
+    trackUndo();
     const lastItem = chain[chain.length - 1];
     
     if (lastItem.type === 'actor') {

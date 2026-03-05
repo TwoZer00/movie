@@ -14,6 +14,7 @@ import { Toast } from '../components/Toast';
 import { gameStatusVal, loadStatus } from '../utils/constants';
 import AdSense from '../components/AdSense';
 import AdSenseVertical from '../components/AdSenseVertical';
+import { trackGameStart, trackGameEnd, trackSkip, trackCollectionStart, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
 
 export default function Home() {
   const [cast,setCast] = useState([]);
@@ -47,6 +48,7 @@ export default function Home() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [matchedGenres, setMatchedGenres] = useState([]);
   const [yearHints, setYearHints] = useState({ min: null, max: null });
+  const [startTime, setStartTime] = useState(Date.now());
 
   const fetchData = useCallback(async ()=>{
     lStatus.current = loadStatus.loading
@@ -100,6 +102,12 @@ export default function Home() {
       setRevealedLetters([]);
       setCollectionId(location.state?.collectionId || null);
       setLoading(false);
+      
+      if (location.state?.collectionId) {
+        trackCollectionStart(location.state.collectionId, location.state.collectionName || 'Custom Collection');
+      } else {
+        trackGameStart(isDaily ? 'guess_by_cast_daily' : 'guess_by_cast');
+      }
     } catch (error) {
       lStatus.current = loadStatus.error
       console.error('Error fetching movie data:', error);
@@ -179,6 +187,14 @@ export default function Home() {
       stats.maxStreak = Math.max(stats.maxStreak, stats.currentStreak);
       localStorage.setItem('gameStats', JSON.stringify(stats));
       
+      const gameDuration = Math.floor((Date.now() - (startTime || Date.now())) / 1000);
+      trackGameDuration(isDailyChallenge ? 'guess_by_cast_daily' : 'guess_by_cast', gameDuration);
+      trackGameEnd(isDailyChallenge ? 'guess_by_cast_daily' : 'guess_by_cast', 'win', tries.length + 1);
+      
+      if (isDailyChallenge) {
+        trackDailyChallengeComplete('guess_by_cast', 'win', tries.length + 1);
+      }
+      
       setIsWin(true);
       setShowModal(true);
       if(soundEnabled) winAudio.current.play();
@@ -198,6 +214,14 @@ export default function Home() {
       stats.losses++;
       stats.currentStreak = 0;
       localStorage.setItem('gameStats', JSON.stringify(stats));
+      
+      const gameDuration = Math.floor((Date.now() - (startTime || Date.now())) / 1000);
+      trackGameDuration(isDailyChallenge ? 'guess_by_cast_daily' : 'guess_by_cast', gameDuration);
+      trackGameEnd(isDailyChallenge ? 'guess_by_cast_daily' : 'guess_by_cast', 'loss', tries.length + 1);
+      
+      if (isDailyChallenge) {
+        trackDailyChallengeComplete('guess_by_cast', 'loss', tries.length + 1);
+      }
       
       setIsWin(false);
       setShowModal(true);
@@ -267,6 +291,8 @@ export default function Home() {
         getMoviesByName(movie.original_title)
           .then(data => {
             let results = data.results;
+            
+            trackSearch('guess_by_cast', movie.original_title, results.length);
             
             // Filter by matched genres
             if (matchedGenres.length > 0) {
@@ -391,6 +417,7 @@ export default function Home() {
   }, [movie, gameStatus, revealedLetters, tries.length]);
 
   const handleSkip = useCallback(() => {
+    trackSkip();
     if(collectionId) {
       if(confirm('Skip this movie and get a new one from the collection?')) {
         reset();

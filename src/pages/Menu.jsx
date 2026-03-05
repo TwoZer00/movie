@@ -3,6 +3,7 @@ import { getGenres } from '../api/init'
 import { getCountries } from '../api/utils/utils'
 import { useNavigate } from 'react-router-dom'
 import CreateCollectionModal from '../components/CreateCollectionModal'
+import { trackCollectionStart, trackCollectionCreate } from '../utils/analytics'
 
 const COLLECTIONS = [
   {
@@ -87,10 +88,13 @@ export default function Menu() {
     const playedKey = `collection_${collection.id}_played`;
     const playedMovies = JSON.parse(localStorage.getItem(playedKey) || '[]');
     
+    trackCollectionStart(collection.id, collection.name);
+    
     navigate('/play', { 
       state: { 
         ...collection.filters, 
         collectionId: collection.id,
+        collectionName: collection.name,
         playedMovies 
       }
     });
@@ -100,6 +104,10 @@ export default function Menu() {
     const updated = [...customCollections.filter(c => c.id !== collection.id), collection];
     setCustomCollections(updated);
     localStorage.setItem('custom_collections', JSON.stringify(updated));
+    
+    const movieCount = collection.movieIds?.length || 0;
+    trackCollectionCreate(collection.name, movieCount);
+    
     setShowCreateModal(false);
   };
 
