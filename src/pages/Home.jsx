@@ -444,14 +444,14 @@ export default function Home() {
         <AdSenseVertical />
       </div>
       
-      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-20 lg:pb-0 max-w-6xl mx-auto w-full'>
+      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-24 lg:pb-4 max-w-6xl mx-auto w-full'>
         <div className='py-2 flex flex-row items-start gap-3 sm:gap-4 max-w-4xl mx-auto'>
           <div className='flex-shrink-0'>
-            <div className='aspect-[16/9] w-32 sm:w-48 md:w-64 flex justify-center shadow-lg rounded overflow-hidden dark:shadow-gray-800 select-none' onContextMenu={(e)=>e.preventDefault()}>{
+            <div className='aspect-[16/9] w-32 sm:w-48 md:w-64 flex justify-center shadow-lg rounded overflow-hidden dark:shadow-gray-800 select-none bg-gray-200 dark:bg-gray-700' onContextMenu={(e)=>e.preventDefault()}>{
               gameStatus===gameStatusVal.finished ?
-                <img src={posterUrl} className='object-cover w-full h-full animate-fadeIn blur-sm animate-[unblur_1s_ease-out_forwards] pointer-events-none' loading="lazy" alt="Movie backdrop" style={{animationDelay: '0.3s'}} draggable="false" />
+                <img src={posterUrl} className='object-cover w-full h-full animate-fadeIn blur-sm animate-[unblur_1s_ease-out_forwards] pointer-events-none' loading="eager" alt="Movie backdrop" style={{animationDelay: '0.3s'}} draggable="false" onError={(e) => e.target.style.display = 'none'} />
               : tries.length > 0 ?
-                <img src={posterUrl} className='object-cover w-full h-full transition-all duration-500 pointer-events-none' loading="lazy" alt="Movie backdrop" style={{filter: `blur(${blurAmount}px)`, transform: `scale(${imageScale})`}} draggable="false" />
+                <img src={posterUrl} className='object-cover w-full h-full transition-all duration-500 pointer-events-none' loading="eager" alt="Movie backdrop" style={{filter: `blur(${blurAmount}px)`, transform: `scale(${imageScale})`}} draggable="false" onError={(e) => e.target.style.display = 'none'} />
               :
               <div className='w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center'>
                 <span className='text-4xl'>?</span>
@@ -541,9 +541,13 @@ export default function Home() {
                     </li>
                   ) : movieSearchList.length > 0 ? (
                     movieSearchList.map((item,index)=>{
+                      const showOriginal = item.original_title && item.original_title !== item.title;
                       return(
                         <li key={item.id} className={`cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-2 dark:text-white ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`} onClick={()=>setSelectedMovie(item)}>
-                          {highlightMatch(item.title||item.original_title, selectedMovie.original_title)} ({new Date(item.release_date).getFullYear()})
+                          <div>
+                            <div>{highlightMatch(item.title||item.original_title, selectedMovie.original_title)} ({new Date(item.release_date).getFullYear()})</div>
+                            {showOriginal && <div className='text-xs text-gray-500 dark:text-gray-400 italic'>Original: {item.original_title}</div>}
+                          </div>
                         </li>
                       )
                     })

@@ -1,9 +1,12 @@
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { getValidMovie, getCastFromMovie, getMoviesByActor, searchPerson, getMoviesByName, getKeywords, getMovieImages, getMovieAlternativeTitles, getMovie, getDailyLinkMovie, getPersonDetails } from '../api/init';
 import { IMG_URL, POSTER_SIZE, PROFILE_SIZE } from '../api/utils/const';
 import { Loader } from '../components/UIComponents';
 import genres from '../resources/genre.json';
 import { useLocation } from 'react-router-dom';
+import Confetti from '../components/Confetti';
+import winSound from '../resources/win_sound.wav';
+import lossSound from '../resources/loss_sound.wav';
 
 const debounce = (fn, delay) => {
   let timer;
@@ -37,6 +40,11 @@ export default function LinkGame() {
   const [hintsUsed, setHintsUsed] = useState(0);
   const [actorHints, setActorHints] = useState(null);
   const [, setTick] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const searchInputRef = useRef(null);
+  const [soundEnabled, setSoundEnabled] = useState(localStorage.getItem('soundEnabled') !== 'false');
+  const successAudio = useRef(new Audio(winSound));
+  const errorAudio = useRef(new Audio(lossSound));
 
   // Update timer every second
   useEffect(() => {
@@ -180,6 +188,7 @@ export default function LinkGame() {
     const isInMovie = currentCast.some(c => c.id === actor.id);
     if (!isInMovie) {
       setErrorMessage(`${actor.name} is not in ${currentMovie.title}!`);
+      if (soundEnabled) errorAudio.current.play();
       setLoading(false);
       return;
     }
@@ -187,9 +196,12 @@ export default function LinkGame() {
     // Check if actor was already used
     if (usedActors.some(a => a.id === actor.id)) {
       setErrorMessage(`You already used ${actor.name}!`);
+      if (soundEnabled) errorAudio.current.play();
       setLoading(false);
       return;
     }
+    
+    if (soundEnabled) successAudio.current.play();
     
     // Add actor to chain and switch to movie guessing mode
     setChain(prev => {
@@ -227,6 +239,7 @@ export default function LinkGame() {
     
     if (!isInMovie) {
       setErrorMessage(`${currentActor.name} is not in ${movie.title}!`);
+      if (soundEnabled) errorAudio.current.play();
       setLoading(false);
       return;
     }
@@ -234,9 +247,12 @@ export default function LinkGame() {
     // Check if movie was already used
     if (usedMovies.includes(movie.id)) {
       setErrorMessage(`You already used ${movie.title}!`);
+      if (soundEnabled) errorAudio.current.play();
       setLoading(false);
       return;
     }
+    
+    if (soundEnabled) successAudio.current.play();
     
     // Get cast from selected movie
     const [movieDetails, nextCredits, keywords, images] = await Promise.all([
@@ -258,6 +274,10 @@ export default function LinkGame() {
       const now = Date.now();
       setEndTime(now);
       setGameOver(true);
+      const finalChainLength = chain.length + 2;
+      if (finalChainLength >= 10) {
+        setShowConfetti(true);
+      }
       if (isDailyChallenge) {
         const today = new Date().toISOString().split('T')[0];
         localStorage.setItem(`daily_link_${today}`, JSON.stringify({
@@ -413,64 +433,111 @@ export default function LinkGame() {
     fetchInitialMovie();
   };
 
-  if (loading && chain.length === 0) return <Loader />;
+  const handleUndo = () => {
+    if (chain.length <= 1 || isDailyChallenge) return;
+    
+    const lastItem = chain[chain.length - 1];
+    
+    if (lastItem.type === 'actor') {
+      // Remove last actor, go back to guessing actor
+      setChain(prev => prev.slice(0, -1));
+      setUsedActors(prev => prev.filter(a => a.id !== lastItem.data.id));
+      setMode('guessActor');
+      setCurrentActor(null);
+    } else {
+      // Remove last movie, go back to guessing movie
+      setChain(prev => prev.slice(0, -1));
+      setUsedMovies(prev => prev.filter(id => id !== lastItem.data.id));
+      const previousActor = chain[chain.length - 2];
+      setMode('guessMovie');
+      setCurrentActor(previousActor.data);
+    }
+    
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowResults(false);
+    setHints([]);
+    setHintsUsed(0);
+    setActorHints(null);
+  };
+
+  if (loading && chain.length === 0) return (
+    <div className='flex-1 flex items-center justify-center dark:bg-gray-900'>
+      <div className='text-center'>
+        <div className='inline-block w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4'></div>
+        <p className='text-xl font-semibold text-gray-700 dark:text-white'>Loading Link Chain...</p>
+        <p className='text-sm text-gray-500 dark:text-gray-400 mt-2'>Preparing your challenge</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className='flex-1 flex flex-col gap-2 p-2 sm:p-4 overflow-hidden dark:bg-gray-900 max-w-4xl mx-auto w-full'>
-      <div className='text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 rounded-lg relative'>
-        <h2 className='text-xl font-bold'>🔗 {isDailyChallenge ? 'Daily Link Challenge' : 'Link Chain Challenge'}</h2>
-        <div className='flex justify-center items-center gap-4 text-xs opacity-90'>
+      <div className='text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 sm:p-3 rounded-lg relative'>
+        <h2 className='text-lg sm:text-xl font-bold'>🔗 {isDailyChallenge ? 'Daily Link' : 'Link Chain'}</h2>
+        <div className='flex justify-center items-center gap-2 sm:gap-4 text-xs opacity-90'>
           <span>Chain: <span className='font-bold'>{Math.floor(chain.length / 2) + 1}</span></span>
           <span>Time: <span className='font-bold'>{getElapsedTime()}</span></span>
-          <span>Best: <span className='font-bold'>{getBestChain()}</span></span>
+          <span className='hidden sm:inline'>Best: <span className='font-bold'>{getBestChain()}</span></span>
         </div>
-        {!isDailyChallenge && !gameOver && (
-          <button 
-            onClick={reset}
-            className='absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 px-3 py-1 rounded text-sm font-semibold'
-          >
-            Give Up
-          </button>
-        )}
+        <div className='absolute right-2 top-1/2 -translate-y-1/2 flex gap-1'>
+          {!isDailyChallenge && !gameOver && chain.length > 1 && (
+            <button 
+              onClick={handleUndo}
+              className='bg-white/20 hover:bg-white/30 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-semibold'
+              title='Undo last move'
+            >
+              ↩️
+            </button>
+          )}
+          {!isDailyChallenge && !gameOver && (
+            <button 
+              onClick={reset}
+              className='bg-white/20 hover:bg-white/30 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-semibold'
+            >
+              Give Up
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Chain Display */}
-      <div className='flex gap-2 justify-start items-center bg-white dark:bg-gray-800 p-3 rounded-lg overflow-x-auto'>
+      <div className='flex gap-1 sm:gap-2 justify-start items-center bg-white dark:bg-gray-800 p-2 sm:p-3 rounded-lg overflow-x-auto'>
         {chain.map((link, i) => (
-          <div key={i} className='flex items-center gap-2 animate-fadeIn'>
+          <div key={i} className='flex items-center gap-1 sm:gap-2 animate-fadeIn'>
             {link.type === 'movie' ? (
               <div className='text-center flex-shrink-0 transform hover:scale-105 transition-transform'>
-                <div className='w-20 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-lg flex items-center justify-center p-2'>
+                <div className='w-16 h-14 sm:w-24 sm:h-20 rounded-lg flex items-center justify-center'>
                   {link.data.logo ? (
                     <img 
                       src={`${IMG_URL}w500${link.data.logo}`}
-                      alt={link.data.title}
+                      alt='Movie'
                       className='max-w-full max-h-full object-contain'
                     />
                   ) : (
-                    <span className='text-2xl'>🎬</span>
+                    <div className='w-16 h-14 sm:w-24 sm:h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-lg flex items-center justify-center'>
+                      <span className='text-xl sm:text-3xl'>🎬</span>
+                    </div>
                   )}
                 </div>
-                <p className='text-xs mt-1 dark:text-white max-w-[80px] truncate font-medium'>{link.data.title}</p>
               </div>
             ) : (
               <div className='text-center flex-shrink-0 transform hover:scale-105 transition-transform'>
                 <div className='relative'>
                   <img 
                     src={`${IMG_URL}${PROFILE_SIZE.sm}${link.data.profile_path}`}
-                    alt={link.data.name}
-                    className='w-16 h-16 object-cover rounded-full shadow-lg border-2 border-purple-400'
+                    alt='Actor'
+                    className='w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-full shadow-lg border-2 border-purple-400'
                   />
-                  <div className='absolute -bottom-1 -right-1 bg-purple-500 rounded-full w-6 h-6 flex items-center justify-center text-white text-xs font-bold'>
+                  <div className='absolute -bottom-1 -right-1 bg-purple-500 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-white text-xs font-bold'>
                     {Math.floor((i + 1) / 2)}
                   </div>
                 </div>
-                <p className='text-xs mt-1 dark:text-white max-w-[64px] truncate font-medium'>{link.data.name}</p>
               </div>
             )}
             {i < chain.length - 1 && (
               <div className='flex-shrink-0 animate-slideIn'>
-                <svg className='w-6 h-6 text-purple-500' fill='currentColor' viewBox='0 0 20 20'>
+                <svg className='w-4 h-4 sm:w-6 sm:h-6 text-purple-500' fill='currentColor' viewBox='0 0 20 20'>
                   <path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' />
                 </svg>
               </div>
@@ -488,6 +555,22 @@ export default function LinkGame() {
             <p>Hints Used: <span className='font-bold'>{hintsUsed}</span></p>
             <p>Best Chain: <span className='font-bold'>{getBestChain()}</span></p>
           </div>
+          
+          {/* Chain Summary */}
+          <div className='mb-3 p-3 bg-white dark:bg-gray-800 rounded-lg max-h-48 overflow-y-auto'>
+            <p className='text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2'>Your Chain:</p>
+            <div className='flex flex-wrap gap-2 justify-center text-xs'>
+              {chain.map((link, i) => (
+                <span key={i} className='flex items-center gap-1'>
+                  <span className='font-medium dark:text-white'>
+                    {link.type === 'movie' ? `🎬 ${link.data.title}` : `👤 ${link.data.name}`}
+                  </span>
+                  {i < chain.length - 1 && <span className='text-purple-500'>→</span>}
+                </span>
+              ))}
+            </div>
+          </div>
+          
           <div className='flex gap-2 justify-center'>
             <button onClick={shareResults} className='bg-green-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600'>
               Share Results
@@ -505,12 +588,12 @@ export default function LinkGame() {
       ) : (
         <>
           {/* Current Movie or Actor */}
-          <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center flex-shrink-0'>
+          <div className='bg-white dark:bg-gray-800 p-2 sm:p-3 rounded-lg text-center flex-shrink-0'>
             {mode === 'guessActor' ? (
               <>
-                <h3 className='text-base font-semibold mb-2 dark:text-white'>Current Movie:</h3>
-                <div className='flex items-center justify-center gap-3'>
-                  <div className='w-32 h-48 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-lg flex items-center justify-center flex-shrink-0 p-2'>
+                <h3 className='text-sm sm:text-base font-semibold mb-2 dark:text-white'>Current Movie:</h3>
+                <div className='flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3'>
+                  <div className='w-24 h-36 sm:w-32 sm:h-48 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-lg flex items-center justify-center flex-shrink-0 p-2'>
                     {currentMovie?.logo ? (
                       <img 
                         src={`${IMG_URL}w500${currentMovie.logo}`}
@@ -518,11 +601,11 @@ export default function LinkGame() {
                         className='max-w-full max-h-full object-contain'
                       />
                     ) : (
-                      <span className='text-4xl'>🎬</span>
+                      <span className='text-3xl sm:text-4xl'>🎬</span>
                     )}
                   </div>
-                  <div className='text-left'>
-                    <p className='text-lg font-bold dark:text-white'>{currentMovie?.title}</p>
+                  <div className='text-center sm:text-left'>
+                    <p className='text-base sm:text-lg font-bold dark:text-white'>{currentMovie?.title}</p>
                     {currentMovie?.original_title && currentMovie.original_title !== currentMovie.title && (
                       <p className='text-xs text-gray-500 dark:text-gray-400 italic'>Original: {currentMovie.original_title}</p>
                     )}
@@ -535,15 +618,15 @@ export default function LinkGame() {
                       <p className='text-xs text-gray-600 dark:text-gray-400 mb-1'>🎬 {currentMovie.director}</p>
                     )}
                     {currentMovie?.tagline && (
-                      <p className='text-xs italic text-gray-500 dark:text-gray-400 mb-1'>"{currentMovie.tagline}"</p>
+                      <p className='text-xs italic text-gray-500 dark:text-gray-400 mb-1 hidden sm:block'>"{currentMovie.tagline}"</p>
                     )}
-                    <div className='flex flex-wrap gap-1'>
+                    <div className='flex flex-wrap gap-1 justify-center sm:justify-start'>
                       {currentMovie?.genre_ids?.slice(0, 2).map(gid => (
                         <span key={gid} className='px-2 py-0.5 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-full text-xs'>
                           {genres.find(g => g.id === gid)?.name}
                         </span>
                       ))}
-                      {currentMovie?.keywords?.map(kw => (
+                      {currentMovie?.keywords?.slice(0, 2).map(kw => (
                         <span key={kw.id} className='px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full text-xs'>
                           #{kw.name}
                         </span>
@@ -554,14 +637,14 @@ export default function LinkGame() {
               </>
             ) : (
               <>
-                <h3 className='text-base font-semibold mb-2 dark:text-white'>Current Actor:</h3>
-                <div className='flex items-center justify-center gap-3'>
+                <h3 className='text-sm sm:text-base font-semibold mb-2 dark:text-white'>Current Actor:</h3>
+                <div className='flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3'>
                   <img 
                     src={`${IMG_URL}${PROFILE_SIZE.md}${currentActor?.profile_path}`}
                     alt={currentActor?.name}
-                    className='w-32 h-32 object-cover rounded-full shadow-lg flex-shrink-0'
+                    className='w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-full shadow-lg flex-shrink-0'
                   />
-                  <p className='text-lg font-bold dark:text-white'>{currentActor?.name}</p>
+                  <p className='text-base sm:text-lg font-bold dark:text-white'>{currentActor?.name}</p>
                 </div>
               </>
             )}
@@ -606,11 +689,26 @@ export default function LinkGame() {
             
             <div className='relative'>
               <input 
+                ref={searchInputRef}
                 type='text'
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 onFocus={() => searchQuery && setShowResults(true)}
                 onBlur={() => setTimeout(() => setShowResults(false), 200)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setSearchQuery('');
+                    setSearchResults([]);
+                    setShowResults(false);
+                  } else if (e.key === 'Enter' && searchResults.length === 1) {
+                    e.preventDefault();
+                    if (mode === 'guessActor') {
+                      handleActorSelect(searchResults[0]);
+                    } else {
+                      handleMovieSelect(searchResults[0]);
+                    }
+                  }
+                }}
                 placeholder={mode === 'guessActor' ? 'Type actor name...' : 'Type movie title...'}
                 className='w-full p-3 border dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500'
                 disabled={loading}
@@ -679,9 +777,11 @@ export default function LinkGame() {
       )}
 
       {loading && chain.length > 0 && (
-        <div className='text-center py-4'>
-          <div className='inline-block w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin'></div>
-          <p className='text-sm text-gray-600 dark:text-gray-400 mt-2'>Finding next {mode === 'guessActor' ? 'movie' : 'actor'}...</p>
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
+          <div className='bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl text-center'>
+            <div className='inline-block w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-3'></div>
+            <p className='text-lg font-semibold text-gray-700 dark:text-gray-300'>Loading {mode === 'guessActor' ? 'next movie' : 'next actor'}...</p>
+          </div>
         </div>
       )}
 
@@ -692,6 +792,8 @@ export default function LinkGame() {
           </div>
         </div>
       )}
+      
+      {showConfetti && <Confetti />}
     </div>
   )
 }

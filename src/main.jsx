@@ -1,14 +1,16 @@
 import { createBrowserRouter } from 'react-router-dom'
-import { StrictMode } from 'react'
+import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { RouterProvider } from 'react-router-dom'
-import Home from './pages/Home'
-import Menu from './pages/Menu'
 import Init from './pages/Init'
-import LinkGame from './pages/LinkGame'
-import Settings from './pages/Settings'
-import ErrorBoundary from './ErrorBoundary'
+import ErrorBoundary from './components/ErrorBoundary'
+import { Loader } from './components/UIComponents'
+
+const Home = lazy(() => import('./pages/Home'))
+const Menu = lazy(() => import('./pages/Menu'))
+const LinkGame = lazy(() => import('./pages/LinkGame'))
+const Settings = lazy(() => import('./pages/Settings'))
 
 const router = createBrowserRouter([
   {
@@ -17,19 +19,19 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/play",
-        element: <Home/>,
+        element: <Suspense fallback={<Loader />}><Home/></Suspense>,
       },
       {
         path: "/",
-        element: <Menu/>,
+        element: <Suspense fallback={<Loader />}><Menu/></Suspense>,
       },
       {
         path: "/link",
-        element: <LinkGame/>,
+        element: <Suspense fallback={<Loader />}><LinkGame/></Suspense>,
       },
       {
         path: "/settings",
-        element: <Settings/>,
+        element: <Suspense fallback={<Loader />}><Settings/></Suspense>,
       }
     ]
   }
@@ -43,3 +45,12 @@ createRoot(document.getElementById('root')).render(
     </ErrorBoundary>
   </StrictMode>,
 )
+
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log('SW registered'))
+      .catch(() => console.log('SW registration failed'));
+  });
+}
