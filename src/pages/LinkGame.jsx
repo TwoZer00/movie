@@ -556,6 +556,14 @@ export default function LinkGame() {
 
   return (
     <div className='flex-1 flex flex-col gap-2 p-2 sm:p-4 overflow-hidden dark:bg-gray-900 max-w-4xl mx-auto w-full'>
+      {loading && chain.length > 0 && (
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
+          <div className='bg-white dark:bg-gray-800 p-6 rounded-lg'>
+            <div className='w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-3'></div>
+            <p className='text-gray-700 dark:text-gray-300 font-semibold'>Loading...</p>
+          </div>
+        </div>
+      )}
       <div className='text-center bg-gradient-to-r from-red-600 to-amber-600 text-white p-2 sm:p-3 rounded-lg relative'>
         <h2 className='text-lg sm:text-xl font-bold'>🔗 {isDailyChallenge ? 'Daily Link' : 'Link Chain'}</h2>
         <div className='flex justify-center items-center gap-2 sm:gap-4 text-xs opacity-90'>
@@ -805,7 +813,7 @@ export default function LinkGame() {
                         key={actor.id}
                         onClick={() => handleActorSelect(actor)}
                         disabled={loading}
-                        className={`w-full p-3 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-3 text-left disabled:opacity-50 ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
+                        className={`w-full p-4 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-3 text-left disabled:opacity-50 active:bg-gray-200 dark:active:bg-gray-500 ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
                       >
                         {actor.profile_path && (
                           <img 
@@ -827,7 +835,7 @@ export default function LinkGame() {
                         key={movie.id}
                         onClick={() => handleMovieSelect(movie)}
                         disabled={loading}
-                        className={`w-full p-3 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-3 text-left disabled:opacity-50 ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
+                        className={`w-full p-4 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-3 text-left disabled:opacity-50 active:bg-gray-200 dark:active:bg-gray-500 ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
                       >
                         {movie.poster_path && (
                           <img 

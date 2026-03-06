@@ -8,6 +8,7 @@ export default function Settings() {
   const [adultFilter, setAdultFilter] = useState(localStorage.getItem('adultFilter') !== 'false');
   const stats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"losses":0,"currentStreak":0,"maxStreak":0}');
   const linkStats = JSON.parse(localStorage.getItem('linkChainStats') || '{}');
+  const oddStats = JSON.parse(localStorage.getItem('oddOneOutStats') || '{}');
   const totalGames = stats.wins + stats.losses;
   const winRate = totalGames > 0 ? Math.round((stats.wins / totalGames) * 100) : 0;
   const avgChain = linkStats.totalGames > 0 ? Math.round(linkStats.totalLinks / linkStats.totalGames) : 0;
@@ -43,125 +44,129 @@ export default function Settings() {
     if(confirm('Reset all statistics? This cannot be undone.')) {
       localStorage.setItem('gameStats', JSON.stringify({wins:0,losses:0,currentStreak:0,maxStreak:0}));
       localStorage.setItem('linkChainStats', JSON.stringify({}));
+      localStorage.setItem('oddOneOutStats', JSON.stringify({}));
       window.location.reload();
     }
   };
 
   return (
-    <div className='flex-1 flex flex-col items-center justify-center p-4 dark:bg-gray-900'>
-      <div className='w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-800 p-6'>
-        <h2 className='text-2xl font-bold mb-6 text-center dark:text-white'>Settings</h2>
+    <div className='flex-1 flex flex-col items-center p-4 dark:bg-gray-900 overflow-y-auto'>
+      <div className='w-full max-w-4xl'>
+        <h2 className='text-3xl font-bold bg-gradient-to-r from-red-600 to-amber-600 bg-clip-text text-transparent mb-6'>⚙️ Settings</h2>
         
-        <div className='space-y-6'>
-          {/* Sound Settings */}
-          <div className='border-b dark:border-gray-700 pb-4'>
-            <h3 className='text-lg font-semibold mb-3 dark:text-white'>Audio</h3>
-            <div className='flex items-center justify-between'>
-              <span className='text-gray-700 dark:text-gray-300'>Sound Effects</span>
-              <button 
-                onClick={toggleSound}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  soundEnabled ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-700 dark:bg-gray-600 dark:text-gray-300'
-                }`}
-              >
-                {soundEnabled ? '🔊 On' : '🔇 Off'}
-              </button>
-            </div>
-          </div>
-
-          {/* Appearance */}
-          <div className='border-b dark:border-gray-700 pb-4'>
-            <h3 className='text-lg font-semibold mb-3 dark:text-white'>Appearance</h3>
-            <div className='flex items-center justify-between'>
-              <span className='text-gray-700 dark:text-gray-300'>Dark Mode</span>
-              <button 
-                onClick={toggleDarkMode}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  darkMode ? 'bg-yellow-400 text-gray-900' : 'bg-gray-600 text-white'
-                }`}
-              >
-                {darkMode ? '☀️ On' : '🌙 Off'}
-              </button>
-            </div>
-          </div>
-
-          {/* Content Filter */}
-          <div className='border-b dark:border-gray-700 pb-4'>
-            <h3 className='text-lg font-semibold mb-3 dark:text-white'>Content</h3>
-            <div className='flex items-center justify-between'>
-              <div>
-                <span className='text-gray-700 dark:text-gray-300'>Adult Content Filter</span>
-                <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>Hide adult-rated movies</p>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
+          {/* Preferences Card */}
+          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6'>
+            <h3 className='text-xl font-bold mb-4 text-red-600 dark:text-red-400'>🎮 Preferences</h3>
+            <div className='space-y-4'>
+              <div className='flex items-center justify-between py-1'>
+                <span className='text-gray-700 dark:text-gray-300'>🔊 Sound Effects</span>
+                <button 
+                  onClick={toggleSound}
+                  className={`min-w-[80px] min-h-[44px] px-6 py-3 rounded-lg font-medium transition-all transform hover:scale-105 active:scale-95 ${
+                    soundEnabled ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' : 'bg-gray-300 text-gray-700 dark:bg-gray-600 dark:text-gray-300'
+                  }`}
+                >
+                  {soundEnabled ? 'On' : 'Off'}
+                </button>
               </div>
-              <button 
-                onClick={toggleAdultFilter}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  adultFilter ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                }`}
-              >
-                {adultFilter ? '🔒 On' : '🔓 Off'}
-              </button>
+              <div className='flex items-center justify-between py-1'>
+                <span className='text-gray-700 dark:text-gray-300'>{darkMode ? '☀️' : '🌙'} Dark Mode</span>
+                <button 
+                  onClick={toggleDarkMode}
+                  className={`min-w-[80px] min-h-[44px] px-6 py-3 rounded-lg font-medium transition-all transform hover:scale-105 active:scale-95 ${
+                    darkMode ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-gray-900' : 'bg-gradient-to-r from-gray-600 to-gray-700 text-white'
+                  }`}
+                >
+                  {darkMode ? 'On' : 'Off'}
+                </button>
+              </div>
+              <div className='flex items-center justify-between py-1'>
+                <div>
+                  <span className='text-gray-700 dark:text-gray-300'>🔒 Adult Filter</span>
+                  <p className='text-xs text-gray-500 dark:text-gray-400'>Hide adult content</p>
+                </div>
+                <button 
+                  onClick={toggleAdultFilter}
+                  className={`min-w-[80px] min-h-[44px] px-6 py-3 rounded-lg font-medium transition-all transform hover:scale-105 active:scale-95 ${
+                    adultFilter ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' : 'bg-gradient-to-r from-red-500 to-red-600 text-white'
+                  }`}
+                >
+                  {adultFilter ? 'On' : 'Off'}
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Statistics */}
-          <div className='border-b dark:border-gray-700 pb-4'>
-            <h3 className='text-lg font-semibold mb-3 dark:text-white'>Guess by Cast Stats</h3>
-            <div className='grid grid-cols-2 gap-3 mb-4'>
-              <div className='bg-gray-50 dark:bg-gray-700 p-3 rounded text-center'>
-                <p className='text-2xl font-bold dark:text-white'>{totalGames}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Games Played</p>
+          {/* Guess by Cast Stats */}
+          <div className='bg-gradient-to-br from-red-50 to-amber-50 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-lg p-6'>
+            <h3 className='text-xl font-bold mb-4 text-red-600 dark:text-red-400'>🎬 Guess by Cast</h3>
+            <div className='grid grid-cols-2 gap-3'>
+              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
+                <p className='text-2xl font-bold text-amber-600'>{totalGames}</p>
+                <p className='text-xs text-gray-600 dark:text-gray-400'>Games</p>
               </div>
-              <div className='bg-gray-50 dark:bg-gray-700 p-3 rounded text-center'>
-                <p className='text-2xl font-bold dark:text-white'>{winRate}%</p>
+              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
+                <p className='text-2xl font-bold text-amber-600'>{winRate}%</p>
                 <p className='text-xs text-gray-600 dark:text-gray-400'>Win Rate</p>
               </div>
-              <div className='bg-gray-50 dark:bg-gray-700 p-3 rounded text-center'>
-                <p className='text-2xl font-bold dark:text-white'>{stats.currentStreak}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Current Streak</p>
+              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
+                <p className='text-2xl font-bold text-amber-600'>{stats.currentStreak}</p>
+                <p className='text-xs text-gray-600 dark:text-gray-400'>Streak</p>
               </div>
-              <div className='bg-gray-50 dark:bg-gray-700 p-3 rounded text-center'>
-                <p className='text-2xl font-bold dark:text-white'>{stats.maxStreak}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Max Streak</p>
+              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
+                <p className='text-2xl font-bold text-amber-600'>{stats.maxStreak}</p>
+                <p className='text-xs text-gray-600 dark:text-gray-400'>Best</p>
               </div>
             </div>
           </div>
 
           {/* Link Chain Stats */}
-          <div className='border-b dark:border-gray-700 pb-4'>
-            <h3 className='text-lg font-semibold mb-3 dark:text-white'>Link Chain Stats</h3>
-            <div className='grid grid-cols-3 gap-3 mb-4'>
-              <div className='bg-gray-50 dark:bg-gray-700 p-3 rounded text-center'>
-                <p className='text-2xl font-bold dark:text-white'>{linkStats.totalGames || 0}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Games Played</p>
+          <div className='bg-gradient-to-br from-red-50 to-amber-50 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-lg p-6'>
+            <h3 className='text-xl font-bold mb-4 text-red-600 dark:text-red-400'>🔗 Link Chain</h3>
+            <div className='grid grid-cols-3 gap-3'>
+              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
+                <p className='text-2xl font-bold text-amber-600'>{linkStats.totalGames || 0}</p>
+                <p className='text-xs text-gray-600 dark:text-gray-400'>Games</p>
               </div>
-              <div className='bg-gray-50 dark:bg-gray-700 p-3 rounded text-center'>
-                <p className='text-2xl font-bold dark:text-white'>{linkStats.bestChain || 0}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Best Chain</p>
+              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
+                <p className='text-2xl font-bold text-amber-600'>{linkStats.bestChain || 0}</p>
+                <p className='text-xs text-gray-600 dark:text-gray-400'>Best</p>
               </div>
-              <div className='bg-gray-50 dark:bg-gray-700 p-3 rounded text-center'>
-                <p className='text-2xl font-bold dark:text-white'>{avgChain}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Avg Chain</p>
+              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
+                <p className='text-2xl font-bold text-amber-600'>{avgChain}</p>
+                <p className='text-xs text-gray-600 dark:text-gray-400'>Avg</p>
               </div>
             </div>
           </div>
 
-          {/* Reset Stats */}
-          <div className='border-b dark:border-gray-700 pb-4'>
-            <button 
-              onClick={resetStats}
-              className='w-full bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-600 dark:hover:bg-red-700 transition-colors'
-            >
-              🗑️ Reset All Statistics
-            </button>
+          {/* Odd One Out Stats */}
+          <div className='bg-gradient-to-br from-red-50 to-amber-50 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-lg p-6'>
+            <h3 className='text-xl font-bold mb-4 text-red-600 dark:text-red-400'>🎯 Odd One Out</h3>
+            <div className='grid grid-cols-3 gap-3'>
+              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
+                <p className='text-2xl font-bold text-amber-600'>{oddStats.totalGames || 0}</p>
+                <p className='text-xs text-gray-600 dark:text-gray-400'>Games</p>
+              </div>
+              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
+                <p className='text-2xl font-bold text-amber-600'>{oddStats.bestScore || 0}</p>
+                <p className='text-xs text-gray-600 dark:text-gray-400'>Best</p>
+              </div>
+              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
+                <p className='text-2xl font-bold text-amber-600'>{oddStats.bestStreak || 0}</p>
+                <p className='text-xs text-gray-600 dark:text-gray-400'>Streak</p>
+              </div>
+            </div>
           </div>
+        </div>
 
-          {/* Back Button */}
+        {/* Reset Button */}
+        <div className='bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6'>
           <button 
-            onClick={() => navigate('/')}
-            className='w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors'
+            onClick={resetStats}
+            className='w-full min-h-[48px] bg-gradient-to-r from-red-500 to-red-600 text-white py-4 rounded-lg font-semibold hover:from-red-600 hover:to-red-700 active:from-red-700 active:to-red-800 transition-all transform hover:scale-105 active:scale-95'
           >
-            Back to Menu
+            🗑️ Reset All Statistics
           </button>
         </div>
       </div>

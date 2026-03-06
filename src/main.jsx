@@ -4,13 +4,15 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { RouterProvider } from 'react-router-dom'
 import Init from './pages/Init'
+import Menu from './pages/Menu'
+import Settings from './pages/Settings'
+import GuessSetup from './pages/GuessSetup'
 import ErrorBoundary from './components/ErrorBoundary'
 import { Loader } from './components/UIComponents'
 
 const Home = lazy(() => import('./pages/Home'))
-const Menu = lazy(() => import('./pages/Menu'))
 const LinkGame = lazy(() => import('./pages/LinkGame'))
-const Settings = lazy(() => import('./pages/Settings'))
+const OddOneOut = lazy(() => import('./pages/OddOneOut'))
 
 const router = createBrowserRouter([
   {
@@ -23,7 +25,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/",
-        element: <Suspense fallback={<Loader />}><Menu/></Suspense>,
+        element: <Menu/>,
       },
       {
         path: "/link",
@@ -31,7 +33,15 @@ const router = createBrowserRouter([
       },
       {
         path: "/settings",
-        element: <Suspense fallback={<Loader />}><Settings/></Suspense>,
+        element: <Settings/>,
+      },
+      {
+        path: "/guess-setup",
+        element: <GuessSetup/>,
+      },
+      {
+        path: "/odd",
+        element: <Suspense fallback={<Loader />}><OddOneOut/></Suspense>,
       }
     ]
   }

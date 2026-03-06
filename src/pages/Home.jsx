@@ -532,7 +532,15 @@ export default function Home() {
           </div>
         </div>
       )}
-      {loading && <Loader />}
+      {loading && !movie && <Loader />}
+      {loading && movie && (
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
+          <div className='bg-white dark:bg-gray-800 p-6 rounded-lg'>
+            <div className='w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-3'></div>
+            <p className='text-gray-700 dark:text-gray-300 font-semibold'>Loading next movie...</p>
+          </div>
+        </div>
+      )}
       <SkipButton onSkip={handleSkip} disabled={isDailyChallenge} />
       
       {/* Desktop: Sidebar Ads */}
@@ -640,7 +648,7 @@ export default function Home() {
         </div>
         <form onSubmit={handleSubmit} className='flex-0 relative flex flex-col gap-2'>
             <div className='relative flex-1'>
-              <input placeholder='Search for movie title' type="text" className={`rounded w-full text-base sm:text-lg py-2 px-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white focus-within:outline-none ${shakeInput ? 'animate-shake border-red-500' : ''}`} onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
+              <input placeholder='Search for movie title' type="text" className={`rounded w-full text-base sm:text-lg py-3 px-4 border dark:border-gray-600 dark:bg-gray-700 dark:text-white focus-within:outline-none ${shakeInput ? 'animate-shake border-red-500' : ''}`} onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
               <ul className={`shadow-xl border-2 border-slate-200 dark:border-gray-600 rounded-tl rounded-tr absolute bottom-full left-0 w-full flex flex-col divide-y dark:divide-gray-600 bg-white dark:bg-gray-800 max-h-[50ch] overflow-y-auto ${visible?"":"hidden"}`}>
                 {
                   searchLoading ? (
@@ -654,7 +662,7 @@ export default function Home() {
                     movieSearchList.map((item,index)=>{
                       const showOriginal = item.original_title && item.original_title !== item.title;
                       return(
-                        <li id={`search-result-${index}`} key={item.id} className={`cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-2 dark:text-white ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`} onClick={()=>setSelectedMovie(item)}>
+                        <li id={`search-result-${index}`} key={item.id} className={`cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-4 dark:text-white ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`} onClick={()=>setSelectedMovie(item)}>
                           <div>
                             <div>{highlightMatch(item.title||item.original_title, selectedMovie.original_title)} ({new Date(item.release_date).getFullYear()})</div>
                             {showOriginal && <div className='text-xs text-gray-500 dark:text-gray-400 italic'>Original: {item.original_title}</div>}
@@ -669,8 +677,8 @@ export default function Home() {
               </ul>
             </div>
             <div className='flex gap-2'>
-              <input type="submit" value={"Try"} className='flex-1 rounded bg-red-600 text-white font-semibold py-2 px-4 hover:bg-red-700'/>
-              <button type="button" onClick={handlePass} disabled={tries.length >= 4} className='rounded bg-gray-500 text-white font-semibold py-2 px-4 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'>Pass</button>
+              <input type="submit" value={"Try"} className='flex-1 rounded bg-red-600 text-white font-semibold py-3 px-4 hover:bg-red-700 active:bg-red-800'/>
+              <button type="button" onClick={handlePass} disabled={tries.length >= 4} className='rounded bg-gray-500 text-white font-semibold py-3 px-4 hover:bg-gray-600 active:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed'>Pass</button>
             </div>
         </form>
       </div>

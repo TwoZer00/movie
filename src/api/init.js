@@ -379,4 +379,17 @@ const getPersonDetails = async (personId) => {
   return data;
 };
 
-export { getMovies, getCastFromMovie, getMovie, getMoviesByName, getRandomMovie, getValidMovie, getGenres, getDailyMovie, getKeywords, getMoviesByActor, searchPerson, getMovieImages, getMovieAlternativeTitles, getDailyLinkMovie, getPersonDetails };
+const getMoviesByDirector = async (directorId) => {
+  const options = {
+    method: "GET",
+    headers: {
+      accept: 'application/json',
+      Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
+    }
+  }
+  const response = await fetch(`${URL}/person/${directorId}/movie_credits?language=${LANG}`, options);
+  const data = await response.json();
+  return data;
+};
+
+export { getMovies, getCastFromMovie, getMovie, getMoviesByName, getRandomMovie, getValidMovie, getGenres, getDailyMovie, getKeywords, getMoviesByActor, searchPerson, getMovieImages, getMovieAlternativeTitles, getDailyLinkMovie, getPersonDetails, getMoviesByDirector };
