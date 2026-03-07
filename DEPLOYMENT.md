@@ -2,22 +2,16 @@
 
 ## Service Worker Cache Management
 
-**IMPORTANT**: When deploying new code, always update the cache version in `/public/sw.js`:
+**AUTOMATIC**: Cache version now auto-generates using timestamp.
 
-```javascript
-const CACHE_NAME = 'filmdle-v4'; // Increment this number (v3 -> v4 -> v5, etc.)
-```
-
-### Why This Is Needed
-- Service workers cache files aggressively
-- Without version updates, users get old cached content
-- Hard refresh is required to bypass cache without version bump
+### How It Works
+- Each build creates unique cache name: `filmdle-{timestamp}`
+- No manual version updates needed
+- Old caches automatically cleared
 
 ### Deployment Checklist
-1. ✅ Update `CACHE_NAME` version in `sw.js`
-2. ✅ Build and deploy
-3. ✅ Test in incognito/private window
-4. ✅ Verify console logs show new SW version
+1. ✅ Build and deploy (version auto-updates)
+2. ✅ Test in incognito/private window
+3. ✅ Verify console logs show new SW version
 
-### Current Version: v3
-**Next deployment should use: v4**
+**No more manual version management required!**

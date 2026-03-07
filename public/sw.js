@@ -1,4 +1,4 @@
-const CACHE_NAME = 'filmdle-v3';
+const CACHE_NAME = `filmdle-${new Date().getTime()}`; // Auto-generates unique version
 const urlsToCache = [
   '/',
   '/index.html',
