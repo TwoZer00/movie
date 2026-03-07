@@ -3,6 +3,8 @@ import { getValidMovie, getCastFromMovie, getMovie, getMoviesByActor, getMoviesB
 import { IMG_URL } from '../api/utils/const';
 import { Loader } from '../components/UIComponents';
 import Confetti from '../components/Confetti';
+import AdSense from '../components/AdSense';
+import AdSenseVertical from '../components/AdSenseVertical';
 import winSound from '../resources/win_sound.wav';
 import lossSound from '../resources/loss_sound.wav';
 
@@ -364,7 +366,16 @@ export default function OddOneOut() {
   if (loading && movies.length === 0) return <Loader />;
 
   return (
-    <div className='flex-1 flex flex-col gap-4 p-4 overflow-y-auto dark:bg-gray-900 max-w-4xl mx-auto w-full'>
+    <>
+      {/* Desktop: Sidebar Ads */}
+      <div className='hidden lg:block fixed left-4 top-1/2 -translate-y-1/2 z-10'>
+        <AdSenseVertical />
+      </div>
+      <div className='hidden lg:block fixed right-4 top-1/2 -translate-y-1/2 z-10'>
+        <AdSenseVertical />
+      </div>
+      
+      <div className='flex-1 flex flex-col gap-4 p-4 overflow-y-auto dark:bg-gray-900 max-w-4xl mx-auto w-full pb-24 lg:pb-4'>
       {loading && movies.length > 0 && (
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
           <div className='bg-white dark:bg-gray-800 p-6 rounded-lg'>
@@ -480,6 +491,8 @@ export default function OddOneOut() {
         </button>
       )}
 
+      </div>
+      
       {showConfetti && <Confetti />}
       
       {gameOver && (
@@ -525,6 +538,13 @@ export default function OddOneOut() {
           </div>
         </div>
       )}
-    </div>
+      
+      {/* Mobile/Tablet: Bottom Ad */}
+      <div className='lg:hidden fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-gray-900 py-2'>
+        <div className='max-w-screen-lg mx-auto'>
+          <AdSense />
+        </div>
+      </div>
+    </>
   );
 }

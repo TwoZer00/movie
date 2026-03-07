@@ -10,6 +10,8 @@ import LinkChainHeader from '../components/LinkChainHeader';
 import ChainDisplay from '../components/ChainDisplay';
 import GameOverScreen from '../components/GameOverScreen';
 import SearchSection from '../components/SearchSection';
+import AdSense from '../components/AdSense';
+import AdSenseVertical from '../components/AdSenseVertical';
 import winSound from '../resources/win_sound.wav';
 import lossSound from '../resources/loss_sound.wav';
 import { trackGameStart, trackGameEnd, trackHintUsed, trackShare, trackUndo, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
@@ -555,7 +557,16 @@ export default function LinkGame() {
   if (loading && chain.length === 0) return <Loader />;
 
   return (
-    <div className='flex-1 flex flex-col gap-2 p-2 sm:p-4 overflow-hidden dark:bg-gray-900 max-w-4xl mx-auto w-full'>
+    <>
+      {/* Desktop: Sidebar Ads */}
+      <div className='hidden lg:block fixed left-4 top-1/2 -translate-y-1/2 z-10'>
+        <AdSenseVertical />
+      </div>
+      <div className='hidden lg:block fixed right-4 top-1/2 -translate-y-1/2 z-10'>
+        <AdSenseVertical />
+      </div>
+      
+      <div className='flex-1 flex flex-col gap-2 p-2 sm:p-4 overflow-hidden dark:bg-gray-900 max-w-4xl mx-auto w-full pb-24 lg:pb-4'>
       {loading && chain.length > 0 && (
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
           <div className='bg-white dark:bg-gray-800 p-6 rounded-lg'>
@@ -862,6 +873,8 @@ export default function LinkGame() {
         </>
       )}
 
+      </div>
+      
       {loading && chain.length > 0 && <Loader />}
 
       {showShareModal && (
@@ -887,6 +900,13 @@ export default function LinkGame() {
       
       {showHelp && <KeyboardShortcutsModal onClose={() => setShowHelp(false)} mode='link' />}
       {showConfetti && <Confetti />}
-    </div>
+      
+      {/* Mobile/Tablet: Bottom Ad */}
+      <div className='lg:hidden fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-gray-900 py-2'>
+        <div className='max-w-screen-lg mx-auto'>
+          <AdSense />
+        </div>
+      </div>
+    </>
   )
 }
