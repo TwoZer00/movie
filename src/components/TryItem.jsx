@@ -32,7 +32,7 @@ const TryItem = memo(({item, index, movie, expandedTries, setExpandedTries}) => 
   }, [index, setExpandedTries]);
 
   return (
-    <div className='p-2 border-2 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm animate-slideIn hover:shadow-md dark:hover:shadow-gray-700 transition-all cursor-pointer' style={{animationDelay: `${index * 100}ms`, opacity: 0}} onClick={toggleExpand}>
+    <div className='p-2 border-2 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm animate-slideIn smooth-hover cursor-pointer' style={{animationDelay: `${index * 100}ms`, opacity: 0}} onClick={toggleExpand}>
       <div className='flex justify-between items-center gap-2'>
         <p className='font-semibold text-sm flex-1 dark:text-white'>{item.title||item.original_title}</p>
         <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${

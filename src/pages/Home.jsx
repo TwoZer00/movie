@@ -50,6 +50,11 @@ export default function Home() {
   const [director, setDirector] = useState(null);
   const [collectionId, setCollectionId] = useState(null);
   const [shakeInput, setShakeInput] = useState(false);
+  const [successFeedback, setSuccessFeedback] = useState(false);
+  const [errorFeedback, setErrorFeedback] = useState(false);
+  const [progressAnimation, setProgressAnimation] = useState(false);
+  const [hapticFeedback, setHapticFeedback] = useState('');
+  const [pullRefresh, setPullRefresh] = useState({ pulling: false, distance: 0 });
   const [lastTryCount, setLastTryCount] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
   const [matchedGenres, setMatchedGenres] = useState([]);
@@ -184,8 +189,21 @@ export default function Home() {
 
   const handleSubmit = useCallback((e)=>{
     e.preventDefault();
-    if(!selectedMovie.id) return;
+    if(!selectedMovie.id || gameStatus !== gameStatusVal.playing) return;
     if(selectedMovie.original_title===movie.original_title){
+      // Success feedback
+      setSuccessFeedback(true);
+      setHapticFeedback('success');
+      setTimeout(() => {
+        setSuccessFeedback(false);
+        setHapticFeedback('');
+      }, 600);
+      
+      // Trigger haptic feedback on mobile
+      if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+      }
+      
       // Save completed movie for collection
       if(collectionId) {
         const playedKey = `collection_${collectionId}_played`;
@@ -226,7 +244,18 @@ export default function Home() {
     
     // Wrong answer - shake animation
     setShakeInput(true);
-    setTimeout(() => setShakeInput(false), 500);
+    setErrorFeedback(true);
+    setHapticFeedback('error');
+    setTimeout(() => {
+      setShakeInput(false);
+      setErrorFeedback(false);
+      setHapticFeedback('');
+    }, 500);
+    
+    // Trigger haptic feedback on mobile
+    if (navigator.vibrate) {
+      navigator.vibrate(200);
+    }
     if(tries.length+1>4){
       if(isDailyChallenge) {
         const today = new Date().toISOString().split('T')[0];
@@ -258,6 +287,11 @@ export default function Home() {
     setTries((value)=>{
       const temp = [...value];
       temp.push(selectedMovie);
+      // Trigger progress animation after state update
+      setTimeout(() => {
+        setProgressAnimation(true);
+        setTimeout(() => setProgressAnimation(false), 800);
+      }, 50);
       return temp;
     });
     setHints((value)=>{
@@ -567,7 +601,6 @@ export default function Home() {
           </div>
         </div>
       )}
-      <SkipButton onSkip={handleSkip} disabled={isDailyChallenge} />
       
       {/* Desktop: Sidebar Ads */}
       <div className='hidden xl:block fixed left-2 top-1/2 -translate-y-1/2 z-10'>
@@ -577,11 +610,11 @@ export default function Home() {
         <AdSenseVertical />
       </div>
       
-      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-16 lg:pb-4 max-w-6xl mx-auto w-full'>
+      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-20 lg:pb-4 max-w-6xl mx-auto w-full pull-refresh'>
         <div className='py-2 flex justify-between items-center'>
           <button 
             onClick={() => navigate('/')}
-            className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm font-semibold'
+            className='bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-semibold animate-buttonHover touch-target'
             title='Back to menu'
           >
             ← Menu
@@ -589,13 +622,16 @@ export default function Home() {
           <h1 className='text-xl sm:text-2xl font-bold dark:text-white'>
             {isDailyChallenge ? '🎯 Daily Challenge' : '🎬 Guess by Cast'}
           </h1>
-          <button 
-            onClick={() => setShowHelp(true)}
-            className='bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-semibold'
-            title='Help'
-          >
-            ?
-          </button>
+          <div className='flex gap-2'>
+            <SkipButton onSkip={handleSkip} disabled={isDailyChallenge} />
+            <button 
+              onClick={() => setShowHelp(true)}
+              className='bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-semibold animate-buttonHover touch-target'
+              title='Help'
+            >
+              ?
+            </button>
+          </div>
         </div>
         <div className='py-2 flex flex-row items-start gap-3 sm:gap-4 max-w-4xl mx-auto'>
           <div className='flex-shrink-0'>
@@ -614,7 +650,7 @@ export default function Home() {
           <div className='flex-1 flex flex-col gap-2'>
             <div>
               <p className='text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1'>Movie Title</p>
-              <div className='border-2 rounded-lg py-3 px-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 dark:border-gray-600 min-h-[3rem] flex items-center justify-center'>
+              <div className='border-2 rounded-lg py-3 px-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 dark:border-gray-600 min-h-[3rem] flex items-center justify-center smooth-transition'>
                 <p className='font-bold text-sm sm:text-lg text-center dark:text-white font-mono tracking-wider break-words'>
                   {displayTitle}
                 </p>
@@ -626,7 +662,7 @@ export default function Home() {
                   {keywords.slice(0, Math.min(tries.length, 3)).map((kw, i) => {
                     const shouldAnimate = i === Math.min(tries.length, 3) - 1 && tries.length === lastTryCount;
                     return (
-                      <span key={kw.id} className={`px-3 py-1 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 rounded-full text-xs font-medium ${shouldAnimate ? 'animate-popIn' : ''}`} style={{animationDelay: `${i * 100}ms`}}>#{kw.name}</span>
+                      <span key={kw.id} className={`px-3 py-1 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 rounded-full text-xs font-medium smooth-scale ${shouldAnimate ? 'animate-popIn' : ''}`} style={{animationDelay: `${i * 100}ms`}}>#{kw.name}</span>
                     );
                   })}
                 </div>
@@ -634,13 +670,13 @@ export default function Home() {
               {tries.length > 0 && gameStatus !== gameStatusVal.finished && (
                 <div className='flex flex-wrap gap-2'>
                   {tries.length >= 2 && movie?.genre_ids?.[0] && (
-                    <span className={`px-3 py-1 bg-red-100 dark:bg-red-900 dark:text-red-300 rounded-full text-sm font-medium ${tries.length === 2 && lastTryCount === 2 ? 'animate-popIn' : ''}`}>{genres.find(g=>g.id===movie.genre_ids[0])?.name}</span>
+                    <span className={`px-3 py-1 bg-red-100 dark:bg-red-900 dark:text-red-300 rounded-full text-sm font-medium smooth-scale ${tries.length === 2 && lastTryCount === 2 ? 'animate-popIn' : ''}`}>{genres.find(g=>g.id===movie.genre_ids[0])?.name}</span>
                   )}
                   {tries.length >= 3 && movie?.genre_ids?.[1] && (
-                    <span className={`px-3 py-1 bg-red-100 dark:bg-red-900 dark:text-red-300 rounded-full text-sm font-medium ${tries.length === 3 && lastTryCount === 3 ? 'animate-popIn' : ''}`} style={{animationDelay: '100ms'}}>{genres.find(g=>g.id===movie.genre_ids[1])?.name}</span>
+                    <span className={`px-3 py-1 bg-red-100 dark:bg-red-900 dark:text-red-300 rounded-full text-sm font-medium smooth-scale ${tries.length === 3 && lastTryCount === 3 ? 'animate-popIn' : ''}`} style={{animationDelay: '100ms'}}>{genres.find(g=>g.id===movie.genre_ids[1])?.name}</span>
                   )}
                   {tries.length >= 4 && director && (
-                    <span className={`px-3 py-1 bg-orange-100 dark:bg-orange-900 dark:text-orange-300 rounded-full text-sm font-medium ${tries.length === 4 && lastTryCount === 4 ? 'animate-popIn' : ''}`} style={{animationDelay: '200ms'}}>🎬 {director.name}</span>
+                    <span className={`px-3 py-1 bg-orange-100 dark:bg-orange-900 dark:text-orange-300 rounded-full text-sm font-medium smooth-scale ${tries.length === 4 && lastTryCount === 4 ? 'animate-popIn' : ''}`} style={{animationDelay: '200ms'}}>🎬 {director.name}</span>
                   )}
                 </div>
               )}
@@ -667,7 +703,18 @@ export default function Home() {
           </div>
         </div>
         <div className='flex-1 border dark:border-gray-700 px-2 rounded flex flex-col gap-1 overflow-y-auto overflow-x-hidden min-h-0 dark:bg-gray-800'>
-          <p className='text-right font-semibold sticky top-0 bg-white dark:bg-gray-800 dark:text-white py-1'>Tries {5 - tries.length}/5</p>
+          <div className='sticky top-0 bg-white dark:bg-gray-800 py-1 flex items-center justify-between'>
+            <p className='font-semibold dark:text-white'>Tries {5 - tries.length}/5</p>
+            <div className='flex-1 mx-3 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden'>
+              <div 
+                className={`h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full transition-all duration-500 ${progressAnimation ? 'animate-progressFill' : ''}`}
+                style={{'--progress-width': `${(tries.length / 5) * 100}%`, width: `${(tries.length / 5) * 100}%`}}
+              ></div>
+            </div>
+            <span className={`text-sm font-bold px-2 py-1 rounded ${tries.length >= 4 ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300 animate-countdownPulse' : tries.length >= 3 ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300' : 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300'}`}>
+              {5 - tries.length}
+            </span>
+          </div>
           {tries.map((item,index)=>(
             <TryItem 
               key={item.id} 
@@ -681,14 +728,14 @@ export default function Home() {
         </div>
         <form onSubmit={handleSubmit} className='flex-0 relative flex flex-col gap-2'>
             <div className='relative flex-1'>
-              <input placeholder='Search for movie title' type="text" className={`rounded w-full text-base sm:text-lg py-3 px-4 border dark:border-gray-600 dark:bg-gray-700 dark:text-white focus-within:outline-none ${shakeInput ? 'animate-shake border-red-500' : ''}`} onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
+              <input placeholder='Search for movie title' type="text" className={`rounded w-full text-base sm:text-lg py-3 px-4 border dark:border-gray-600 dark:bg-gray-700 dark:text-white focus-within:outline-none smooth-transition ${shakeInput ? 'animate-shake border-red-500' : ''}`} onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
               <ul className={`shadow-xl border-2 border-slate-200 dark:border-gray-600 rounded-tl rounded-tr absolute bottom-full left-0 w-full flex flex-col divide-y dark:divide-gray-600 bg-white dark:bg-gray-800 max-h-[50ch] overflow-y-auto ${visible?"":"hidden"}`}>
                 {
                   searchLoading ? (
                     <li className='p-4 text-center text-gray-500 dark:text-gray-400'>
                       <div className='flex items-center justify-center gap-2'>
                         <div className='w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin'></div>
-                        Searching...
+                        <span className='animate-pulse'>Searching movies...</span>
                       </div>
                     </li>
                   ) : movieSearchList.length > 0 ? (
@@ -709,9 +756,9 @@ export default function Home() {
                 }
               </ul>
             </div>
-            <div className='flex gap-2'>
-              <input type="submit" value={"Try"} className='flex-1 rounded bg-red-600 text-white font-semibold py-3 px-4 hover:bg-red-700 active:bg-red-800'/>
-              <button type="button" onClick={handlePass} disabled={tries.length >= 4} className='rounded bg-gray-500 text-white font-semibold py-3 px-4 hover:bg-gray-600 active:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed'>Pass</button>
+            <div className='flex gap-2 thumb-zone'>
+              <input type="submit" value={"Try"} className={`flex-1 rounded bg-red-600 text-white font-semibold py-4 px-4 hover:bg-red-700 active:bg-red-800 animate-buttonHover touch-target ${successFeedback ? 'animate-successPulse' : ''} ${errorFeedback ? 'animate-errorPulse' : ''} ${hapticFeedback === 'success' ? 'animate-hapticSuccess' : ''} ${hapticFeedback === 'error' ? 'animate-hapticError' : ''}`}/>
+              <button type="button" onClick={handlePass} disabled={tries.length >= 4} className='rounded bg-gray-500 text-white font-semibold py-4 px-4 hover:bg-gray-600 active:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed animate-buttonHover touch-target'>Hint</button>
             </div>
         </form>
       </div>

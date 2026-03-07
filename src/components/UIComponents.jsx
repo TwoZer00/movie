@@ -17,18 +17,15 @@ export const Loader = () => {
 }
 
 export const SkipButton = memo(({onSkip, disabled}) => {
-  useEffect(() => {
-    if (!disabled) {
-      const header = document.querySelector('header');
-      const button = document.createElement('button');
-      button.className = 'absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition-colors shadow-md';
-      button.textContent = 'Skip';
-      button.onclick = onSkip;
-      header?.appendChild(button);
-      
-      return () => button.remove();
-    }
-  }, [onSkip, disabled]);
+  if (disabled) return null;
   
-  return null;
+  return (
+    <button 
+      onClick={onSkip}
+      className='bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-semibold animate-buttonHover touch-target'
+      title='Skip this movie'
+    >
+      Skip
+    </button>
+  );
 });
