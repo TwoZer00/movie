@@ -566,7 +566,7 @@ export default function LinkGame() {
         <AdSenseVertical />
       </div>
       
-      <div className='flex-1 flex flex-col gap-2 p-2 sm:p-4 overflow-hidden dark:bg-gray-900 max-w-4xl mx-auto w-full pb-24 lg:pb-4'>
+      <div className='flex-1 flex flex-col gap-2 p-2 sm:p-4 overflow-hidden dark:bg-gray-900 max-w-4xl mx-auto w-full pb-16 lg:pb-4'>
       {loading && chain.length > 0 && (
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
           <div className='bg-white dark:bg-gray-800 p-6 rounded-lg'>

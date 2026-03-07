@@ -551,7 +551,7 @@ export default function Home() {
         <AdSenseVertical />
       </div>
       
-      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-24 lg:pb-4 max-w-6xl mx-auto w-full'>
+      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-16 lg:pb-4 max-w-6xl mx-auto w-full'>
         <div className='py-2 flex justify-between items-center'>
           <h1 className='text-xl sm:text-2xl font-bold dark:text-white'>
             {isDailyChallenge ? '🎯 Daily Challenge' : '🎬 Guess by Cast'}
