@@ -18,6 +18,7 @@ import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal';
 import { trackGameStart, trackGameEnd, trackSkip, trackCollectionStart, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
 import { generateShareImage, downloadImage, shareImageNative } from '../utils/shareImage';
 import { addMovieCooldown, getRecentMovies } from '../utils/movieCooldown';
+import { getDailyStreak, showStreakNotification } from '../utils/dailyStreak';
 
 export default function Home() {
   const [cast,setCast] = useState([]);
@@ -192,7 +193,6 @@ export default function Home() {
           localStorage.setItem(playedKey, JSON.stringify(playedMovies));
         }
       }
-      
       if(isDailyChallenge) {
         const today = new Date().toISOString().split('T')[0];
         localStorage.setItem(`daily_${today}`, 'completed');
@@ -209,6 +209,10 @@ export default function Home() {
       
       if (isDailyChallenge) {
         trackDailyChallengeComplete('guess_by_cast', 'win', tries.length + 1);
+        
+        // Check streak and show notification after completing daily
+        const streak = getDailyStreak();
+        showStreakNotification(streak);
       }
       
       setIsWin(true);
@@ -225,6 +229,10 @@ export default function Home() {
       if(isDailyChallenge) {
         const today = new Date().toISOString().split('T')[0];
         localStorage.setItem(`daily_${today}`, 'completed');
+        
+        // Check streak and show notification after completing daily
+        const streak = getDailyStreak();
+        showStreakNotification(streak);
       }
       const stats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"losses":0,"currentStreak":0,"maxStreak":0}');
       stats.losses++;

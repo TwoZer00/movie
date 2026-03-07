@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getDailyStreak } from '../utils/dailyStreak'
+import PWAInstallBanner from '../components/PWAInstallBanner'
+import PWAFeatures from '../components/PWAFeatures'
 
 export default function Menu() {
   const [dailyCompleted,setDailyCompleted] = useState(false)
   const [dailyLinkChain,setDailyLinkChain] = useState(null)
-  const [stats, setStats] = useState({ wins: 0, currentStreak: 0, bestChain: 0 })
+  const [stats, setStats] = useState({ wins: 0, currentStreak: 0, bestChain: 0, dailyStreak: 0 })
   const navigate = useNavigate();
   
-  useEffect(()=>{
+  const checkDailyStatus = () => {
     const today = new Date().toISOString().split('T')[0];
     const completed = localStorage.getItem(`daily_${today}`);
     setDailyCompleted(!!completed);
@@ -17,12 +20,32 @@ export default function Menu() {
       const data = JSON.parse(dailyLink);
       const chainLength = Math.floor(data.chain.length / 2) + 1;
       setDailyLinkChain(chainLength);
+    } else {
+      setDailyLinkChain(null);
     }
     
     // Load stats
     const gameStats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"currentStreak":0}');
     const linkStats = JSON.parse(localStorage.getItem('linkChainStats') || '{"bestChain":0}');
-    setStats({ ...gameStats, bestChain: linkStats.bestChain || 0 });
+    const dailyStreak = getDailyStreak();
+    setStats({ ...gameStats, bestChain: linkStats.bestChain || 0, dailyStreak });
+  };
+  
+  useEffect(()=>{
+    checkDailyStatus();
+    
+    // Check when app becomes visible (handles PWA/tab switching)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        checkDailyStatus();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   },[]);
 
   const GameModeCard = ({ title, icon, description, children, stats }) => (
@@ -50,15 +73,33 @@ export default function Menu() {
 
   return (
     <div className='flex flex-col flex-1 items-center justify-center gap-6 p-4 overflow-y-auto bg-gray-50 dark:bg-gray-900'>
+      <PWAInstallBanner streak={stats.dailyStreak} />
       <div className='w-full max-w-4xl'>
         <div className='text-center mb-8'>
           <h1 className='text-4xl font-bold bg-gradient-to-r from-red-600 to-amber-600 bg-clip-text text-transparent'>🎬 Filmdle</h1>
           <p className='text-gray-600 dark:text-gray-400 mt-2'>The daily movie guessing game</p>
         </div>
         
+        <PWAFeatures />
+        
         {/* Featured Daily Challenges */}
         <div className='mb-8 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-xl p-6 text-white'>
-          <h2 className='text-2xl font-bold mb-4 text-center'>📅 Daily Challenges</h2>
+          <div className='flex justify-between items-center mb-4'>
+            <h2 className='text-2xl font-bold'>📅 Daily Challenges</h2>
+            <div className='text-right'>
+              {stats.dailyStreak > 0 ? (
+                <div>
+                  <div className='text-2xl font-bold'>🔥 {stats.dailyStreak}</div>
+                  <div className='text-sm opacity-90'>day streak</div>
+                </div>
+              ) : (
+                <div>
+                  <div className='text-xl'>🎆</div>
+                  <div className='text-xs opacity-75'>Start streak</div>
+                </div>
+              )}
+            </div>
+          </div>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <button 
               className={`py-3 px-6 rounded-lg font-semibold transition-all ${dailyCompleted ? 'bg-white/20 cursor-not-allowed opacity-60' : 'bg-white/30 hover:bg-white/40'}`}
@@ -74,7 +115,6 @@ export default function Menu() {
               🔗 Link Chain {dailyLinkChain && `(${dailyLinkChain} links)`}
             </button>
           </div>
-          {dailyCompleted && <CountdownTimer />}
         </div>
 
         {/* Game Modes */}
@@ -146,33 +186,3 @@ export default function Menu() {
     </div>
   )
 }
-
-const CountdownTimer = () => {
-  const [timeLeft, setTimeLeft] = useState('');
-
-  useEffect(() => {
-    const updateTimer = () => {
-      const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      
-      const diff = tomorrow - now;
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
-      setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <p className='text-center text-sm text-white/80 mt-2'>
-      Next challenge in: {timeLeft}
-    </p>
-  );
-};
