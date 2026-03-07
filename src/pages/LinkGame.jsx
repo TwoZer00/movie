@@ -114,7 +114,7 @@ export default function LinkGame() {
       }
       movie = await getDailyLinkMovie();
     } else {
-      [movie] = await getValidMovie();
+      [movie] = await getValidMovie({ playedMovies: getRecentMovies() });
     }
     
     const [movieDetails, credits, keywords, images] = await Promise.all([
@@ -134,6 +134,10 @@ export default function LinkGame() {
     setUsedMovies([movie.id]);
     setMode('guessActor');
     setLoading(false);
+    
+    if (!isDailyChallenge && movie?.id) {
+      addMovieCooldown(movie.id);
+    }
   }, []);
 
   useEffect(() => {

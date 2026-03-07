@@ -65,11 +65,10 @@ export default function Home() {
         credits = await getCastFromMovie(movie.id);
         cast = credits.cast.filter((item) => item?.profile_path !== null && item?.cast_id !== null && item?.id !== null);
       } else {
-        // Get updated played movies for collection
         const stateWithUpdatedPlayed = location.state?.collectionId ? {
           ...location.state,
-          playedMovies: JSON.parse(localStorage.getItem(`collection_${location.state.collectionId}_played`) || '[]')
-        } : location.state;
+          playedMovies: [...JSON.parse(localStorage.getItem(`collection_${location.state.collectionId}_played`) || '[]'), ...getRecentMovies()]
+        } : { playedMovies: getRecentMovies() };
         
         try {
           [movie, cast] = await getValidMovie(stateWithUpdatedPlayed);
@@ -138,7 +137,18 @@ export default function Home() {
       
       fetchData();
     }
+    
+    // Clear session movies when leaving the game
+    const handleBeforeUnload = () => {
+      if (window.location.pathname !== '/play') {
+        sessionStorage.removeItem('sessionPlayedMovies');
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
     return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
       if (searchTimeout.current) {
         clearTimeout(searchTimeout.current);
       }
@@ -417,8 +427,13 @@ export default function Home() {
     setMatchedGenres([]);
     setYearHints({ min: null, max: null });
     setSelectedMovie({original_title:""});
+    
+    if (movie?.id) {
+      addMovieCooldown(movie.id);
+    }
+    
     fetchData();
-  },[fetchData]);
+  },[fetchData, movie]);
 
   const posterUrl = useMemo(() => 
     movie?.backdrop_path ? `${IMG_URL}${POSTER_SIZE.lg}/${movie.backdrop_path}` : 
