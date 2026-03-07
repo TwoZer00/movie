@@ -5,14 +5,15 @@ import './index.css'
 import { RouterProvider } from 'react-router-dom'
 import Init from './pages/Init'
 import Menu from './pages/Menu'
-import Settings from './pages/Settings'
-import GuessSetup from './pages/GuessSetup'
 import ErrorBoundary from './components/ErrorBoundary'
 import { Loader } from './components/UIComponents'
 
+// Lazy load all game pages and heavy components
 const Home = lazy(() => import('./pages/Home'))
 const LinkGame = lazy(() => import('./pages/LinkGame'))
 const OddOneOut = lazy(() => import('./pages/OddOneOut'))
+const Settings = lazy(() => import('./pages/Settings'))
+const GuessSetup = lazy(() => import('./pages/GuessSetup'))
 
 const router = createBrowserRouter([
   {
@@ -33,11 +34,11 @@ const router = createBrowserRouter([
       },
       {
         path: "/settings",
-        element: <Settings/>,
+        element: <Suspense fallback={<Loader />}><Settings/></Suspense>,
       },
       {
         path: "/guess-setup",
-        element: <GuessSetup/>,
+        element: <Suspense fallback={<Loader />}><GuessSetup/></Suspense>,
       },
       {
         path: "/odd",

@@ -1,4 +1,7 @@
-const CACHE_NAME = `filmdle-${new Date().getTime()}`; // Auto-generates unique version
+const CACHE_NAME = `filmdle-${new Date().getTime()}`;
+const STATIC_CACHE = 'filmdle-static-v1';
+const API_CACHE = 'filmdle-api-v1';
+
 const urlsToCache = [
   '/',
   '/index.html',
@@ -6,60 +9,76 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', (event) => {
-  console.log('SW installing, version:', CACHE_NAME);
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        return cache.addAll(urlsToCache);
-      })
-      .then(() => {
-        console.log('SW installed, skipping waiting');
-        return self.skipWaiting();
-      })
+    Promise.all([
+      caches.open(STATIC_CACHE).then(cache => cache.addAll(urlsToCache)),
+      caches.open(API_CACHE)
+    ]).then(() => {
+      return self.skipWaiting();
+    })
   );
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('SW activating, version:', CACHE_NAME);
   event.waitUntil(
+
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('SW deleting old cache:', cacheName);
+          if (cacheName !== STATIC_CACHE && cacheName !== API_CACHE && cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
-      console.log('SW activated, claiming clients');
       return self.clients.claim();
     })
   );
 });
 
 self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Cache TMDB API requests with stale-while-revalidate
+  if (url.hostname === 'api.themoviedb.org') {
+    event.respondWith(
+      caches.open(API_CACHE).then(cache => {
+        return cache.match(request).then(response => {
+          const fetchPromise = fetch(request).then(fetchResponse => {
+            if (fetchResponse.ok) {
+              cache.put(request, fetchResponse.clone());
+            }
+            return fetchResponse;
+          });
+          return response || fetchPromise;
+        });
+      })
+    );
+    return;
+  }
+
   // Skip non-GET requests and external URLs
-  if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) {
+  if (request.method !== 'GET' || !request.url.startsWith(self.location.origin)) {
     return;
   }
   
   // Always fetch fresh for HTML files
-  if (event.request.url.includes('.html') || event.request.url === self.location.origin + '/') {
+  if (request.url.includes('.html') || request.url === self.location.origin + '/') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
+      fetch(request).catch(() => caches.match(request))
     );
     return;
   }
   
   event.respondWith(
-    caches.match(event.request)
+    caches.match(request)
       .then((response) => {
         if (response) {
           return response;
         }
-        return fetch(event.request).catch(() => {
-          if (event.request.mode === 'navigate') {
+        return fetch(request).catch(() => {
+          if (request.mode === 'navigate') {
             return caches.match('/');
           }
         });

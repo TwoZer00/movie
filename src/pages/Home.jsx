@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react';
 import { getMoviesByName, getValidMovie, getDailyMovie, getCastFromMovie, getKeywords } from "../api/init";
 import { IMG_URL, POSTER_SIZE } from '../api/utils/const';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -7,18 +7,20 @@ import winSound from '../resources/win_sound.wav'
 import lossSound from '../resources/loss_sound.wav'
 import CastMember from '../components/CastMember';
 import TryItem from '../components/TryItem';
-import Modal from '../components/Modal';
 import { Loader, SkipButton } from '../components/UIComponents';
 import { CastSkeleton } from '../components/Skeleton';
 import { Toast } from '../components/Toast';
 import { gameStatusVal, loadStatus } from '../utils/constants';
 import AdSense from '../components/AdSense';
 import AdSenseVertical from '../components/AdSenseVertical';
-import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal';
 import { trackGameStart, trackGameEnd, trackSkip, trackCollectionStart, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
 import { generateShareImage, downloadImage, shareImageNative } from '../utils/shareImage';
 import { addMovieCooldown, getRecentMovies } from '../utils/movieCooldown';
 import { getDailyStreak, showStreakNotification } from '../utils/dailyStreak';
+
+// Lazy load heavy components
+const Modal = lazy(() => import('../components/Modal'));
+const KeyboardShortcutsModal = lazy(() => import('../components/KeyboardShortcutsModal'));
 
 export default function Home() {
   const [cast,setCast] = useState([]);
@@ -342,7 +344,7 @@ export default function Home() {
             setMovieSearchList([]);
             setSearchLoading(false);
           });
-      }, 500);
+      }, 300); // Reduced from 500ms to 300ms
     } else {
       setMovieSearchList([]);
       setSearchLoading(false);
@@ -542,8 +544,8 @@ export default function Home() {
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      {showModal && <Modal isWin={isWin} movie={movie} onClose={isDailyChallenge ? ()=>navigate('/') : reset} isDailyChallenge={isDailyChallenge} triesUsed={tries.length} revealedCast={cast} onShareImage={handleShareImage} />}
-      {showHelp && <KeyboardShortcutsModal onClose={() => setShowHelp(false)} mode='guess' />}
+      {showModal && <Suspense fallback={<div className='fixed inset-0 bg-black/50 z-50'></div>}><Modal isWin={isWin} movie={movie} onClose={isDailyChallenge ? ()=>navigate('/') : reset} isDailyChallenge={isDailyChallenge} triesUsed={tries.length} revealedCast={cast} onShareImage={handleShareImage} /></Suspense>}
+      {showHelp && <Suspense fallback={<div className='fixed inset-0 bg-black/50 z-50'></div>}><KeyboardShortcutsModal onClose={() => setShowHelp(false)} mode='guess' /></Suspense>}
       {showShareImage && (
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4' onClick={() => setShowShareImage(false)}>
           <div className='bg-white dark:bg-gray-800 rounded-lg p-6 max-w-lg' onClick={(e) => e.stopPropagation()}>
@@ -599,9 +601,9 @@ export default function Home() {
           <div className='flex-shrink-0'>
             <div className='aspect-[16/9] w-32 sm:w-48 md:w-64 flex justify-center shadow-lg rounded overflow-hidden dark:shadow-gray-800 select-none bg-gray-200 dark:bg-gray-700' onContextMenu={(e)=>e.preventDefault()}>{
               gameStatus===gameStatusVal.finished ?
-                <img src={posterUrl} className='object-cover w-full h-full animate-fadeIn blur-sm animate-[unblur_1s_ease-out_forwards] pointer-events-none' loading="eager" alt="Movie backdrop" style={{animationDelay: '0.3s'}} draggable="false" onError={(e) => e.target.style.display = 'none'} />
+                <img src={posterUrl} className='object-cover w-full h-full animate-fadeIn blur-sm animate-[unblur_1s_ease-out_forwards] pointer-events-none' loading="lazy" alt="Movie backdrop" style={{animationDelay: '0.3s'}} draggable="false" onError={(e) => e.target.style.display = 'none'} />
               : tries.length > 0 ?
-                <img src={posterUrl} className='object-cover w-full h-full transition-all duration-500 pointer-events-none' loading="eager" alt="Movie backdrop" style={{filter: `blur(${blurAmount}px)`, transform: `scale(${imageScale})`}} draggable="false" onError={(e) => e.target.style.display = 'none'} />
+                <img src={posterUrl} className='object-cover w-full h-full transition-all duration-500 pointer-events-none' loading="lazy" alt="Movie backdrop" style={{filter: `blur(${blurAmount}px)`, transform: `scale(${imageScale})`}} draggable="false" onError={(e) => e.target.style.display = 'none'} />
               :
               <div className='w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center'>
                 <span className='text-4xl'>?</span>
