@@ -559,10 +559,10 @@ export default function LinkGame() {
   return (
     <>
       {/* Desktop: Sidebar Ads */}
-      <div className='hidden lg:block fixed left-4 top-1/2 -translate-y-1/2 z-10'>
+      <div className='hidden xl:block fixed left-2 top-1/2 -translate-y-1/2 z-10'>
         <AdSenseVertical />
       </div>
-      <div className='hidden lg:block fixed right-4 top-1/2 -translate-y-1/2 z-10'>
+      <div className='hidden xl:block fixed right-2 top-1/2 -translate-y-1/2 z-10'>
         <AdSenseVertical />
       </div>
       
@@ -902,7 +902,7 @@ export default function LinkGame() {
       {showConfetti && <Confetti />}
       
       {/* Mobile/Tablet: Bottom Ad */}
-      <div className='lg:hidden fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-gray-900 py-2 h-16 overflow-hidden'>
+        <div className='xl:hidden fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-gray-900 py-2 h-16 overflow-hidden'>
         <div className='max-w-screen-lg mx-auto h-full'>
           <AdSense />
         </div>
