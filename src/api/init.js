@@ -213,53 +213,48 @@ const getKeywords = async (movieId) => {
 
 const getDailyMovie = async () => {
   const today = new Date().toISOString().split('T')[0];
+  const cacheKey = `daily_movie_${today}`;
   
-  // Fixed seed for consistent daily movie globally
-  const seed = today + '-filmdle-guess';
+  // Check if we already have today's movie cached
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) {
+    return JSON.parse(cached);
+  }
+  
+  // Use a more stable seed with fixed parameters
+  const seed = today + '-filmdle-guess-v3';
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
     hash = ((hash << 5) - hash) + seed.charCodeAt(i);
     hash = hash & hash;
   }
   
-  const pageNumber = (Math.abs(hash) % 100) + 1;
-  const movieIndex = Math.abs(hash >> 8) % 20;
-  let attempts = 0;
+  // Use fixed values for testing
+  const pageNumber = 1; // Always use page 1
+  const movieIndex = Math.abs(hash) % 5; // First 5 movies only
   
-  while (attempts < 10) {
-    const optionsURL = new URLSearchParams();
-    optionsURL.append("language", LANG);
-    optionsURL.append("primary_release_date.gte", "2015-01-01");
-    optionsURL.append("vote_count.gte", "1000");
-    optionsURL.append("include_adult", "false");
-    optionsURL.append("page", pageNumber);
-    
-    const response = await fetch(`${URL}/discover/movie?${optionsURL.toString()}`, {
-      method: "GET",
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
-      }
-    });
-    const data = await response.json();
-    const movies = data.results;
-    const movie = movies[movieIndex] || movies[0];
-    
-    // Validate movie has enough cast with photos
-    const credits = await getCastFromMovie(movie.id);
-    const validCast = credits.cast.filter((item) => item?.profile_path !== null && item?.cast_id !== null && item?.id !== null);
-    
-    if (validCast.length >= 10 && credits.cast.find(item => item.order === 0)?.profile_path) {
-      return movie;
+  const optionsURL = new URLSearchParams();
+  optionsURL.append("language", LANG);
+  optionsURL.append("primary_release_date.gte", "2010-01-01");
+  optionsURL.append("vote_count.gte", "10000"); // Very high threshold
+  optionsURL.append("include_adult", "false");
+  optionsURL.append("sort_by", "popularity.desc");
+  optionsURL.append("page", pageNumber);
+  
+  const response = await fetch(`${URL}/discover/movie?${optionsURL.toString()}`, {
+    method: "GET",
+    headers: {
+      accept: 'application/json',
+      Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN || process.env.VITE_ACCESS_TOKEN}`
     }
-    
-    // Try next movie
-    attempts++;
-    movieIndex = (movieIndex + 1) % 20;
-  }
+  });
+  const data = await response.json();
+  const movies = data.results;
+  const movie = movies[movieIndex] || movies[0];
   
-  // Fallback to regular getValidMovie if no valid daily movie found
-  const [movie] = await getValidMovie();
+  // Cache the movie for the day
+  localStorage.setItem(cacheKey, JSON.stringify(movie));
+  
   return movie;
 };
 
@@ -320,6 +315,13 @@ const getMovieAlternativeTitles = async (movieId) => {
 
 const getDailyLinkMovie = async () => {
   const today = new Date().toISOString().split('T')[0];
+  const cacheKey = `daily_link_movie_${today}`;
+  
+  // Check if we already have today's movie cached
+  const cached = sessionStorage.getItem(cacheKey);
+  if (cached) {
+    return JSON.parse(cached);
+  }
   
   // Fixed seed for consistent daily movie globally
   const seed = today + '-filmdle-link';
@@ -359,10 +361,13 @@ const getDailyLinkMovie = async () => {
       }
     });
     const retryData = await retryResponse.json();
-    return retryData.results[0];
+    const movie = retryData.results[0];
+    sessionStorage.setItem(cacheKey, JSON.stringify(movie));
+    return movie;
   }
   
   const movie = data.results[movieIndex] || data.results[0];
+  sessionStorage.setItem(cacheKey, JSON.stringify(movie));
   return movie;
 };
 

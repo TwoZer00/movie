@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getValidMovie, getCastFromMovie, getMovie, getMoviesByActor, getMoviesByDirector, getMovieImages } from '../api/init';
 import { IMG_URL } from '../api/utils/const';
 import { Loader } from '../components/UIComponents';
@@ -18,6 +19,7 @@ const CONNECTION_TYPES = [
 ];
 
 export default function OddOneOut() {
+  const navigate = useNavigate();
   const [movies, setMovies] = useState([]);
   const [oddOneIndex, setOddOneIndex] = useState(null);
   const [connection, setConnection] = useState(null);
@@ -385,7 +387,14 @@ export default function OddOneOut() {
         </div>
       )}
       
-      <div className='text-center bg-gradient-to-r from-red-600 to-amber-600 text-white p-3 rounded-lg'>
+      <div className='text-center bg-gradient-to-r from-red-600 to-amber-600 text-white p-3 rounded-lg relative'>
+        <button 
+          onClick={() => navigate('/')}
+          className='absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs font-semibold'
+          title='Back to menu'
+        >
+          ←
+        </button>
         <h2 className='text-xl font-bold'>🎯 Odd One Out</h2>
         <div className='flex justify-center gap-4 text-sm opacity-90'>
           <span>Round: <span className='font-bold'>{round}</span></span>

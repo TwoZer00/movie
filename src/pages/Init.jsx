@@ -17,7 +17,6 @@ export default function Init() {
   
   return (
     <div className='flex flex-col w-dvw h-dvh dark:bg-gray-900 dark:text-white'>
-      <Header/>
       <Outlet/>
     </div>
   )

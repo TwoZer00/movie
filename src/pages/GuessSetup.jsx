@@ -69,7 +69,17 @@ export default function GuessSetup() {
   return (
     <div className='flex-1 flex flex-col items-center p-4 dark:bg-gray-900 overflow-y-auto'>
       <div className='w-full max-w-4xl'>
-        <h2 className='text-3xl font-bold bg-gradient-to-r from-red-600 to-amber-600 bg-clip-text text-transparent mb-6'>🎬 Guess by Cast Setup</h2>
+        <div className='flex items-center justify-between mb-6'>
+          <button 
+            onClick={() => navigate('/')}
+            className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm font-semibold'
+            title='Back to menu'
+          >
+            ← Menu
+          </button>
+          <h2 className='text-3xl font-bold bg-gradient-to-r from-red-600 to-amber-600 bg-clip-text text-transparent'>🎬 Guess by Cast Setup</h2>
+          <div className='w-16'></div> {/* Spacer for centering */}
+        </div>
         
         {/* Quick Start */}
         <div className='bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6'>

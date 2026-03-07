@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 export default function Menu() {
   const [dailyCompleted,setDailyCompleted] = useState(false)
   const [dailyLinkChain,setDailyLinkChain] = useState(null)
+  const [stats, setStats] = useState({ wins: 0, currentStreak: 0, bestChain: 0 })
   const navigate = useNavigate();
   
   useEffect(()=>{
@@ -17,57 +18,130 @@ export default function Menu() {
       const chainLength = Math.floor(data.chain.length / 2) + 1;
       setDailyLinkChain(chainLength);
     }
+    
+    // Load stats
+    const gameStats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"currentStreak":0}');
+    const linkStats = JSON.parse(localStorage.getItem('linkChainStats') || '{"bestChain":0}');
+    setStats({ ...gameStats, bestChain: linkStats.bestChain || 0 });
   },[]);
 
+  const GameModeCard = ({ title, icon, description, children, stats }) => (
+    <div className='bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1'>
+      <div className='flex items-center gap-3 mb-4'>
+        <span className='text-3xl'>{icon}</span>
+        <div>
+          <h3 className='text-xl font-bold text-gray-800 dark:text-white'>{title}</h3>
+          <p className='text-sm text-gray-600 dark:text-gray-400'>{description}</p>
+        </div>
+      </div>
+      {stats && (
+        <div className='flex gap-4 mb-4 text-sm text-gray-600 dark:text-gray-400'>
+          {stats.map((stat, i) => (
+            <span key={i} className='flex items-center gap-1'>
+              <span className='font-semibold text-gray-800 dark:text-white'>{stat.value}</span>
+              {stat.label}
+            </span>
+          ))}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+
   return (
-    <div className='flex flex-col flex-1 items-center justify-center gap-8 p-4 overflow-y-auto'>
-      <div className='w-full max-w-2xl flex flex-col gap-6'>
-        {/* Guess by Cast */}
-        <div>
-          <h3 className='text-lg font-semibold mb-3 text-center text-gray-700 dark:text-gray-300'>🎬 Guess by Cast</h3>
-          <div className='grid grid-cols-2 gap-3'>
-            <button className='py-4 shadow-lg text-xl font-semibold uppercase rounded-lg bg-gradient-to-r from-red-600 to-amber-600 text-white hover:from-red-700 hover:to-amber-700 transition-all' onClick={()=>navigate("/play")}>
-              🎬 Play
-            </button>
-            <div className='relative'>
-              <button className={`w-full py-4 shadow-lg text-xl font-semibold uppercase rounded-lg transition-all ${dailyCompleted ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed opacity-60' : 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white hover:from-amber-600 hover:to-yellow-600'}`} onClick={()=>navigate("/play?daily=true")} disabled={dailyCompleted}>
-                📅 Daily
-                {dailyCompleted && <span className='absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>✓ Done</span>}
-              </button>
-              {dailyCompleted && <CountdownTimer />}
-            </div>
-          </div>
-          <button className='w-full mt-3 py-3 shadow text-sm font-semibold uppercase rounded-lg bg-gray-600 dark:bg-gray-700 text-white hover:bg-gray-700 dark:hover:bg-gray-600 transition-all' onClick={()=>navigate('/guess-setup')}>
-            ⚙️ Custom Game
-          </button>
-        </div>
-        {/* Link Chain */}
-        <div>
-          <h3 className='text-lg font-semibold mb-3 text-center text-gray-700 dark:text-gray-300'>🔗 Link Chain</h3>
-          <div className='grid grid-cols-2 gap-3'>
-            <button className='py-4 shadow-lg text-xl font-semibold uppercase rounded-lg bg-gradient-to-r from-red-600 to-amber-600 text-white hover:from-red-700 hover:to-amber-700 transition-all' onClick={()=>navigate('/link')}>
-              🔗 Play
-            </button>
-            <div className='relative'>
-              <button className='w-full py-4 shadow-lg text-xl font-semibold uppercase rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 text-white hover:from-amber-600 hover:to-yellow-600 transition-all' onClick={()=>navigate('/link?daily=true')}>
-                📅 Daily
-                {dailyLinkChain && <span className='absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>{dailyLinkChain} 🔗</span>}
-              </button>
-            </div>
-          </div>
+    <div className='flex flex-col flex-1 items-center justify-center gap-6 p-4 overflow-y-auto bg-gray-50 dark:bg-gray-900'>
+      <div className='w-full max-w-4xl'>
+        <div className='text-center mb-8'>
+          <h1 className='text-4xl font-bold bg-gradient-to-r from-red-600 to-amber-600 bg-clip-text text-transparent'>🎬 Filmdle</h1>
+          <p className='text-gray-600 dark:text-gray-400 mt-2'>The daily movie guessing game</p>
         </div>
         
-        {/* Odd One Out */}
-        <div>
-          <h3 className='text-lg font-semibold mb-3 text-center text-gray-700 dark:text-gray-300'>🎯 Odd One Out</h3>
-          <button className='w-full py-4 shadow-lg text-xl font-semibold uppercase rounded-lg bg-gradient-to-r from-red-600 to-amber-600 text-white hover:from-red-700 hover:to-amber-700 transition-all' onClick={()=>navigate('/odd')}>
-            🎯 Play
-          </button>
+        {/* Featured Daily Challenges */}
+        <div className='mb-8 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-xl p-6 text-white'>
+          <h2 className='text-2xl font-bold mb-4 text-center'>📅 Daily Challenges</h2>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <button 
+              className={`py-3 px-6 rounded-lg font-semibold transition-all ${dailyCompleted ? 'bg-white/20 cursor-not-allowed opacity-60' : 'bg-white/30 hover:bg-white/40'}`}
+              onClick={()=>navigate("/play?daily=true")} 
+              disabled={dailyCompleted}
+            >
+              🎬 Guess by Cast {dailyCompleted && '✓'}
+            </button>
+            <button 
+              className='py-3 px-6 rounded-lg font-semibold bg-white/30 hover:bg-white/40 transition-all'
+              onClick={()=>navigate('/link?daily=true')}
+            >
+              🔗 Link Chain {dailyLinkChain && `(${dailyLinkChain} links)`}
+            </button>
+          </div>
+          {dailyCompleted && <CountdownTimer />}
         </div>
-        
-        <button className='py-3 shadow-lg text-lg font-semibold uppercase rounded-lg bg-red-800 dark:bg-red-900 text-white hover:bg-red-900 dark:hover:bg-red-800 transition-all' onClick={()=>navigate('/settings')}>
-          ⚙️ Settings
-        </button>
+
+        {/* Game Modes */}
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+          <GameModeCard
+            title='Guess by Cast'
+            icon='🎬'
+            description='Identify movies from their cast members'
+            stats={[
+              { value: stats.wins, label: 'wins' },
+              { value: stats.currentStreak, label: 'streak' }
+            ]}
+          >
+            <div className='flex gap-3'>
+              <button 
+                className='flex-1 py-3 rounded-lg font-semibold bg-gradient-to-r from-red-600 to-amber-600 text-white hover:from-red-700 hover:to-amber-700 transition-all'
+                onClick={()=>navigate("/play")}
+              >
+                Play
+              </button>
+              <button 
+                className='px-4 py-3 rounded-lg font-semibold bg-gray-600 text-white hover:bg-gray-700 transition-all'
+                onClick={()=>navigate('/guess-setup')}
+              >
+                ⚙️
+              </button>
+            </div>
+          </GameModeCard>
+
+          <GameModeCard
+            title='Link Chain'
+            icon='🔗'
+            description='Build actor-movie chains as long as possible'
+            stats={[
+              { value: stats.bestChain, label: 'best chain' }
+            ]}
+          >
+            <button 
+              className='w-full py-3 rounded-lg font-semibold bg-gradient-to-r from-red-600 to-amber-600 text-white hover:from-red-700 hover:to-amber-700 transition-all'
+              onClick={()=>navigate('/link')}
+            >
+              Play
+            </button>
+          </GameModeCard>
+
+          <GameModeCard
+            title='Odd One Out'
+            icon='🎯'
+            description="Find the movie that doesn't belong"
+          >
+            <button 
+              className='w-full py-3 rounded-lg font-semibold bg-gradient-to-r from-red-600 to-amber-600 text-white hover:from-red-700 hover:to-amber-700 transition-all'
+              onClick={()=>navigate('/odd')}
+            >
+              Play
+            </button>
+          </GameModeCard>
+
+          <div className='bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex items-center justify-center'>
+            <button 
+              className='w-full py-4 rounded-lg font-semibold bg-red-800 dark:bg-red-900 text-white hover:bg-red-900 dark:hover:bg-red-800 transition-all text-lg'
+              onClick={()=>navigate('/settings')}
+            >
+              ⚙️ Settings
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -97,7 +171,7 @@ const CountdownTimer = () => {
   }, []);
 
   return (
-    <p className='text-center text-sm text-gray-500 mt-2'>
+    <p className='text-center text-sm text-white/80 mt-2'>
       Next challenge in: {timeLeft}
     </p>
   );

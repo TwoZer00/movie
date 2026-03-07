@@ -56,12 +56,12 @@ export default function Home() {
   const [showShareImage, setShowShareImage] = useState(false);
   const [shareImageUrl, setShareImageUrl] = useState(null);
 
-  const fetchData = useCallback(async ()=>{
+  const fetchData = useCallback(async (isDaily = isDailyChallenge)=>{
     lStatus.current = loadStatus.loading
     try {
       let movie, cast, credits;
       
-      if(isDailyChallenge) {
+      if(isDaily) {
         movie = await getDailyMovie();
         credits = await getCastFromMovie(movie.id);
         cast = credits.cast.filter((item) => item?.profile_path !== null && item?.cast_id !== null && item?.id !== null);
@@ -136,7 +136,7 @@ export default function Home() {
         }
       }
       
-      fetchData();
+      fetchData(isDaily);
     }
     
     // Clear session movies when leaving the game
@@ -569,15 +569,22 @@ export default function Home() {
       
       <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-16 lg:pb-4 max-w-6xl mx-auto w-full'>
         <div className='py-2 flex justify-between items-center'>
+          <button 
+            onClick={() => navigate('/')}
+            className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm font-semibold'
+            title='Back to menu'
+          >
+            ← Menu
+          </button>
           <h1 className='text-xl sm:text-2xl font-bold dark:text-white'>
             {isDailyChallenge ? '🎯 Daily Challenge' : '🎬 Guess by Cast'}
           </h1>
           <button 
             onClick={() => setShowHelp(true)}
             className='bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-semibold'
-            title='Keyboard shortcuts (?)'
+            title='Help'
           >
-            ⌨️
+            ?
           </button>
         </div>
         <div className='py-2 flex flex-row items-start gap-3 sm:gap-4 max-w-4xl mx-auto'>

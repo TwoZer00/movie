@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getValidMovie, getCastFromMovie, getMoviesByActor, searchPerson, getMoviesByName, getKeywords, getMovieImages, getMovieAlternativeTitles, getMovie, getDailyLinkMovie, getPersonDetails } from '../api/init';
 import { IMG_URL, POSTER_SIZE, PROFILE_SIZE } from '../api/utils/const';
 import { Loader } from '../components/UIComponents';
@@ -27,6 +28,7 @@ const debounce = (fn, delay) => {
 };
 
 export default function LinkGame() {
+  const navigate = useNavigate();
   const location = useLocation();
   const [chain, setChain] = useState([]);
   const [currentMovie, setCurrentMovie] = useState(null);
@@ -581,6 +583,13 @@ export default function LinkGame() {
         </div>
       )}
       <div className='text-center bg-gradient-to-r from-red-600 to-amber-600 text-white p-2 sm:p-3 rounded-lg relative'>
+        <button 
+          onClick={() => navigate('/')}
+          className='absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold'
+          title='Back to menu'
+        >
+          ←
+        </button>
         <h2 className='text-lg sm:text-xl font-bold'>🔗 {isDailyChallenge ? 'Daily Link' : 'Link Chain'}</h2>
         <div className='flex justify-center items-center gap-2 sm:gap-4 text-xs opacity-90'>
           <span>Chain: <span className='font-bold'>{Math.floor(chain.length / 2) + 1}</span></span>
