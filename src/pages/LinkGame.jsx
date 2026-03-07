@@ -16,6 +16,7 @@ import winSound from '../resources/win_sound.wav';
 import lossSound from '../resources/loss_sound.wav';
 import { trackGameStart, trackGameEnd, trackHintUsed, trackShare, trackUndo, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
 import { generateShareImage, downloadImage, shareImageNative } from '../utils/shareImage';
+import { addMovieCooldown, getRecentMovies } from '../utils/movieCooldown';
 
 const debounce = (fn, delay) => {
   let timer;

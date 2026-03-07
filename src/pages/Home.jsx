@@ -17,6 +17,7 @@ import AdSenseVertical from '../components/AdSenseVertical';
 import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal';
 import { trackGameStart, trackGameEnd, trackSkip, trackCollectionStart, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
 import { generateShareImage, downloadImage, shareImageNative } from '../utils/shareImage';
+import { addMovieCooldown, getRecentMovies } from '../utils/movieCooldown';
 
 export default function Home() {
   const [cast,setCast] = useState([]);
