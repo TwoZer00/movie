@@ -610,7 +610,7 @@ export default function Home() {
         <AdSenseVertical />
       </div>
       
-      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-4 max-w-6xl mx-auto w-full pull-refresh'>
+      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-2 max-w-6xl mx-auto w-full pull-refresh'>
         <div className='py-2 flex justify-between items-center'>
           <button 
             onClick={() => navigate('/')}
@@ -711,7 +711,7 @@ export default function Home() {
             }
           </div>
         </div>
-        <div className='flex-1 border dark:border-gray-700 px-2 rounded flex flex-col gap-1 overflow-y-auto overflow-x-hidden min-h-0 dark:bg-gray-800'>
+        <div className='flex-1 border dark:border-gray-700 px-2 rounded flex flex-col gap-1 overflow-y-auto overflow-x-hidden min-h-[200px] max-h-[300px] dark:bg-gray-800'>
           <div className='sticky top-0 bg-white dark:bg-gray-800 py-1 flex items-center justify-between'>
             <p className='font-semibold dark:text-white'>Tries {5 - tries.length}/5</p>
             <div className='flex-1 mx-3 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden'>
@@ -735,7 +735,7 @@ export default function Home() {
             />
           ))}
         </div>
-        <form onSubmit={handleSubmit} className='flex-0 relative flex flex-col gap-2'>
+        <form onSubmit={handleSubmit} className='flex-shrink-0 relative flex flex-col gap-2 mt-2'>
             <div className='relative flex-1'>
               <input placeholder='Search for movie title' type="text" className={`rounded w-full text-base sm:text-lg py-3 px-4 border dark:border-gray-600 dark:bg-gray-700 dark:text-white focus-within:outline-none smooth-transition ${shakeInput ? 'animate-shake border-red-500' : ''}`} onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
               <ul className={`shadow-xl border-2 border-slate-200 dark:border-gray-600 rounded-tl rounded-tr absolute bottom-full left-0 w-full flex flex-col divide-y dark:divide-gray-600 bg-white dark:bg-gray-800 max-h-[50ch] overflow-y-auto ${visible?"":"hidden"}`}>
