@@ -1,6 +1,6 @@
-const CACHE_NAME = `filmdle-${new Date().getTime()}`;
-const STATIC_CACHE = 'filmdle-static-v1';
-const API_CACHE = 'filmdle-api-v1';
+const VERSION = '1.0.0'; // Update this when deploying
+const STATIC_CACHE = `filmdle-static-${VERSION}`;
+const API_CACHE = `filmdle-api-${VERSION}`;
 
 const urlsToCache = [
   '/',
@@ -21,11 +21,10 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== STATIC_CACHE && cacheName !== API_CACHE && cacheName !== CACHE_NAME) {
+          if (cacheName !== STATIC_CACHE && cacheName !== API_CACHE) {
             return caches.delete(cacheName);
           }
         })
@@ -63,21 +62,35 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // Always fetch fresh for HTML files
-  if (request.url.includes('.html') || request.url === self.location.origin + '/') {
+  // Network-first for HTML and JS/CSS files
+  if (request.url.includes('.html') || request.url === self.location.origin + '/' || 
+      request.url.includes('.js') || request.url.includes('.css')) {
     event.respondWith(
-      fetch(request).catch(() => caches.match(request))
+      fetch(request)
+        .then(response => {
+          if (response.ok) {
+            caches.open(STATIC_CACHE).then(cache => cache.put(request, response.clone()));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
     );
     return;
   }
   
+  // Cache-first for other assets (images, fonts)
   event.respondWith(
     caches.match(request)
       .then((response) => {
         if (response) {
           return response;
         }
-        return fetch(request).catch(() => {
+        return fetch(request).then(fetchResponse => {
+          if (fetchResponse.ok) {
+            caches.open(STATIC_CACHE).then(cache => cache.put(request, fetchResponse.clone()));
+          }
+          return fetchResponse;
+        }).catch(() => {
           if (request.mode === 'navigate') {
             return caches.match('/');
           }
