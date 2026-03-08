@@ -735,6 +735,14 @@ export default function LinkGame() {
             )}
           </div>
 
+          {/* Mobile: In-content ad placement */}
+          <div className='lg:hidden bg-white dark:bg-gray-800 rounded-lg p-2 text-center'>
+            <p className='text-xs text-gray-400 mb-2'>Advertisement</p>
+            <div style={{minHeight: '50px', maxHeight: '90px', overflow: 'hidden'}}>
+              <AdSense />
+            </div>
+          </div>
+
           {/* Search */}
           <div className='bg-white dark:bg-gray-800 p-3 rounded-lg flex-1 flex flex-col min-h-0'>
             <div className='flex justify-between items-center mb-2'>

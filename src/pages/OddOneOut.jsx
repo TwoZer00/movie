@@ -440,6 +440,14 @@ export default function OddOneOut() {
         )}
       </div>
 
+      {/* Mobile: In-content ad placement */}
+      <div className='lg:hidden bg-white dark:bg-gray-800 rounded-lg p-2 text-center'>
+        <p className='text-xs text-gray-400 mb-2'>Advertisement</p>
+        <div style={{minHeight: '50px', maxHeight: '90px', overflow: 'hidden'}}>
+          <AdSense />
+        </div>
+      </div>
+
       <div className='grid grid-cols-2 gap-4'>
         {movies.map((movie, index) => (
           <button
