@@ -771,9 +771,6 @@ export default function Home() {
             </div>
         </form>
       </div>
-      
-      {/* Mobile/Tablet: No bottom ad - use in-content placement instead */}
-      <div className='lg:hidden h-0'></div>
     </>
   )
 }

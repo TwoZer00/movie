@@ -573,7 +573,7 @@ export default function LinkGame() {
         <AdSenseVertical />
       </div>
       
-      <div className='flex-1 flex flex-col gap-2 p-2 sm:p-4 overflow-hidden dark:bg-gray-900 max-w-4xl mx-auto w-full pb-16 lg:pb-4'>
+      <div className='flex-1 flex flex-col gap-2 p-2 sm:p-4 overflow-hidden dark:bg-gray-900 max-w-4xl mx-auto w-full pb-2'>
       {loading && chain.length > 0 && (
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
           <div className='bg-white dark:bg-gray-800 p-6 rounded-lg'>
@@ -914,13 +914,6 @@ export default function LinkGame() {
       
       {showHelp && <KeyboardShortcutsModal onClose={() => setShowHelp(false)} mode='link' />}
       {showConfetti && <Confetti />}
-      
-      {/* Mobile/Tablet: Bottom Ad */}
-        <div className='xl:hidden fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-gray-900 py-2 h-16 overflow-hidden'>
-        <div className='max-w-screen-lg mx-auto h-full'>
-          <AdSense />
-        </div>
-      </div>
     </>
   )
 }
