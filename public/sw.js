@@ -1,4 +1,4 @@
-const VERSION = '1.0.0'; // Update this when deploying
+const VERSION = '1.0.0';
 const STATIC_CACHE = `filmdle-static-${VERSION}`;
 const API_CACHE = `filmdle-api-${VERSION}`;
 
@@ -98,3 +98,4 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+
