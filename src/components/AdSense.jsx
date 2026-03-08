@@ -19,10 +19,10 @@ export default function AdSense() {
     <ins 
       ref={adRef}
       className="adsbygoogle"
-      style={{ display: 'block', minHeight: '50px', maxHeight: '50px', width: '100%', textAlign: 'center' }}
+      style={{ display: 'block', width: '100%', maxWidth: '100%' }}
       data-ad-client="ca-pub-7731037445831235"
       data-ad-slot="5105136682"
-      data-ad-format="horizontal"
+      data-ad-format="auto"
       data-full-width-responsive="true"
     />
   );

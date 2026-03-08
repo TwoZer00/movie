@@ -610,7 +610,7 @@ export default function Home() {
         <AdSenseVertical />
       </div>
       
-      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-20 lg:pb-4 max-w-6xl mx-auto w-full pull-refresh'>
+      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-4 max-w-6xl mx-auto w-full pull-refresh'>
         <div className='py-2 flex justify-between items-center'>
           <button 
             onClick={() => navigate('/')}
@@ -683,6 +683,15 @@ export default function Home() {
             </div>
           </div>
         </div>
+        
+        {/* Mobile: In-content ad placement */}
+        <div className='lg:hidden bg-white dark:bg-gray-800 rounded-lg p-2 text-center'>
+          <p className='text-xs text-gray-400 mb-2'>Advertisement</p>
+          <div style={{minHeight: '50px', maxHeight: '90px', overflow: 'hidden'}}>
+            <AdSense />
+          </div>
+        </div>
+        
         <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-800 p-3 sm:p-4'>
           <p className='text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3 text-center'>Cast Members</p>
           <div className="grid grid-cols-5 gap-2 sm:gap-3 max-w-2xl mx-auto">
@@ -763,12 +772,8 @@ export default function Home() {
         </form>
       </div>
       
-      {/* Mobile/Tablet: Bottom Ad */}
-        <div className='lg:hidden fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-gray-900 py-2 h-16 overflow-hidden'>
-        <div className='max-w-screen-lg mx-auto h-full'>
-          <AdSense />
-        </div>
-      </div>
+      {/* Mobile/Tablet: No bottom ad - use in-content placement instead */}
+      <div className='lg:hidden h-0'></div>
     </>
   )
 }
