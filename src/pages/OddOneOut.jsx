@@ -4,8 +4,6 @@ import { getValidMovie, getCastFromMovie, getMovie, getMoviesByActor, getMoviesB
 import { IMG_URL } from '../api/utils/const';
 import { Loader } from '../components/UIComponents';
 import Confetti from '../components/Confetti';
-import AdSense from '../components/AdSense';
-import AdSenseVertical from '../components/AdSenseVertical';
 import winSound from '../resources/win_sound.wav';
 import lossSound from '../resources/loss_sound.wav';
 
@@ -369,13 +367,6 @@ export default function OddOneOut() {
 
   return (
     <>
-      {/* Desktop: Sidebar Ads */}
-      <div className='hidden xl:block fixed left-2 top-1/2 -translate-y-1/2 z-10'>
-        <AdSenseVertical />
-      </div>
-      <div className='hidden xl:block fixed right-2 top-1/2 -translate-y-1/2 z-10'>
-        <AdSenseVertical />
-      </div>
       
       <div className='flex-1 flex flex-col gap-4 p-4 overflow-y-auto dark:bg-gray-900 max-w-4xl mx-auto w-full pb-4'>
       {loading && movies.length > 0 && (
@@ -438,14 +429,6 @@ export default function OddOneOut() {
             )}
           </div>
         )}
-      </div>
-
-      {/* Mobile: In-content ad placement */}
-      <div className='lg:hidden bg-white dark:bg-gray-800 rounded-lg p-2 text-center'>
-        <p className='text-xs text-gray-400 mb-2'>Advertisement</p>
-        <div style={{minHeight: '50px', maxHeight: '90px', overflow: 'hidden'}}>
-          <AdSense />
-        </div>
       </div>
 
       <div className='grid grid-cols-2 gap-4'>
