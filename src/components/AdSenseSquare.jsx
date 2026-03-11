@@ -2,6 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 
 let adCount = 0;
 
+/**
+ * Square ad component with fixed standard IAB sizes
+ * Mobile: 300x250 (Medium Rectangle)
+ * Desktop: 336x280 (Large Rectangle)
+ */
 export default function AdSenseSquare() {
   const adId = useRef(`adsense-square-${++adCount}-${Date.now()}`);
   const adRef = useRef(null);
@@ -28,17 +33,21 @@ export default function AdSenseSquare() {
     };
   }, []);
 
+  // Fixed standard sizes
+  const adSize = isMobile
+    ? { width: '300px', height: '250px' }  // Medium Rectangle
+    : { width: '336px', height: '280px' }; // Large Rectangle
+
   return (
-    <div className='w-full flex justify-center items-center' style={{ minHeight: isMobile ? '250px' : '280px' }}>
+    <div className='w-full flex justify-center items-center' style={{ minHeight: adSize.height, maxHeight: adSize.height }}>
       <ins 
         ref={adRef}
         key={adId.current}
         className="adsbygoogle"
         style={{ 
           display: 'inline-block',
-          width: isMobile ? '300px' : '336px',
-          height: isMobile ? '250px' : '280px',
-          maxWidth: '100%'
+          width: adSize.width,
+          height: adSize.height
         }}
         data-ad-client="ca-pub-7731037445831235"
         data-ad-slot="5105136682"

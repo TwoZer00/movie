@@ -1,40 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 
 /**
- * Responsive AdSense component optimized for mobile
- * Automatically adjusts ad format based on screen size and placement
+ * Responsive AdSense component with fixed standard IAB sizes
  * 
  * @param {string} format - 'banner' | 'square' | 'vertical' (default: 'banner')
  * @param {string} className - Additional CSS classes
  */
 export default function AdSenseResponsive({ format = 'banner', className = '' }) {
   const adRef = useRef(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const updateDimensions = () => {
       const width = window.innerWidth;
-      const mobile = width < 768;
-      setIsMobile(mobile);
-
-      // Set dimensions based on format and screen size
-      if (format === 'banner') {
-        setDimensions({
-          width: '100%',
-          height: mobile ? '50px' : '90px'
-        });
-      } else if (format === 'square') {
-        setDimensions({
-          width: mobile ? '300px' : '336px',
-          height: mobile ? '250px' : '280px'
-        });
-      } else if (format === 'vertical') {
-        setDimensions({
-          width: '160px',
-          height: '600px'
-        });
-      }
+      setIsMobile(width < 768);
     };
 
     updateDimensions();
@@ -56,9 +35,26 @@ export default function AdSenseResponsive({ format = 'banner', className = '' })
     };
   }, [format]);
 
+  // Fixed standard IAB ad sizes
+  const getAdSize = () => {
+    if (format === 'banner') {
+      return isMobile 
+        ? { width: '320px', height: '50px' }   // Mobile Banner
+        : { width: '728px', height: '90px' };  // Leaderboard
+    } else if (format === 'square') {
+      return isMobile
+        ? { width: '300px', height: '250px' }  // Medium Rectangle
+        : { width: '336px', height: '280px' }; // Large Rectangle
+    } else if (format === 'vertical') {
+      return { width: '160px', height: '600px' }; // Wide Skyscraper
+    }
+  };
+
+  const adSize = getAdSize();
+
   const containerStyle = {
-    minHeight: dimensions.height,
-    maxHeight: format === 'banner' ? (isMobile ? '60px' : '90px') : dimensions.height,
+    minHeight: adSize.height,
+    maxHeight: adSize.height,
     width: '100%',
     display: 'flex',
     justifyContent: 'center',
@@ -67,11 +63,9 @@ export default function AdSenseResponsive({ format = 'banner', className = '' })
   };
 
   const adStyle = {
-    display: format === 'banner' ? 'block' : 'inline-block',
-    width: dimensions.width,
-    height: dimensions.height,
-    maxWidth: '100%',
-    maxHeight: format === 'banner' && isMobile ? '50px' : dimensions.height
+    display: 'inline-block',
+    width: adSize.width,
+    height: adSize.height
   };
 
   return (
@@ -82,8 +76,6 @@ export default function AdSenseResponsive({ format = 'banner', className = '' })
         style={adStyle}
         data-ad-client="ca-pub-7731037445831235"
         data-ad-slot="5105136682"
-        data-ad-format={format === 'banner' ? 'auto' : undefined}
-        data-full-width-responsive={format === 'banner' ? 'true' : 'false'}
       />
     </div>
   );

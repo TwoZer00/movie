@@ -260,27 +260,33 @@
   animation: spin 1s linear infinite;
 }
 
-/* AdSense Mobile Optimization */
+/* AdSense Fixed Size Optimization */
+/* Using standard IAB ad sizes for better fill rates and CPM */
+
 .adsbygoogle {
-  max-height: inherit !important;
   overflow: hidden !important;
 }
 
-@media (max-width: 767px) {
-  .adsbygoogle {
-    max-height: 60px !important;
-  }
-  
-  .adsense-responsive {
-    max-height: 70px !important;
-  }
-}
-
-/* Prevent ad overflow */
+/* Prevent ad overflow and maintain fixed sizes */
 ins.adsbygoogle {
   overflow: hidden !important;
+  max-width: 100% !important;
 }
 
-ins.adsbygoogle > * {
-  max-height: inherit !important;
+/* Mobile: 320x50 banner */
+@media (max-width: 767px) {
+  .adsense-responsive[style*="banner"] .adsbygoogle,
+  .adsense-responsive .adsbygoogle[style*="320px"] {
+    width: 320px !important;
+    height: 50px !important;
+  }
+}
+
+/* Desktop: 728x90 leaderboard */
+@media (min-width: 768px) {
+  .adsense-responsive[style*="banner"] .adsbygoogle,
+  .adsense-responsive .adsbygoogle[style*="728px"] {
+    width: 728px !important;
+    height: 90px !important;
+  }
 }

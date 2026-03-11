@@ -683,12 +683,10 @@ export default function Home() {
           </div>
         </div>
         
-        {/* Mobile: Compact banner ad */}
-        <div className='xl:hidden bg-white dark:bg-gray-800 rounded-lg p-1 shadow-sm' style={{ maxHeight: '70px' }}>
+        {/* Mobile: Fixed size banner ad (320x50) */}
+        <div className='xl:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm'>
           <p className='text-xs text-gray-400 mb-1 text-center'>Ad</p>
-          <div style={{ maxHeight: '60px', overflow: 'hidden' }}>
-            <AdSenseResponsive format='banner' />
-          </div>
+          <AdSenseResponsive format='banner' />
         </div>
         
         <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-800 p-3 sm:p-4'>
