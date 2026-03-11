@@ -377,7 +377,7 @@ export default function OddOneOut() {
         <AdSenseVertical />
       </div>
       
-      <div className='flex-1 flex flex-col gap-4 p-4 overflow-y-auto dark:bg-gray-900 max-w-4xl mx-auto w-full pb-2'>
+      <div className='flex-1 flex flex-col gap-4 p-4 overflow-y-auto dark:bg-gray-900 max-w-4xl mx-auto w-full pb-4'>
       {loading && movies.length > 0 && (
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
           <div className='bg-white dark:bg-gray-800 p-6 rounded-lg'>

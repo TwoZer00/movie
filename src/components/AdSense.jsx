@@ -16,14 +16,16 @@ export default function AdSense() {
   }, []);
 
   return (
-    <ins 
-      ref={adRef}
-      className="adsbygoogle"
-      style={{ display: 'block', width: '100%', maxWidth: '100%' }}
-      data-ad-client="ca-pub-7731037445831235"
-      data-ad-slot="5105136682"
-      data-ad-format="auto"
-      data-full-width-responsive="true"
-    />
+    <div style={{ minHeight: '50px', maxHeight: '100px' }}>
+      <ins 
+        ref={adRef}
+        className="adsbygoogle"
+        style={{ display: 'block', width: '100%', maxWidth: '100%' }}
+        data-ad-client="ca-pub-7731037445831235"
+        data-ad-slot="5105136682"
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
+    </div>
   );
 }
