@@ -62,7 +62,7 @@ All ad components have been optimized for mobile devices with:
 - Best for: Sidebar placements
 - Ad Slot: 5105136682
 
-## Mobile-Specific Optimizations
+## Mobile-Specific Optimizations 
 
 ### Layout Strategy
 - ✅ Vertical ads hidden on screens < 1280px (XL breakpoint)
