@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 
+let adCounter = 0;
+
 /**
  * Mobile-optimized banner ad with fixed size (320x50)
  * Uses standard IAB mobile banner size for better fill rates
+ * Properly handles navigation and remounting
  */
 export default function AdSense() {
   const adRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [adKey] = useState(() => `adsense-banner-${++adCounter}-${Date.now()}`);
+  const isLoadedRef = useRef(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -14,9 +19,12 @@ export default function AdSense() {
     window.addEventListener('resize', checkMobile);
     
     const timer = setTimeout(() => {
-      if (adRef.current && !adRef.current.hasChildNodes()) {
+      if (adRef.current && !isLoadedRef.current) {
         try {
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
+          if (!adRef.current.hasChildNodes() || adRef.current.innerHTML === '') {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+            isLoadedRef.current = true;
+          }
         } catch (e) {
           console.error('AdSense error:', e);
         }
@@ -37,6 +45,7 @@ export default function AdSense() {
   return (
     <div className='w-full flex justify-center items-center overflow-hidden' style={{ minHeight: adSize.height, maxHeight: adSize.height }}>
       <ins 
+        key={adKey}
         ref={adRef}
         className="adsbygoogle"
         style={{ 

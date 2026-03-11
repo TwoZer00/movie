@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 
+let adCounter = 0;
+
 /**
  * Responsive AdSense component with fixed standard IAB sizes
+ * Properly handles navigation and remounting
  * 
  * @param {string} format - 'banner' | 'square' | 'vertical' (default: 'banner')
  * @param {string} className - Additional CSS classes
@@ -9,6 +12,8 @@ import { useEffect, useRef, useState } from 'react';
 export default function AdSenseResponsive({ format = 'banner', className = '' }) {
   const adRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [adKey] = useState(() => `adsense-${format}-${++adCounter}-${Date.now()}`);
+  const isLoadedRef = useRef(false);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -19,10 +24,15 @@ export default function AdSenseResponsive({ format = 'banner', className = '' })
     updateDimensions();
     window.addEventListener('resize', updateDimensions);
 
+    // Load ad only once per component instance
     const timer = setTimeout(() => {
-      if (adRef.current && !adRef.current.hasChildNodes()) {
+      if (adRef.current && !isLoadedRef.current) {
         try {
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
+          // Check if the ins element is empty (not already loaded)
+          if (!adRef.current.hasChildNodes() || adRef.current.innerHTML === '') {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+            isLoadedRef.current = true;
+          }
         } catch (e) {
           console.error('AdSense Responsive error:', e);
         }
@@ -33,7 +43,7 @@ export default function AdSenseResponsive({ format = 'banner', className = '' })
       clearTimeout(timer);
       window.removeEventListener('resize', updateDimensions);
     };
-  }, [format]);
+  }, []);
 
   // Fixed standard IAB ad sizes
   const getAdSize = () => {
@@ -71,6 +81,7 @@ export default function AdSenseResponsive({ format = 'banner', className = '' })
   return (
     <div className={`adsense-responsive ${className}`} style={containerStyle}>
       <ins 
+        key={adKey}
         ref={adRef}
         className="adsbygoogle"
         style={adStyle}

@@ -6,11 +6,13 @@ let adCount = 0;
  * Square ad component with fixed standard IAB sizes
  * Mobile: 300x250 (Medium Rectangle)
  * Desktop: 336x280 (Large Rectangle)
+ * Properly handles navigation and remounting
  */
 export default function AdSenseSquare() {
-  const adId = useRef(`adsense-square-${++adCount}-${Date.now()}`);
+  const [adId] = useState(() => `adsense-square-${++adCount}-${Date.now()}`);
   const adRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
+  const isLoadedRef = useRef(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -18,9 +20,12 @@ export default function AdSenseSquare() {
     window.addEventListener('resize', checkMobile);
 
     const timer = setTimeout(() => {
-      if (adRef.current && !adRef.current.hasChildNodes()) {
+      if (adRef.current && !isLoadedRef.current) {
         try {
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
+          if (!adRef.current.hasChildNodes() || adRef.current.innerHTML === '') {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+            isLoadedRef.current = true;
+          }
         } catch (e) {
           console.error('AdSense Square error:', e);
         }
@@ -41,8 +46,8 @@ export default function AdSenseSquare() {
   return (
     <div className='w-full flex justify-center items-center' style={{ minHeight: adSize.height, maxHeight: adSize.height }}>
       <ins 
+        key={adId}
         ref={adRef}
-        key={adId.current}
         className="adsbygoogle"
         style={{ 
           display: 'inline-block',
