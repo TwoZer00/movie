@@ -8,7 +8,9 @@ export default function AdSenseVertical() {
       if (adRef.current && !adRef.current.hasChildNodes()) {
         try {
           (window.adsbygoogle = window.adsbygoogle || []).push({});
-        } catch (e) {}
+        } catch (e) {
+          console.error('AdSense Vertical error:', e);
+        }
       }
     }, 100);
     
@@ -16,14 +18,14 @@ export default function AdSenseVertical() {
   }, []);
 
   return (
-    <ins 
-      ref={adRef}
-      className="adsbygoogle"
-      style={{ display: 'block', width: '160px', height: '600px' }}
-      data-ad-client="ca-pub-7731037445831235"
-      data-ad-slot="5105136682"
-      data-ad-format="vertical"
-      data-full-width-responsive="false"
-    />
+    <div className='flex justify-center items-center'>
+      <ins 
+        ref={adRef}
+        className="adsbygoogle"
+        style={{ display: 'inline-block', width: '160px', height: '600px' }}
+        data-ad-client="ca-pub-7731037445831235"
+        data-ad-slot="5105136682"
+      />
+    </div>
   );
 }

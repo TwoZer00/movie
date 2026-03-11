@@ -11,6 +11,7 @@ import LinkChainHeader from '../components/LinkChainHeader';
 import ChainDisplay from '../components/ChainDisplay';
 import GameOverScreen from '../components/GameOverScreen';
 import SearchSection from '../components/SearchSection';
+import AdSenseResponsive from '../components/AdSenseResponsive';
 import winSound from '../resources/win_sound.wav';
 import lossSound from '../resources/loss_sound.wav';
 import { trackGameStart, trackGameEnd, trackHintUsed, trackShare, trackUndo, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
@@ -563,6 +564,13 @@ export default function LinkGame() {
 
   return (
     <>
+      {/* Desktop: Sidebar Ads - Hidden on mobile/tablet */}
+      <div className='hidden xl:block fixed left-2 top-1/2 -translate-y-1/2 z-10'>
+        <AdSenseResponsive format='vertical' />
+      </div>
+      <div className='hidden xl:block fixed right-2 top-1/2 -translate-y-1/2 z-10'>
+        <AdSenseResponsive format='vertical' />
+      </div>
       
         <div className='flex-1 flex flex-col gap-2 p-2 sm:p-4 overflow-hidden dark:bg-gray-900 max-w-4xl mx-auto w-full pb-2'>
       {loading && chain.length > 0 && (
@@ -724,6 +732,12 @@ export default function LinkGame() {
                 </div>
               </>
             )}
+          </div>
+
+          {/* Mobile: Optimized banner ad */}
+          <div className='xl:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm'>
+            <p className='text-xs text-gray-400 mb-1 text-center'>Advertisement</p>
+            <AdSenseResponsive format='banner' />
           </div>
 
           {/* Search */}

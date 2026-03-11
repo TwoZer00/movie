@@ -11,6 +11,7 @@ import { Loader, SkipButton } from '../components/UIComponents';
 import { CastSkeleton } from '../components/Skeleton';
 import { Toast } from '../components/Toast';
 import { gameStatusVal, loadStatus } from '../utils/constants';
+import AdSenseResponsive from '../components/AdSenseResponsive';
 import { trackGameStart, trackGameEnd, trackSkip, trackCollectionStart, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
 import { generateShareImage, downloadImage, shareImageNative } from '../utils/shareImage';
 import { addMovieCooldown, getRecentMovies } from '../utils/movieCooldown';
@@ -600,6 +601,14 @@ export default function Home() {
         </div>
       )}
       
+      {/* Desktop: Sidebar Ads - Hidden on mobile/tablet */}
+      <div className='hidden xl:block fixed left-2 top-1/2 -translate-y-1/2 z-10'>
+        <AdSenseResponsive format='vertical' />
+      </div>
+      <div className='hidden xl:block fixed right-2 top-1/2 -translate-y-1/2 z-10'>
+        <AdSenseResponsive format='vertical' />
+      </div>
+      
       <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 max-h-screen overflow-hidden dark:bg-gray-900 pb-2 max-w-6xl mx-auto w-full pull-refresh'>
         <div className='py-2 flex justify-between items-center'>
           <button 
@@ -672,6 +681,12 @@ export default function Home() {
               )}
             </div>
           </div>
+        </div>
+        
+        {/* Mobile: Optimized banner ad */}
+        <div className='xl:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm'>
+          <p className='text-xs text-gray-400 mb-1 text-center'>Advertisement</p>
+          <AdSenseResponsive format='banner' />
         </div>
         
         <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-800 p-3 sm:p-4'>
