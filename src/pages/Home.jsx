@@ -686,7 +686,7 @@ export default function Home() {
         {/* Mobile: Fixed size banner ad (320x50) */}
         <div className='xl:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm'>
           <p className='text-xs text-gray-400 mb-1 text-center'>Ad</p>
-          <AdSenseResponsive format='banner' />
+          <AdSenseResponsive key={location.key || 'home-ad'} format='banner' />
         </div>
         
         <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-800 p-3 sm:p-4'>

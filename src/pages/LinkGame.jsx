@@ -737,7 +737,7 @@ export default function LinkGame() {
           {/* Mobile: Fixed size banner ad (320x50) */}
           <div className='xl:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm'>
             <p className='text-xs text-gray-400 mb-1 text-center'>Ad</p>
-            <AdSenseResponsive format='banner' />
+            <AdSenseResponsive key={location.key || 'link-ad'} format='banner' />
           </div>
 
           {/* Search */}

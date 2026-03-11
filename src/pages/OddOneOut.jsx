@@ -35,6 +35,7 @@ export default function OddOneOut() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(localStorage.getItem('soundEnabled') !== 'false');
   const [preloadedRound, setPreloadedRound] = useState(null);
+  const [adKey, setAdKey] = useState(Date.now());
   const successAudio = useRef(new Audio(winSound));
   const errorAudio = useRef(new Audio(lossSound));
   const initialized = useRef(false);
@@ -302,6 +303,7 @@ export default function OddOneOut() {
     setShowConfetti(false);
     setHintUsed(false);
     setLoading(true);
+    setAdKey(Date.now()); // Force ad remount
     generateRound();
   };
 
@@ -442,7 +444,7 @@ export default function OddOneOut() {
       {/* Mobile: Fixed size banner ad (320x50) */}
       <div className='xl:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm'>
         <p className='text-xs text-gray-400 mb-1 text-center'>Ad</p>
-        <AdSenseResponsive format='banner' />
+        <AdSenseResponsive key={adKey} format='banner' />
       </div>
 
       <div className='grid grid-cols-2 gap-4'>
