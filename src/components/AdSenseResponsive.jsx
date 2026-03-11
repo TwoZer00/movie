@@ -58,7 +58,7 @@ export default function AdSenseResponsive({ format = 'banner', className = '' })
 
   const containerStyle = {
     minHeight: dimensions.height,
-    maxHeight: format === 'banner' ? (isMobile ? '100px' : '120px') : dimensions.height,
+    maxHeight: format === 'banner' ? (isMobile ? '60px' : '90px') : dimensions.height,
     width: '100%',
     display: 'flex',
     justifyContent: 'center',
@@ -70,7 +70,8 @@ export default function AdSenseResponsive({ format = 'banner', className = '' })
     display: format === 'banner' ? 'block' : 'inline-block',
     width: dimensions.width,
     height: dimensions.height,
-    maxWidth: '100%'
+    maxWidth: '100%',
+    maxHeight: format === 'banner' && isMobile ? '50px' : dimensions.height
   };
 
   return (

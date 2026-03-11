@@ -439,10 +439,12 @@ export default function OddOneOut() {
         )}
       </div>
 
-      {/* Mobile: Optimized banner ad */}
-      <div className='xl:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm'>
-        <p className='text-xs text-gray-400 mb-1 text-center'>Advertisement</p>
-        <AdSenseResponsive format='banner' />
+      {/* Mobile: Compact banner ad */}
+      <div className='xl:hidden bg-white dark:bg-gray-800 rounded-lg p-1 shadow-sm' style={{ maxHeight: '70px' }}>
+        <p className='text-xs text-gray-400 mb-1 text-center'>Ad</p>
+        <div style={{ maxHeight: '60px', overflow: 'hidden' }}>
+          <AdSenseResponsive format='banner' />
+        </div>
       </div>
 
       <div className='grid grid-cols-2 gap-4'>

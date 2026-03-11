@@ -259,3 +259,28 @@
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+/* AdSense Mobile Optimization */
+.adsbygoogle {
+  max-height: inherit !important;
+  overflow: hidden !important;
+}
+
+@media (max-width: 767px) {
+  .adsbygoogle {
+    max-height: 60px !important;
+  }
+  
+  .adsense-responsive {
+    max-height: 70px !important;
+  }
+}
+
+/* Prevent ad overflow */
+ins.adsbygoogle {
+  overflow: hidden !important;
+}
+
+ins.adsbygoogle > * {
+  max-height: inherit !important;
+}
