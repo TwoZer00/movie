@@ -12,41 +12,49 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Filmdle">
   <meta name="description" content="Daily movie guessing game - Guess movies by cast members, genres, and clues. Play Filmdle now!">
-  <meta name="keywords" content="movie game, guess movie, daily puzzle, film trivia, movie quiz, filmdle, movie guessing game">
+  <meta name="keywords" content="movie game, guess movie, daily puzzle, film trivia, movie quiz, filmdle, movie guessing game, wordle movie, movie chain game">
   <meta name="application-name" content="Filmdle">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://filmdle.twozer00.dev/">
   
   <!-- Open Graph / Social Sharing -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Filmdle">
   <meta property="og:title" content="Filmdle - Daily Movie Guessing Game">
   <meta property="og:description" content="Guess the movie from cast clues! New puzzle daily. Challenge your movie knowledge with Filmdle.">
-  <meta property="og:image" content="https://filmdle.app/og-image.png">
+  <meta property="og:image" content="https://filmdle.twozer00.dev/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:url" content="https://filmdle.app">
+  <meta property="og:url" content="https://filmdle.twozer00.dev">
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Filmdle - Daily Movie Guessing Game">
   <meta name="twitter:description" content="Guess the movie from cast clues! New puzzle daily.">
-  <meta name="twitter:image" content="https://filmdle.app/og-image.png">
+  <meta name="twitter:image" content="https://filmdle.twozer00.dev/og-image.png">
   
   <!-- Game Schema -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "Game",
+    "@type": "WebApplication",
     "name": "Filmdle",
-    "description": "Daily movie guessing puzzle game where players guess movies from cast member clues",
+    "description": "Daily movie guessing puzzle game where players guess movies from cast member clues or build actor-movie chains",
     "genre": "Puzzle Game",
+    "gamePlatform": "Web Browser",
     "playMode": "SinglePlayer",
-    "url": "https://filmdle.app",
-    "applicationCategory": "Game",
-    "operatingSystem": "Web Browser",
+    "url": "https://filmdle.twozer00.dev",
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "Any",
+    "browserRequirements": "Requires JavaScript",
     "offers": {
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "Filmdle"
     }
   }
   </script>
@@ -67,6 +75,7 @@
 </head>
 
 <body>
+  <noscript>Filmdle - A daily movie guessing game. Guess movies by cast or build actor-movie chains!</noscript>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
