@@ -77,7 +77,7 @@ export default function GuessSetup() {
           >
             ← Menu
           </button>
-          <h2 className='text-3xl font-bold bg-gradient-to-r from-red-600 to-amber-600 bg-clip-text text-transparent'>🎬 Guess by Cast Setup</h2>
+          <h2 className='text-xl sm:text-3xl font-bold bg-gradient-to-r from-red-600 to-amber-600 bg-clip-text text-transparent'>🎬 Guess Setup</h2>
           <div className='w-16'></div> {/* Spacer for centering */}
         </div>
         

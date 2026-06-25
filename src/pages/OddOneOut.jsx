@@ -265,14 +265,22 @@ export default function OddOneOut() {
       // Preload next round
       preloadNextRound();
     } else {
-      setStreak(0);
-      setLives(prev => {
-        const newLives = prev - 1;
-        if (newLives === 0) {
-          setGameOver(true);
-          updateStats(score, round);
-        }
-        return newLives;
+      setStreak(prev => {
+        const currentStreak = prev;
+        setLives(prevLives => {
+          const newLives = prevLives - 1;
+          if (newLives === 0) {
+            setGameOver(true);
+            const stats = JSON.parse(localStorage.getItem('oddOneOutStats') || '{}');
+            stats.totalGames = (stats.totalGames || 0) + 1;
+            stats.totalScore = (stats.totalScore || 0) + score;
+            stats.bestScore = Math.max(stats.bestScore || 0, score);
+            stats.bestStreak = Math.max(stats.bestStreak || 0, currentStreak);
+            localStorage.setItem('oddOneOutStats', JSON.stringify(stats));
+          }
+          return newLives;
+        });
+        return 0;
       });
       if (soundEnabled) errorAudio.current.play();
     }
@@ -442,12 +450,12 @@ export default function OddOneOut() {
       </div>
 
       {/* Mobile: Fixed size banner ad (320x50) */}
-      <div className='xl:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm'>
+      <div className='lg:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm'>
         <p className='text-xs text-gray-400 mb-1 text-center'>Ad</p>
         <AdSenseResponsive key={adKey} format='banner' />
       </div>
 
-      <div className='grid grid-cols-2 gap-4'>
+      <div className='grid grid-cols-2 gap-2 sm:gap-4'>
         {movies.map((movie, index) => (
           <button
             key={movie.id}

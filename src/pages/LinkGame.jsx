@@ -581,46 +581,57 @@ export default function LinkGame() {
           </div>
         </div>
       )}
-      <div className='text-center bg-gradient-to-r from-red-600 to-amber-600 text-white p-2 sm:p-3 rounded-lg relative'>
-        <button 
-          onClick={() => navigate('/')}
-          className='absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold'
-          title='Back to menu'
-        >
-          ←
-        </button>
-        <h2 className='text-lg sm:text-xl font-bold'>🔗 {isDailyChallenge ? 'Daily Link' : 'Link Chain'}</h2>
-        <div className='flex justify-center items-center gap-2 sm:gap-4 text-xs opacity-90'>
+      <div className='text-center bg-gradient-to-r from-red-600 to-amber-600 text-white p-2 sm:p-3 rounded-lg'>
+        <div className='flex items-center justify-between'>
+          <button 
+            onClick={() => navigate('/')}
+            className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold flex-shrink-0'
+            title='Back to menu'
+          >
+            ←
+          </button>
+          <h2 className='text-base sm:text-xl font-bold truncate mx-2'>🔗 {isDailyChallenge ? 'Daily Link' : 'Link Chain'}</h2>
+          <div className='flex gap-1 flex-shrink-0'>
+            <button 
+              onClick={() => setShowHelp(true)}
+              className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold'
+              title='Keyboard shortcuts (?)'
+            >
+              ⌨️
+            </button>
+            {!isDailyChallenge && !gameOver && chain.length > 1 && (
+              <button 
+                onClick={handleUndo}
+                className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold'
+                title='Undo last move (U)'
+              >
+                ↩️
+              </button>
+            )}
+            {!isDailyChallenge && !gameOver && (
+              <button 
+                onClick={reset}
+                className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold hidden sm:block'
+                title='Give up (G)'
+              >
+                Give Up
+              </button>
+            )}
+            {!isDailyChallenge && !gameOver && (
+              <button 
+                onClick={reset}
+                className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs font-semibold sm:hidden'
+                title='Give up (G)'
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+        <div className='flex justify-center items-center gap-2 sm:gap-4 text-xs opacity-90 mt-1'>
           <span>Chain: <span className='font-bold'>{Math.floor(chain.length / 2) + 1}</span></span>
           <span>Time: <span className='font-bold'>{getElapsedTime()}</span></span>
           <span className='hidden sm:inline'>Best: <span className='font-bold'>{getBestChain()}</span></span>
-        </div>
-        <div className='absolute right-2 top-1/2 -translate-y-1/2 flex gap-1'>
-          <button 
-            onClick={() => setShowHelp(true)}
-            className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold'
-            title='Keyboard shortcuts (?)'
-          >
-            ⌨️
-          </button>
-          {!isDailyChallenge && !gameOver && chain.length > 1 && (
-            <button 
-              onClick={handleUndo}
-              className='bg-white/20 hover:bg-white/30 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-semibold'
-              title='Undo last move (U)'
-            >
-              ↩️
-            </button>
-          )}
-          {!isDailyChallenge && !gameOver && (
-            <button 
-              onClick={reset}
-              className='bg-white/20 hover:bg-white/30 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-semibold'
-              title='Give up (G)'
-            >
-              Give Up
-            </button>
-          )}
         </div>
       </div>
 
@@ -735,7 +746,7 @@ export default function LinkGame() {
           </div>
 
           {/* Mobile: Fixed size banner ad (320x50) */}
-          <div className='xl:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm'>
+          <div className='lg:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm'>
             <p className='text-xs text-gray-400 mb-1 text-center'>Ad</p>
             <AdSenseResponsive key={location.key || 'link-ad'} format='banner' />
           </div>

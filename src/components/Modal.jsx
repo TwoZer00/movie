@@ -143,58 +143,52 @@ Play at: ${window.location.origin}`;
   
   return (
     <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn p-4' onClick={onClose}>
-      <div className='bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto text-center animate-scaleIn dark:text-white' onClick={(e)=>e.stopPropagation()}>
-        <h2 className={`text-4xl font-bold mb-2 ${isWin?'text-green-600':'text-red-600'}`}>
+      <div className='bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto text-center animate-scaleIn dark:text-white' onClick={(e)=>e.stopPropagation()}>
+        <h2 className={`text-3xl font-bold mb-1 ${isWin?'text-green-600':'text-red-600'}`}>
           {isWin ? '🎉 You Won!' : '😔 You Lost!'}
         </h2>
-        {isWin && <p className='text-gray-600 dark:text-gray-400 mb-4'>Completed in {triesUsed + 1}/5 tries</p>}
+        {isWin && <p className='text-gray-600 dark:text-gray-400 mb-3 text-sm'>Completed in {triesUsed + 1}/5 tries</p>}
         
-        <div className='flex gap-4 justify-center mb-4'>
-          <div>
-            <img 
-              src={`https://image.tmdb.org/t/p/w342${movie?.poster_path}`} 
-              alt={movie?.title || movie?.original_title}
-              className='w-32 h-48 sm:w-40 sm:h-60 object-cover rounded-lg shadow-lg'
-            />
-          </div>
-          {revealedCast && revealedCast.length > 0 && (
-            <div className='flex flex-col gap-2 justify-center'>
-              {[revealedCast[4], revealedCast[2], revealedCast[0]].filter(Boolean).map((cast) => (
-                <div key={cast.id} className='flex items-center gap-2 bg-gray-50 dark:bg-gray-700 p-2 rounded text-left'>
-                  <img 
-                    src={`https://image.tmdb.org/t/p/w45${cast.profile_path}`}
-                    alt={cast.name}
-                    className='w-8 h-8 rounded-full object-cover flex-shrink-0'
-                  />
-                  <div className='flex flex-col'>
-                    <span className='text-xs font-medium dark:text-white'>{cast.name}</span>
-                    <span className='text-xs text-gray-500 dark:text-gray-400 italic'>{cast.character}</span>
-                  </div>
-                </div>
-              ))}
+        <div className='flex gap-3 mb-3'>
+          <img 
+            src={`https://image.tmdb.org/t/p/w342${movie?.poster_path}`} 
+            alt={movie?.title || movie?.original_title}
+            className='w-24 h-36 object-cover rounded-lg shadow-lg flex-shrink-0'
+          />
+          <div className='text-left flex-1 min-w-0'>
+            <p className='font-bold text-base dark:text-white'>{movie?.title || movie?.original_title}</p>
+            <div className='flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-400 mt-1'>
+              <span>⭐ {movie?.vote_average?.toFixed(1)}/10</span>
+              <span>📅 {new Date(movie?.release_date).getFullYear()}</span>
+              <span className={`px-1.5 py-0.5 rounded-full ${
+                difficultyLevel === 'Easy' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
+                difficultyLevel === 'Medium' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' :
+                'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
+              }`}>{difficultyLevel}</span>
             </div>
-          )}
+            <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>🔥 {popularityRank}</p>
+            {movie?.overview && (
+              <p className='text-xs text-gray-600 dark:text-gray-300 mt-2 line-clamp-3'>{movie.overview}</p>
+            )}
+          </div>
         </div>
-        
-        <p className='text-xl sm:text-2xl mb-2'>The movie was:</p>
-        <p className='text-lg sm:text-2xl font-semibold mb-2'>{movie?.title || movie?.original_title}</p>
-        <div className='flex items-center justify-center gap-2 mb-4 text-sm text-gray-600 dark:text-gray-400'>
-          <span>⭐ {movie?.vote_average?.toFixed(1)}/10</span>
-          <span>•</span>
-          <span>📅 {new Date(movie?.release_date).getFullYear()}</span>
-          <span>•</span>
-          <span className={`px-2 py-0.5 rounded-full text-xs ${
-            difficultyLevel === 'Easy' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
-            difficultyLevel === 'Medium' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' :
-            'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
-          }`}>{difficultyLevel}</span>
-        </div>
-        <p className='text-xs text-gray-500 dark:text-gray-400 mb-4'>🔥 {popularityRank}</p>
-        {movie?.overview && (
-          <p className='text-sm text-gray-700 dark:text-gray-300 mb-4 line-clamp-3'>{movie.overview}</p>
+
+        {revealedCast && revealedCast.length > 0 && (
+          <div className='flex gap-2 justify-center mb-3'>
+            {[revealedCast[4], revealedCast[2], revealedCast[0]].filter(Boolean).map((cast) => (
+              <div key={cast.id} className='flex items-center gap-1.5 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded text-left'>
+                <img 
+                  src={`https://image.tmdb.org/t/p/w45${cast.profile_path}`}
+                  alt={cast.name}
+                  className='w-6 h-6 rounded-full object-cover flex-shrink-0'
+                />
+                <span className='text-xs font-medium dark:text-white'>{cast.name}</span>
+              </div>
+            ))}
+          </div>
         )}
-        
-        <div className='flex gap-2 justify-center mb-6'>
+
+        <div className='flex gap-2 justify-center mb-3'>
           <a 
             href={`https://www.themoviedb.org/movie/${movie?.id}`} 
             target='_blank' 
@@ -213,33 +207,34 @@ Play at: ${window.location.origin}`;
           </a>
         </div>
         
-        <div className='grid grid-cols-4 gap-3 mb-6 text-center'>
-          <div className='bg-red-50 dark:bg-red-900/30 p-3 rounded-lg border border-red-200 dark:border-red-700'>
-            <p className='text-2xl font-bold text-blue-600 dark:text-blue-400'>{totalGames}</p>
+        <div className='grid grid-cols-4 gap-2 mb-4 text-center'>
+          <div className='bg-red-50 dark:bg-red-900/30 p-2 rounded-lg'>
+            <p className='text-xl font-bold text-blue-600 dark:text-blue-400'>{totalGames}</p>
             <p className='text-xs text-gray-600 dark:text-gray-400'>Played</p>
           </div>
-          <div className='bg-green-50 dark:bg-green-900/30 p-3 rounded-lg border border-green-200 dark:border-green-700'>
-            <p className='text-2xl font-bold text-green-600 dark:text-green-400'>{winRate}%</p>
+          <div className='bg-green-50 dark:bg-green-900/30 p-2 rounded-lg'>
+            <p className='text-xl font-bold text-green-600 dark:text-green-400'>{winRate}%</p>
             <p className='text-xs text-gray-600 dark:text-gray-400'>Win Rate</p>
           </div>
-          <div className='bg-amber-50 dark:bg-amber-900/30 p-3 rounded-lg border border-amber-200 dark:border-amber-700'>
-            <p className='text-2xl font-bold text-amber-600 dark:text-amber-400'>{stats.currentStreak}</p>
+          <div className='bg-amber-50 dark:bg-amber-900/30 p-2 rounded-lg'>
+            <p className='text-xl font-bold text-amber-600 dark:text-amber-400'>{stats.currentStreak}</p>
             <p className='text-xs text-gray-600 dark:text-gray-400'>Current</p>
           </div>
-          <div className='bg-orange-50 dark:bg-orange-900/30 p-3 rounded-lg border border-orange-200 dark:border-orange-700'>
-            <p className='text-2xl font-bold text-orange-600 dark:text-orange-400'>{stats.maxStreak}</p>
+          <div className='bg-orange-50 dark:bg-orange-900/30 p-2 rounded-lg'>
+            <p className='text-xl font-bold text-orange-600 dark:text-orange-400'>{stats.maxStreak}</p>
             <p className='text-xs text-gray-600 dark:text-gray-400'>Max</p>
           </div>
         </div>
-        <div className='flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center'>
-          <button onClick={onClose} className='bg-red-600 dark:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 dark:hover:bg-red-600 transition-colors'>
+
+        <div className='flex flex-col sm:flex-row gap-2 justify-center'>
+          <button onClick={onClose} className='bg-red-600 dark:bg-red-700 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-red-700 dark:hover:bg-red-600 transition-colors'>
             {isDailyChallenge ? 'Back to Menu' : 'Play Again'}
           </button>
-          <button onClick={shareResults} className='bg-green-500 dark:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 dark:hover:bg-green-700 transition-colors'>
+          <button onClick={shareResults} className='bg-green-500 dark:bg-green-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-green-600 dark:hover:bg-green-700 transition-colors'>
             {copied ? '✓ Copied!' : 'Share Results'}
           </button>
           {onShareImage && (
-            <button onClick={onShareImage} className='bg-amber-600 dark:bg-amber-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-amber-700 dark:hover:bg-amber-600 transition-colors'>
+            <button onClick={onShareImage} className='bg-amber-600 dark:bg-amber-700 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-amber-700 dark:hover:bg-amber-600 transition-colors'>
               📷 Share Image
             </button>
           )}

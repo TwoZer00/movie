@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getDailyStreak } from '../utils/dailyStreak'
+import { getDailyStreak, getWeekDays } from '../utils/dailyStreak'
 import PWAInstallBanner from '../components/PWAInstallBanner'
 import PWAFeatures from '../components/PWAFeatures'
 
 export default function Menu() {
   const [dailyCompleted,setDailyCompleted] = useState(false)
-  const [dailyLinkChain,setDailyLinkChain] = useState(null)
   const [stats, setStats] = useState({ wins: 0, currentStreak: 0, bestChain: 0, dailyStreak: 0 })
+  const [weekDays, setWeekDays] = useState([])
   const navigate = useNavigate();
   
   const checkDailyStatus = () => {
@@ -15,26 +15,16 @@ export default function Menu() {
     const completed = localStorage.getItem(`daily_${today}`);
     setDailyCompleted(!!completed);
     
-    const dailyLink = localStorage.getItem(`daily_link_${today}`);
-    if (dailyLink) {
-      const data = JSON.parse(dailyLink);
-      const chainLength = Math.floor(data.chain.length / 2) + 1;
-      setDailyLinkChain(chainLength);
-    } else {
-      setDailyLinkChain(null);
-    }
-    
-    // Load stats
     const gameStats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"currentStreak":0}');
     const linkStats = JSON.parse(localStorage.getItem('linkChainStats') || '{"bestChain":0}');
     const dailyStreak = getDailyStreak();
     setStats({ ...gameStats, bestChain: linkStats.bestChain || 0, dailyStreak });
+    setWeekDays(getWeekDays());
   };
   
   useEffect(()=>{
     checkDailyStatus();
     
-    // Check when app becomes visible (handles PWA/tab switching)
     const handleVisibilityChange = () => {
       if (!document.hidden) {
         checkDailyStatus();
@@ -42,11 +32,16 @@ export default function Menu() {
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   },[]);
+
+  const getStreakMessage = () => {
+    if (dailyCompleted) return "✓ Done for today! Come back tomorrow.";
+    if (stats.dailyStreak === 0) return "Start your streak today!";
+    if (stats.dailyStreak >= 7) return `🔥 ${stats.dailyStreak} days! Don't break it now!`;
+    if (stats.dailyStreak >= 3) return `${stats.dailyStreak} days strong! Keep going!`;
+    return `${stats.dailyStreak} day streak — play now to keep it!`;
+  };
 
   const GameModeCard = ({ title, icon, description, children, stats }) => (
     <div className='bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1'>
@@ -72,7 +67,7 @@ export default function Menu() {
   );
 
   return (
-    <div className='flex flex-col flex-1 items-center justify-center gap-6 p-4 overflow-y-auto bg-gray-50 dark:bg-gray-900'>
+    <div className='flex flex-col flex-1 items-center gap-6 p-4 overflow-y-auto bg-gray-50 dark:bg-gray-900'>
       <PWAInstallBanner streak={stats.dailyStreak} />
       <div className='w-full max-w-4xl'>
         <div className='text-center mb-8'>
@@ -82,43 +77,59 @@ export default function Menu() {
         
         <PWAFeatures />
         
-        {/* Featured Daily Challenges */}
-        <div className='mb-8 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-xl p-6 text-white'>
-          <div className='flex justify-between items-center mb-4'>
-            <h2 className='text-2xl font-bold'>📅 Daily Challenges</h2>
-            <div className='text-right'>
-              {stats.dailyStreak > 0 ? (
-                <div>
-                  <div className='text-2xl font-bold'>🔥 {stats.dailyStreak}</div>
-                  <div className='text-sm opacity-90'>day streak</div>
-                </div>
-              ) : (
-                <div>
-                  <div className='text-xl'>🎆</div>
-                  <div className='text-xs opacity-75'>Start streak</div>
-                </div>
-              )}
-            </div>
+        {/* Daily Challenge with Week Streak */}
+        <div className='mb-8 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-xl p-5 text-white'>
+          <div className='flex justify-between items-center mb-3'>
+            <h2 className='text-xl font-bold'>📅 Daily Challenge</h2>
+            {stats.dailyStreak > 0 && (
+              <div className='bg-white/20 px-3 py-1 rounded-full text-sm font-bold'>
+                🔥 {stats.dailyStreak}
+              </div>
+            )}
           </div>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            <button 
-              className={`py-3 px-6 rounded-lg font-semibold transition-all ${dailyCompleted ? 'bg-white/20 cursor-not-allowed opacity-60' : 'bg-white/30 hover:bg-white/40'}`}
-              onClick={()=>navigate("/play?daily=true")} 
-              disabled={dailyCompleted}
-            >
-              🎬 Guess by Cast {dailyCompleted && '✓'}
-            </button>
-            <button 
-              className='py-3 px-6 rounded-lg font-semibold bg-white/30 hover:bg-white/40 transition-all'
-              onClick={()=>navigate('/link?daily=true')}
-            >
-              🔗 Link Chain {dailyLinkChain && `(${dailyLinkChain} links)`}
-            </button>
+          
+          {/* Week day tracker */}
+          <div className='flex justify-between mb-3 bg-black/10 rounded-lg p-3'>
+            {weekDays.map((day, i) => (
+              <div key={i} className='flex flex-col items-center gap-1'>
+                <span className='text-xs opacity-75'>{day.label}</span>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                  day.completed 
+                    ? 'bg-green-400 text-green-900 scale-110' 
+                    : day.isToday 
+                      ? 'bg-white/30 border-2 border-white animate-pulse' 
+                      : day.isFuture 
+                        ? 'bg-white/10 text-white/40' 
+                        : day.missed
+                          ? 'bg-red-400/50 text-red-100'
+                          : 'bg-white/10 text-white/40'
+                }`}>
+                  {day.completed ? '✓' : day.isToday ? '?' : day.isFuture ? '·' : day.missed ? '✗' : '·'}
+                </div>
+              </div>
+            ))}
           </div>
+
+          {/* Urgency message */}
+          <p className={`text-sm text-center mb-3 ${!dailyCompleted && stats.dailyStreak > 0 ? 'font-bold animate-pulse' : 'opacity-90'}`}>
+            {getStreakMessage()}
+          </p>
+
+          <button 
+            className={`w-full py-3 px-6 rounded-lg font-semibold text-lg transition-all ${
+              dailyCompleted 
+                ? 'bg-white/20 cursor-not-allowed opacity-60' 
+                : 'bg-white/30 hover:bg-white/40 hover:scale-[1.02] active:scale-[0.98]'
+            }`}
+            onClick={()=>navigate("/play?daily=true")} 
+            disabled={dailyCompleted}
+          >
+            {dailyCompleted ? '🎬 Completed ✓' : '🎬 Play Today\'s Challenge'}
+          </button>
         </div>
 
         {/* Game Modes */}
-        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
           <GameModeCard
             title='Guess by Cast'
             icon='🎬'
