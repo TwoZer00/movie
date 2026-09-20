@@ -50,19 +50,8 @@ export default function Settings() {
   };
 
   return (
-    <div className='flex-1 flex flex-col items-center p-4 dark:bg-gray-900 overflow-y-auto'>
+    <div className='flex-1 flex flex-col items-center p-4 dark:bg-gray-900'>
       <div className='w-full max-w-4xl'>
-        <div className='flex items-center justify-between mb-6'>
-          <button 
-            onClick={() => navigate('/')}
-            className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm font-semibold'
-            title='Back to menu'
-          >
-            ← Menu
-          </button>
-          <h2 className='text-3xl font-bold bg-gradient-to-r from-red-600 to-amber-600 bg-clip-text text-transparent'>⚙️ Settings</h2>
-          <div className='w-16'></div> {/* Spacer for centering */}
-        </div>
         
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
           {/* Preferences Card */}
@@ -180,16 +169,6 @@ export default function Settings() {
           </button>
         </div>
       </div>
-      
-      <footer className='text-center text-sm text-gray-500 dark:text-gray-400 mt-6 py-4'>
-        <p className='mb-2'>
-          Filmdle - Guess movies by their cast or build actor-movie chains. Multiple game modes with daily challenges!
-        </p>
-        <p className='mb-2'>Made by <a href="https://twozer00.dev" className='underline hover:text-blue-500'>TwoZer00</a></p>
-        <p className='text-xs'>
-          This product uses the TMDB API but is not endorsed or certified by <a className="underline hover:text-blue-500" href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB</a>.
-        </p>
-      </footer>
     </div>
   );
 }

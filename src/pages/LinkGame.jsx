@@ -1,13 +1,12 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getValidMovie, getCastFromMovie, getMoviesByActor, searchPerson, getMoviesByName, getKeywords, getMovieImages, getMovieAlternativeTitles, getMovie, getDailyLinkMovie, getPersonDetails } from '../api/init';
-import { IMG_URL, POSTER_SIZE, PROFILE_SIZE } from '../api/utils/const';
+import { getValidMovie, getCastFromMovie, getMoviesByActor, searchPerson, getMoviesByName, getKeywords, getMovieImages, getMovie, getDailyLinkMovie, getPersonDetails } from '../api/init';
+import { IMG_URL } from '../api/utils/const';
 import { Loader } from '../components/UIComponents';
 import genres from '../resources/genre.json';
 import { useLocation } from 'react-router-dom';
 import Confetti from '../components/Confetti';
 import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal';
-import LinkChainHeader from '../components/LinkChainHeader';
 import ChainDisplay from '../components/ChainDisplay';
 import GameOverScreen from '../components/GameOverScreen';
 import SearchSection from '../components/SearchSection';
@@ -581,17 +580,9 @@ export default function LinkGame() {
           </div>
         </div>
       )}
-      <div className='text-center bg-gradient-to-r from-red-600 to-amber-600 text-white p-2 sm:p-3 rounded-lg'>
-        <div className='flex items-center justify-between'>
-          <button 
-            onClick={() => navigate('/')}
-            className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold flex-shrink-0'
-            title='Back to menu'
-          >
-            ←
-          </button>
-          <h2 className='text-base sm:text-xl font-bold truncate mx-2'>🔗 {isDailyChallenge ? 'Daily Link' : 'Link Chain'}</h2>
-          <div className='flex gap-1 flex-shrink-0'>
+      <div className='bg-gradient-to-r from-red-600 to-amber-600 text-white p-2 sm:p-3 rounded-lg'>
+        <div className='flex justify-between items-center'>
+          <div className='flex gap-1'>
             <button 
               onClick={() => setShowHelp(true)}
               className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold'
@@ -611,27 +602,19 @@ export default function LinkGame() {
             {!isDailyChallenge && !gameOver && (
               <button 
                 onClick={reset}
-                className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold hidden sm:block'
+                className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold'
                 title='Give up (G)'
               >
-                Give Up
-              </button>
-            )}
-            {!isDailyChallenge && !gameOver && (
-              <button 
-                onClick={reset}
-                className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs font-semibold sm:hidden'
-                title='Give up (G)'
-              >
-                ✕
+                <span className='hidden sm:inline'>Give Up</span>
+                <span className='sm:hidden'>✕</span>
               </button>
             )}
           </div>
-        </div>
-        <div className='flex justify-center items-center gap-2 sm:gap-4 text-xs opacity-90 mt-1'>
-          <span>Chain: <span className='font-bold'>{Math.floor(chain.length / 2) + 1}</span></span>
-          <span>Time: <span className='font-bold'>{getElapsedTime()}</span></span>
-          <span className='hidden sm:inline'>Best: <span className='font-bold'>{getBestChain()}</span></span>
+          <div className='flex items-center gap-2 sm:gap-4 text-xs opacity-90'>
+            <span>Chain: <span className='font-bold'>{Math.floor(chain.length / 2) + 1}</span></span>
+            <span>Time: <span className='font-bold'>{getElapsedTime()}</span></span>
+            <span className='hidden sm:inline'>Best: <span className='font-bold'>{getBestChain()}</span></span>
+          </div>
         </div>
       </div>
 
@@ -639,47 +622,16 @@ export default function LinkGame() {
       <ChainDisplay chain={chain} />
 
       {gameOver ? (
-        <div className='text-center bg-red-50 dark:bg-red-900/30 p-4 rounded-lg'>
-          <h3 className='text-xl font-bold text-red-600 dark:text-red-400 mb-2'>🏁 Game Over!</h3>
-          <div className='text-sm text-gray-700 dark:text-gray-300 mb-3 space-y-1'>
-            <p>Final Chain: <span className='font-bold'>{Math.floor(chain.length / 2) + 1}</span></p>
-            <p>Time: <span className='font-bold'>{getElapsedTime()}</span></p>
-            <p>Hints Used: <span className='font-bold'>{hintsUsed}</span></p>
-            <p>Best Chain: <span className='font-bold'>{getBestChain()}</span></p>
-          </div>
-          
-          {/* Chain Summary */}
-          <div className='mb-3 p-3 bg-white dark:bg-gray-800 rounded-lg max-h-48 overflow-y-auto'>
-            <p className='text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2'>Your Chain:</p>
-            <div className='flex flex-wrap gap-2 justify-center text-xs'>
-              {chain.map((link, i) => (
-                <span key={i} className='flex items-center gap-1'>
-                  <span className='font-medium dark:text-white'>
-                    {link.type === 'movie' ? `🎬 ${link.data.title}` : `👤 ${link.data.name}`}
-                  </span>
-                  {i < chain.length - 1 && <span className='text-amber-600'>→</span>}
-                </span>
-              ))}
-            </div>
-          </div>
-          
-          <div className='flex gap-2 justify-center'>
-            <button onClick={shareResults} className='bg-green-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600'>
-              Share Results
-            </button>
-            <button onClick={handleShareImage} className='bg-amber-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-amber-700'>
-              📷 Share Image
-            </button>
-            {!isDailyChallenge && (
-              <button onClick={reset} className='bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700'>
-                New Challenge
-              </button>
-            )}
-          </div>
-          {isDailyChallenge && (
-            <p className='text-xs text-gray-600 dark:text-gray-400 mt-2'>Come back tomorrow for a new challenge!</p>
-          )}
-        </div>
+        <GameOverScreen
+          chain={chain}
+          elapsedTime={getElapsedTime()}
+          hintsUsed={hintsUsed}
+          bestChain={getBestChain()}
+          isDailyChallenge={isDailyChallenge}
+          onShareResults={shareResults}
+          onShareImage={handleShareImage}
+          onReset={reset}
+        />
       ) : (
         <>
           {/* Current Movie or Actor */}
@@ -745,161 +697,62 @@ export default function LinkGame() {
             )}
           </div>
 
-          {/* Mobile: Fixed size banner ad (320x50) */}
+          {/* Mobile ad */}
           <div className='lg:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm'>
             <p className='text-xs text-gray-400 mb-1 text-center'>Ad</p>
             <AdSenseResponsive key={location.key || 'link-ad'} format='banner' />
           </div>
 
-          {/* Search */}
-          <div className='bg-white dark:bg-gray-800 p-3 rounded-lg flex-1 flex flex-col min-h-0'>
-            <div className='flex justify-between items-center mb-2'>
-              <h3 className='text-sm font-semibold dark:text-white'>
-                {mode === 'guessActor' ? 'Search actor:' : 'Search movie:'}
-              </h3>
-              {hintsUsed < 3 && !gameOver && (
-                <button 
-                  onClick={getHint}
-                  disabled={loading}
-                  className='bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs font-semibold disabled:opacity-50'
-                >
-                  Get Hint ({hintsUsed}/3)
-                </button>
-              )}
-            </div>
-            
-            {hints.length > 0 && (
-              <div className='mb-3 p-2 bg-blue-50 dark:bg-blue-900/30 rounded space-y-1'>
-                {hints.map((hint, i) => (
-                  <p key={i} className='text-sm text-blue-700 dark:text-blue-300'>💡 {hint}</p>
-                ))}
-              </div>
-            )}
-            
-            {mode === 'guessActor' && usedActors.length > 0 && (
-              <div className='mb-3 p-2 bg-yellow-50 dark:bg-yellow-900/30 rounded text-sm'>
-                <p className='text-gray-700 dark:text-gray-300'>Can't use: {usedActors.map(a => a.name).join(', ')}</p>
-              </div>
-            )}
-            
-            {mode === 'guessMovie' && usedMovies.length > 1 && (
-              <div className='mb-3 p-2 bg-yellow-50 dark:bg-yellow-900/30 rounded text-sm'>
-                <p className='text-gray-700 dark:text-gray-300'>Can't reuse movies</p>
-              </div>
-            )}
-            
-            <div className='relative'>
-              <input 
-                ref={searchInputRef}
-                type='text'
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                onFocus={() => searchQuery && setShowResults(true)}
-                onBlur={() => setTimeout(() => setShowResults(false), 200)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Escape') {
-                    setSearchQuery('');
-                    setSearchResults([]);
-                    setShowResults(false);
-                    setSelectedIndex(-1);
-                  } else if (e.key === 'Enter' && searchResults.length === 1) {
-                    e.preventDefault();
-                    if (mode === 'guessActor') {
-                      handleActorSelect(searchResults[0]);
-                    } else {
-                      handleMovieSelect(searchResults[0]);
-                    }
-                  } else if (e.key === 'ArrowDown' && searchResults.length > 0) {
-                    e.preventDefault();
-                    setSelectedIndex(prev => {
-                      const newIndex = prev < searchResults.length - 1 ? prev + 1 : prev;
-                      document.querySelector(`#link-result-${newIndex}`)?.scrollIntoView({ block: 'nearest' });
-                      return newIndex;
-                    });
-                  } else if (e.key === 'ArrowUp' && searchResults.length > 0) {
-                    e.preventDefault();
-                    setSelectedIndex(prev => {
-                      const newIndex = prev > 0 ? prev - 1 : -1;
-                      if (newIndex >= 0) {
-                        document.querySelector(`#link-result-${newIndex}`)?.scrollIntoView({ block: 'nearest' });
-                      }
-                      return newIndex;
-                    });
-                  } else if (e.key === 'Enter' && selectedIndex >= 0) {
-                    e.preventDefault();
-                    if (mode === 'guessActor') {
-                      handleActorSelect(searchResults[selectedIndex]);
-                    } else {
-                      handleMovieSelect(searchResults[selectedIndex]);
-                    }
-                  }
-                }}
-                placeholder={mode === 'guessActor' ? 'Type actor name...' : 'Type movie title...'}
-                className='w-full p-3 border dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600'
-                disabled={loading}
-              />
-              
-              {searching && (
-                <div className='absolute right-3 top-3'>
-                  <div className='w-5 h-5 border-2 border-red-600 border-t-transparent rounded-full animate-spin'></div>
-                </div>
-              )}
-              
-              {searchResults.length > 0 && showResults && (
-                <div className='absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-gray-700 border dark:border-gray-600 rounded-lg shadow-lg max-h-64 overflow-y-auto z-10'>
-                  {mode === 'guessActor' ? (
-                    searchResults.map((actor, index) => (
-                      <button
-                        id={`link-result-${index}`}
-                        key={actor.id}
-                        onClick={() => handleActorSelect(actor)}
-                        disabled={loading}
-                        className={`w-full p-4 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-3 text-left disabled:opacity-50 active:bg-gray-200 dark:active:bg-gray-500 ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
-                      >
-                        {actor.profile_path && (
-                          <img 
-                            src={`${IMG_URL}${PROFILE_SIZE.sm}${actor.profile_path}`}
-                            alt={actor.name}
-                            className='w-12 h-12 rounded-full object-cover'
-                          />
-                        )}
-                        <div>
-                          <p className='font-medium dark:text-white'>{actor.name}</p>
-                          <p className='text-xs text-gray-500 dark:text-gray-400'>{actor.known_for_department}</p>
-                        </div>
-                      </button>
-                    ))
-                  ) : (
-                    searchResults.map((movie, index) => (
-                      <button
-                        id={`link-result-${index}`}
-                        key={movie.id}
-                        onClick={() => handleMovieSelect(movie)}
-                        disabled={loading}
-                        className={`w-full p-4 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-3 text-left disabled:opacity-50 active:bg-gray-200 dark:active:bg-gray-500 ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
-                      >
-                        {movie.poster_path && (
-                          <img 
-                            src={`${IMG_URL}${POSTER_SIZE.sm}${movie.poster_path}`}
-                            alt={movie.title}
-                            className='w-12 h-18 object-cover rounded'
-                          />
-                        )}
-                        <div>
-                          <p className='font-medium dark:text-white'>{movie.title}</p>
-                          <p className='text-xs text-gray-500 dark:text-gray-400'>{new Date(movie.release_date).getFullYear()}</p>
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-            
-            {errorMessage && (
-              <p className='mt-3 text-red-600 dark:text-red-400 text-center font-medium'>{errorMessage}</p>
-            )}
-          </div>
+          <SearchSection
+            mode={mode}
+            hintsUsed={hintsUsed}
+            gameOver={gameOver}
+            loading={loading}
+            hints={hints}
+            usedActors={usedActors}
+            usedMovies={usedMovies}
+            searchQuery={searchQuery}
+            searchResults={searchResults}
+            showResults={showResults}
+            searching={searching}
+            selectedIndex={selectedIndex}
+            searchInputRef={searchInputRef}
+            onGetHint={getHint}
+            onSearchChange={(e) => handleSearch(e.target.value)}
+            onSearchFocus={() => searchQuery && setShowResults(true)}
+            onSearchBlur={() => setTimeout(() => setShowResults(false), 200)}
+            onSearchKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                setSearchQuery('');
+                setSearchResults([]);
+                setShowResults(false);
+                setSelectedIndex(-1);
+              } else if (e.key === 'ArrowDown' && searchResults.length > 0) {
+                e.preventDefault();
+                setSelectedIndex(prev => {
+                  const newIndex = prev < searchResults.length - 1 ? prev + 1 : prev;
+                  document.querySelector(`#link-result-${newIndex}`)?.scrollIntoView({ block: 'nearest' });
+                  return newIndex;
+                });
+              } else if (e.key === 'ArrowUp' && searchResults.length > 0) {
+                e.preventDefault();
+                setSelectedIndex(prev => {
+                  const newIndex = prev > 0 ? prev - 1 : -1;
+                  if (newIndex >= 0) document.querySelector(`#link-result-${newIndex}`)?.scrollIntoView({ block: 'nearest' });
+                  return newIndex;
+                });
+              } else if (e.key === 'Enter') {
+                e.preventDefault();
+                const target = selectedIndex >= 0 ? searchResults[selectedIndex] : searchResults.length === 1 ? searchResults[0] : null;
+                if (target) mode === 'guessActor' ? handleActorSelect(target) : handleMovieSelect(target);
+              }
+            }}
+            onActorSelect={handleActorSelect}
+            onMovieSelect={handleMovieSelect}
+          />
+          {errorMessage && (
+            <p className='text-red-600 dark:text-red-400 text-center font-medium text-sm'>{errorMessage}</p>
+          )}
         </>
       )}
 

@@ -46,7 +46,7 @@ export default function PWAInstallBanner({ streak, onInstall }) {
   if (!showBanner) return null;
 
   return (
-    <div className='fixed bottom-4 left-4 right-4 bg-gradient-to-r from-red-600 to-amber-600 text-white p-4 rounded-lg shadow-lg z-50 max-w-md mx-auto'>
+    <div className='fixed bottom-20 left-4 right-4 bg-gradient-to-r from-red-600 to-amber-600 text-white p-4 rounded-lg shadow-lg z-40 max-w-md mx-auto'>
       <div className='flex items-start gap-3'>
         <span className='text-2xl'>📱</span>
         <div className='flex-1'>

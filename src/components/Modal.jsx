@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, memo, useMemo } from 'react';
+import { useState, useCallback, memo, useMemo } from 'react';
+import Confetti from './Confetti';
 
 const Modal = memo(({isWin, movie, onClose, isDailyChallenge, triesUsed, revealedCast, onShareImage}) => {
   const [copied, setCopied] = useState(false);
@@ -62,64 +63,6 @@ const Modal = memo(({isWin, movie, onClose, isDailyChallenge, triesUsed, reveale
     return 'Hard';
   }, [movie?.vote_count, movie?.release_date, revealedCast]);
   
-  const resetStats = useCallback(() => {
-    if(confirm('Reset all statistics?')) {
-      localStorage.setItem('gameStats', JSON.stringify({wins:0,losses:0,currentStreak:0,maxStreak:0}));
-      window.location.reload();
-    }
-  },[]);
-  
-  useEffect(() => {
-    if (isWin) {
-      const duration = 3000;
-      const animationEnd = Date.now() + duration;
-      const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
-      let animationId;
-
-      const frame = () => {
-        const timeLeft = animationEnd - Date.now();
-        if (timeLeft <= 0) return;
-
-        const particleCount = 3;
-        for (let i = 0; i < particleCount; i++) {
-          const particle = document.createElement('div');
-          particle.style.position = 'fixed';
-          particle.style.left = Math.random() * 100 + '%';
-          particle.style.top = '-10px';
-          particle.style.width = '10px';
-          particle.style.height = '10px';
-          particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-          particle.style.borderRadius = '50%';
-          particle.style.pointerEvents = 'none';
-          particle.style.zIndex = '9999';
-          document.body.appendChild(particle);
-
-          const animation = particle.animate([
-            { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
-            { transform: `translateY(${window.innerHeight}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
-          ], {
-            duration: 2000 + Math.random() * 1000,
-            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-          });
-
-          animation.onfinish = () => particle.remove();
-        }
-
-        animationId = requestAnimationFrame(frame);
-      };
-      frame();
-      
-      return () => {
-        if (animationId) cancelAnimationFrame(animationId);
-        document.querySelectorAll('div[style*="position: fixed"]').forEach(el => {
-          if (el.style.borderRadius === '50%' && el.style.width === '10px') {
-            el.remove();
-          }
-        });
-      };
-    }
-  }, [isWin]);
-  
   const shareResults = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
     const emoji = isWin ? '🎬' : '❌';
@@ -143,6 +86,7 @@ Play at: ${window.location.origin}`;
   
   return (
     <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn p-4' onClick={onClose}>
+      {isWin && <Confetti />}
       <div className='bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto text-center animate-scaleIn dark:text-white' onClick={(e)=>e.stopPropagation()}>
         <h2 className={`text-3xl font-bold mb-1 ${isWin?'text-green-600':'text-red-600'}`}>
           {isWin ? '🎉 You Won!' : '😔 You Lost!'}

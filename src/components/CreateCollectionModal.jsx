@@ -184,7 +184,7 @@ export default function CreateCollectionModal({ onClose, onSave, editCollection 
           <button
             type='button'
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className='text-sm text-blue-500 dark:text-blue-400 hover:underline'
+            className='text-sm text-red-500 dark:text-amber-400 hover:underline'
           >
             {showAdvanced ? '▼ Hide' : '▶ Show'} Advanced Filters
           </button>
@@ -240,14 +240,14 @@ export default function CreateCollectionModal({ onClose, onSave, editCollection 
           <div className='flex gap-2 mt-4'>
             <button
               onClick={handleSave}
-              className='flex-1 bg-blue-500 text-white py-2 rounded-lg font-semibold hover:bg-blue-600 disabled:opacity-50'
+              className='flex-1 bg-gradient-to-r from-red-600 to-amber-600 text-white py-2 rounded-lg font-semibold hover:from-red-700 hover:to-amber-700 disabled:opacity-50'
               disabled={loading}
             >
               {editCollection ? 'Update' : 'Create'}
             </button>
             <button
               onClick={onClose}
-              className='flex-1 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white py-2 rounded-lg font-semibold hover:bg-gray-400 dark:hover:bg-gray-500'
+              className='flex-1 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white py-2 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-500'
             >
               Cancel
             </button>

@@ -16,7 +16,7 @@ export default function KeyboardShortcutsModal({ onClose, mode = 'guess' }) {
           </div>
           
           <div className='flex justify-between items-center'>
-            <span className='text-gray-700 dark:text-gray-300'>Clear search</span>
+            <span className='text-gray-700 dark:text-gray-300'>Clear search / Close modal</span>
             <kbd className='px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm font-mono'>Esc</kbd>
           </div>
           
@@ -57,11 +57,6 @@ export default function KeyboardShortcutsModal({ onClose, mode = 'guess' }) {
               </div>
             </>
           )}
-          
-          <div className='flex justify-between items-center'>
-            <span className='text-gray-700 dark:text-gray-300'>Close modal</span>
-            <kbd className='px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm font-mono'>Esc</kbd>
-          </div>
         </div>
         
         <button 

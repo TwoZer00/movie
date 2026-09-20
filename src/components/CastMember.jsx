@@ -11,8 +11,10 @@ const CastMember = memo(({item, index, gameStatus, gameStatusVal}) => {
   );
 
   useEffect(() => {
+    setIsFlipped(false);
     if (item?.profile_path) {
-      setTimeout(() => setIsFlipped(true), index * 150 + 100);
+      const t = setTimeout(() => setIsFlipped(true), index * 150 + 100);
+      return () => clearTimeout(t);
     }
   }, [item?.profile_path, index]);
 

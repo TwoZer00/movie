@@ -10,6 +10,7 @@ export default function MovieSearchForm({
   onKeyDown,
   onChange,
   onMovieSelect,
+  onPass,
   highlightMatch,
   tries
 }) {
@@ -51,8 +52,8 @@ export default function MovieSearchForm({
         </ul>
       </div>
       <div className='flex gap-2'>
-        <input type="submit" value={"Try"} className='flex-1 rounded bg-blue-500 text-white font-semibold py-2 px-4 hover:bg-blue-600 dark:hover:bg-blue-700'/>
-        <button type="button" onClick={(e) => { e.preventDefault(); /* Pass handler will be passed as prop */ }} disabled={tries.length >= 4} className='rounded bg-gray-500 text-white font-semibold py-2 px-4 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'>Pass</button>
+        <input type="submit" value={"Try"} className='flex-1 rounded bg-red-600 text-white font-semibold py-2 px-4 hover:bg-red-700'/>
+        <button type="button" onClick={onPass} disabled={tries.length >= 4} className='rounded bg-gray-500 text-white font-semibold py-2 px-4 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'>Hint</button>
       </div>
     </form>
   );

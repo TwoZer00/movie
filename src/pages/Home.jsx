@@ -2,12 +2,12 @@ import { useRef, useState, useCallback, useEffect, useMemo, lazy, Suspense } fro
 import { getMoviesByName, getValidMovie, getDailyMovie, getCastFromMovie, getKeywords } from "../api/init";
 import { IMG_URL, POSTER_SIZE } from '../api/utils/const';
 import { useLocation, useNavigate } from 'react-router-dom';
-import genres from '../resources/genre.json'
 import winSound from '../resources/win_sound.wav'
 import lossSound from '../resources/loss_sound.wav'
 import CastMember from '../components/CastMember';
 import TryItem from '../components/TryItem';
-import { Loader, SkipButton } from '../components/UIComponents';
+import MovieDisplay from '../components/MovieDisplay';
+import { Loader } from '../components/UIComponents';
 import { CastSkeleton } from '../components/Skeleton';
 import { Toast } from '../components/Toast';
 import { gameStatusVal, loadStatus } from '../utils/constants';
@@ -619,84 +619,23 @@ export default function Home() {
         <AdSenseResponsive format='vertical' />
       </div>
       
-      <div className='flex-1 flex flex-col gap-2 px-2 sm:px-4 overflow-hidden dark:bg-gray-900 pb-2 max-w-6xl mx-auto w-full'>
-          <div className='py-2 flex justify-between items-center sticky top-0 bg-gray-50 dark:bg-gray-900 z-10'>
-            <button 
-              onClick={() => navigate('/')}
-              className='bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-semibold animate-buttonHover touch-target'
-              title='Back to menu'
-            >
-              ← Menu
-            </button>
-            <h1 className='text-xl sm:text-2xl font-bold dark:text-white'>
-              {isDailyChallenge ? '🎯 Daily Challenge' : '🎬 Guess by Cast'}
-            </h1>
-            <div className='flex gap-2'>
-              <SkipButton onSkip={handleSkip} disabled={isDailyChallenge} />
-              <button 
-                onClick={() => setShowHelp(true)}
-                className='bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-semibold animate-buttonHover touch-target'
-                title='Help'
-              >
-                ?
-              </button>
-            </div>
-          </div>
+      <div className='flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 px-2 sm:px-4 overflow-hidden dark:bg-gray-900 pb-2 max-w-6xl mx-auto w-full'>
+          {/* Left column */}
+          <div className='flex flex-col gap-2 min-h-0'>
           <div className='py-2 flex flex-row items-start gap-3 sm:gap-4 w-full'>
-            <div className='flex-shrink-0'>
-              <div className='aspect-[16/9] w-32 sm:w-48 md:w-64 flex justify-center shadow-lg rounded overflow-hidden dark:shadow-gray-800 select-none bg-gray-200 dark:bg-gray-700' onContextMenu={(e)=>e.preventDefault()}>{
-                gameStatus===gameStatusVal.finished ?
-                  <img src={posterUrl} className='object-cover w-full h-full animate-fadeIn blur-sm animate-[unblur_1s_ease-out_forwards] pointer-events-none' loading="lazy" alt="Movie backdrop" style={{animationDelay: '0.3s'}} draggable="false" onError={(e) => e.target.style.display = 'none'} />
-                : tries.length > 0 ?
-                  <img src={posterUrl} className='object-cover w-full h-full transition-all duration-500 pointer-events-none' loading="lazy" alt="Movie backdrop" style={{filter: `blur(${blurAmount}px)`, transform: `scale(${imageScale})`}} draggable="false" onError={(e) => e.target.style.display = 'none'} />
-                :
-                <div className='w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center'>
-                  <span className='text-4xl'>?</span>
-                </div>
-              }
-              </div>
-            </div>
-            <div className='flex-1 flex flex-col gap-2'>
-              <div>
-                <p className='text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1'>Movie Title</p>
-                <div className='border-2 rounded-lg py-3 px-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 dark:border-gray-600 min-h-[3rem] flex items-center justify-center smooth-transition'>
-                  <p className='font-bold text-sm sm:text-lg text-center dark:text-white font-mono tracking-wider break-words'>
-                    {displayTitle}
-                  </p>
-                </div>
-              </div>
-              <div>
-                {tries.length > 0 && gameStatus !== gameStatusVal.finished && keywords.length > 0 && (
-                  <div className='flex flex-wrap gap-2 mb-2'>
-                    {keywords.slice(0, Math.min(tries.length, 3)).map((kw, i) => {
-                      const shouldAnimate = i === Math.min(tries.length, 3) - 1 && tries.length === lastTryCount;
-                      return (
-                        <span key={kw.id} className={`px-3 py-1 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 rounded-full text-xs font-medium smooth-scale ${shouldAnimate ? 'animate-popIn' : ''}`} style={{animationDelay: `${i * 100}ms`}}>#{kw.name}</span>
-                      );
-                    })}
-                  </div>
-                )}
-                {tries.length > 0 && gameStatus !== gameStatusVal.finished && (
-                  <div className='flex flex-wrap gap-2'>
-                    {tries.length >= 2 && movie?.genre_ids?.[0] && (
-                      <span className={`px-3 py-1 bg-red-100 dark:bg-red-900 dark:text-red-300 rounded-full text-sm font-medium smooth-scale ${tries.length === 2 && lastTryCount === 2 ? 'animate-popIn' : ''}`}>{genres.find(g=>g.id===movie.genre_ids[0])?.name}</span>
-                    )}
-                    {tries.length >= 3 && movie?.genre_ids?.[1] && (
-                      <span className={`px-3 py-1 bg-red-100 dark:bg-red-900 dark:text-red-300 rounded-full text-sm font-medium smooth-scale ${tries.length === 3 && lastTryCount === 3 ? 'animate-popIn' : ''}`} style={{animationDelay: '100ms'}}>{genres.find(g=>g.id===movie.genre_ids[1])?.name}</span>
-                    )}
-                    {tries.length >= 4 && director && (
-                      <span className={`px-3 py-1 bg-orange-100 dark:bg-orange-900 dark:text-orange-300 rounded-full text-sm font-medium smooth-scale ${tries.length === 4 && lastTryCount === 4 ? 'animate-popIn' : ''}`} style={{animationDelay: '200ms'}}>🎬 {director.name}</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          
-          {/* Mobile: Fixed size banner ad (320x50) */}
-          <div className='lg:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm flex-shrink-0'>
-            <p className='text-xs text-gray-400 mb-1 text-center'>Ad</p>
-            <AdSenseResponsive key={location.key || 'home-ad'} format='banner' />
+            <MovieDisplay
+              movie={movie}
+              posterUrl={posterUrl}
+              blurAmount={blurAmount}
+              imageScale={imageScale}
+              displayTitle={displayTitle}
+              gameStatus={gameStatus}
+              gameStatusVal={gameStatusVal}
+              tries={tries}
+              keywords={keywords}
+              lastTryCount={lastTryCount}
+              director={director}
+            />
           </div>
           
           <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-800 p-3 sm:p-4 flex-shrink-0'>
@@ -718,6 +657,10 @@ export default function Home() {
               }
             </div>
           </div>
+          </div>{/* end left column */}
+
+          {/* Right column */}
+          <div className='flex flex-col gap-2 min-h-0'>
           <div className='flex-1 border dark:border-gray-700 px-2 rounded flex flex-col gap-1 overflow-y-auto dark:bg-gray-800 min-h-0'>
             <div className='py-1 flex items-center justify-between'>
               <p className='font-semibold dark:text-white'>Tries {5 - tries.length}/5</p>
@@ -742,7 +685,7 @@ export default function Home() {
               />
             ))}
           </div>
-        <form onSubmit={handleSubmit} className='relative flex flex-col gap-2 pt-2'>
+        <form onSubmit={handleSubmit} className='relative flex flex-col gap-2 pt-2 flex-shrink-0'>
             <div className='relative flex-1'>
               <input placeholder='Search for movie title' type="text" className={`rounded w-full text-base sm:text-lg py-3 px-4 border dark:border-gray-600 dark:bg-gray-700 dark:text-white focus-within:outline-none smooth-transition ${shakeInput ? 'animate-shake border-red-500' : ''}`} onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
               <ul className={`shadow-xl border-2 border-slate-200 dark:border-gray-600 rounded-tl rounded-tr absolute bottom-full left-0 w-full flex flex-col divide-y dark:divide-gray-600 bg-white dark:bg-gray-800 max-h-[40vh] overflow-y-auto ${visible?"":"hidden"}`}>
@@ -777,6 +720,12 @@ export default function Home() {
               <button type="button" onClick={handlePass} disabled={tries.length >= 4} className='rounded bg-gray-500 text-white font-semibold py-4 px-4 hover:bg-gray-600 active:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed animate-buttonHover touch-target'>Hint</button>
             </div>
         </form>
+          {/* Ad at the bottom of right column */}
+          <div className='bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm flex-shrink-0'>
+            <p className='text-xs text-gray-400 mb-1 text-center'>Ad</p>
+            <AdSenseResponsive key={location.key || 'home-ad'} format='banner' />
+          </div>
+          </div>{/* end right column */}
       </div>
     </>
   )

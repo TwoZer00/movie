@@ -386,7 +386,7 @@ export default function OddOneOut() {
         <AdSenseResponsive format='vertical' />
       </div>
       
-      <div className='flex-1 flex flex-col gap-4 p-4 overflow-y-auto dark:bg-gray-900 max-w-4xl mx-auto w-full pb-4'>
+      <div className='flex-1 flex flex-col gap-4 p-4 dark:bg-gray-900 max-w-4xl mx-auto w-full pb-4'>
       {loading && movies.length > 0 && (
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
           <div className='bg-white dark:bg-gray-800 p-6 rounded-lg'>
@@ -396,15 +396,7 @@ export default function OddOneOut() {
         </div>
       )}
       
-      <div className='text-center bg-gradient-to-r from-red-600 to-amber-600 text-white p-3 rounded-lg relative'>
-        <button 
-          onClick={() => navigate('/')}
-          className='absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs font-semibold'
-          title='Back to menu'
-        >
-          ←
-        </button>
-        <h2 className='text-xl font-bold'>🎯 Odd One Out</h2>
+      <div className='bg-gradient-to-r from-red-600 to-amber-600 text-white p-3 rounded-lg'>
         <div className='flex justify-center gap-4 text-sm opacity-90'>
           <span>Round: <span className='font-bold'>{round}</span></span>
           <span>Score: <span className='font-bold'>{score}</span></span>

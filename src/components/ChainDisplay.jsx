@@ -1,16 +1,27 @@
 import { IMG_URL, PROFILE_SIZE } from '../api/utils/const';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 export default function ChainDisplay({ chain }) {
   const scrollRef = useRef(null);
   const [isScrollable, setIsScrollable] = useState(false);
+
+  const checkScrollable = useCallback(() => {
+    if (scrollRef.current) {
+      setIsScrollable(scrollRef.current.scrollWidth > scrollRef.current.clientWidth);
+    }
+  }, []);
   
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ left: scrollRef.current.scrollWidth, behavior: 'smooth' });
-      setIsScrollable(scrollRef.current.scrollWidth > scrollRef.current.clientWidth);
+      checkScrollable();
     }
-  }, [chain.length]);
+  }, [chain.length, checkScrollable]);
+
+  useEffect(() => {
+    window.addEventListener('resize', checkScrollable);
+    return () => window.removeEventListener('resize', checkScrollable);
+  }, [checkScrollable]);
   
   return (
     <div className='relative'>

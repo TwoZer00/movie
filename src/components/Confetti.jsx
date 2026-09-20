@@ -4,7 +4,7 @@ export default function Confetti({ duration = 3000 }) {
   const [pieces, setPieces] = useState([]);
 
   useEffect(() => {
-    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+    const colors = ['#dc2626', '#d97706', '#f59e0b', '#b45309', '#ef4444', '#fbbf24'];
     const newPieces = Array.from({ length: 50 }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
