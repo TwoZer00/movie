@@ -57,6 +57,15 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>,
 )
 
+// Load Umami analytics only in production
+if (import.meta.env.PROD) {
+  const script = document.createElement('script');
+  script.defer = true;
+  script.src = 'https://umami.twz00.dev/script.js';
+  script.dataset.websiteId = '2784c452-4477-497a-83d4-f31ae99c0687';
+  document.head.appendChild(script);
+}
+
 // Register service worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
