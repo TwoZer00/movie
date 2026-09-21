@@ -91,9 +91,9 @@ export default function Menu() {
   }
 
   return (
-    <div className='flex flex-col flex-1 items-center p-4 pb-6'>
+    <div className='flex flex-col flex-1 items-center p-3 sm:p-4 pb-2 sm:pb-6'>
       <PWAInstallBanner streak={stats.dailyStreak} />
-      <div className='w-full max-w-lg flex flex-col gap-4'>
+      <div className='w-full max-w-lg flex flex-col gap-3 sm:gap-4'>
         <PWAFeatures />
 
         {/* Stats bar */}
@@ -186,7 +186,7 @@ export default function Menu() {
                 <div className='flex items-center gap-2 flex-shrink-0'>
                   <button
                     onClick={() => setOpenMode(openMode === mode.key ? null : mode.key)}
-                    className='w-7 h-7 rounded-lg bg-black/5 dark:bg-white/8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs flex items-center justify-center transition-colors'
+                    className='w-9 h-9 rounded-lg bg-black/5 dark:bg-white/8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs flex items-center justify-center transition-colors active:scale-95'
                   >
                     {openMode === mode.key ? '▲' : '?'}
                   </button>
@@ -194,13 +194,13 @@ export default function Menu() {
                     <>
                       <button
                         onClick={() => navigate('/guess-setup')}
-                        className='w-7 h-7 rounded-lg bg-black/5 dark:bg-white/8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs flex items-center justify-center transition-colors'
+                        className='w-9 h-9 rounded-lg bg-black/5 dark:bg-white/8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs flex items-center justify-center transition-colors active:scale-95'
                       >
                         ⚙
                       </button>
                       <button
                         onClick={() => handlePlay(mode.key)}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r ${mode.accent} hover:opacity-90 active:scale-[0.97] transition-all shadow-sm`}
+                        className={`px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r ${mode.accent} hover:opacity-90 active:scale-[0.97] transition-all shadow-sm`}
                       >
                         Play
                       </button>
@@ -208,7 +208,7 @@ export default function Menu() {
                   ) : (
                     <button
                       onClick={() => handlePlay(mode.key)}
-                      className={`px-4 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r ${mode.accent} hover:opacity-90 active:scale-[0.97] transition-all shadow-sm`}
+                      className={`px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r ${mode.accent} hover:opacity-90 active:scale-[0.97] transition-all shadow-sm`}
                     >
                       Play
                     </button>

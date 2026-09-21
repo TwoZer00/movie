@@ -6,8 +6,10 @@ const TryItem = memo(({item, index, movie, expandedTries, setExpandedTries}) => 
   
   if(item.passed) {
     return (
-      <div className='px-3 py-2 rounded-xl bg-black/3 dark:bg-white/4 border border-black/5 dark:border-white/5 animate-slideIn' style={{animationDelay: `${index * 100}ms`}}>
-        <p className='text-sm text-gray-400 dark:text-gray-500 italic text-center'>— passed —</p>
+      <div className='overflow-hidden rounded-xl animate-fadeIn flex-shrink-0' style={{animationDelay: `${index * 100}ms`}}>
+        <div className='px-3 py-2 rounded-xl bg-black/3 dark:bg-white/4 border border-black/5 dark:border-white/5'>
+          <p className='text-sm text-gray-400 dark:text-gray-500 italic text-center'>— passed —</p>
+        </div>
       </div>
     );
   }
@@ -32,7 +34,8 @@ const TryItem = memo(({item, index, movie, expandedTries, setExpandedTries}) => 
   }, [index, setExpandedTries]);
 
   return (
-    <div className='px-3 py-2 rounded-xl bg-white/80 dark:bg-white/4 border border-black/6 dark:border-white/6 animate-slideIn cursor-pointer hover:bg-black/3 dark:hover:bg-white/6 transition-colors' style={{animationDelay: `${index * 100}ms`}} onClick={toggleExpand}>
+    <div className='overflow-hidden rounded-xl animate-fadeIn flex-shrink-0' style={{animationDelay: `${index * 100}ms`}}>
+    <div className='px-3 py-3 rounded-xl bg-white/80 dark:bg-white/4 border border-black/6 dark:border-white/6 cursor-pointer hover:bg-black/3 dark:hover:bg-white/6 active:bg-black/5 dark:active:bg-white/8 transition-colors' onClick={toggleExpand}>
       <div className='flex items-center gap-2'>
         <p className='font-medium text-sm flex-1 dark:text-white truncate'>{item.title||item.original_title}</p>
         <span className={`px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${
@@ -65,6 +68,7 @@ const TryItem = memo(({item, index, movie, expandedTries, setExpandedTries}) => 
           })}
         </div>
       )}
+    </div>
     </div>
   );
 });

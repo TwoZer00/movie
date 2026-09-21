@@ -45,17 +45,17 @@ export default function GameOverScreen({ chain, elapsedTime, hintsUsed, bestChai
       </div>
 
       <div className='flex gap-2'>
-        <button onClick={onShareResults} className='py-2.5 px-3 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 transition-colors'>
+        <button onClick={onShareResults} className='py-3 px-3 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 active:scale-[0.97] transition-all'>
           Share
         </button>
-        <button onClick={onShareImage} className='py-2.5 px-3 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 transition-colors'>
+        <button onClick={onShareImage} className='py-3 px-3 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 active:scale-[0.97] transition-all'>
           📷
         </button>
-        <button onClick={onGoHome} className='flex-1 py-2.5 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 transition-colors'>
+        <button onClick={onGoHome} className='flex-1 py-3 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 active:scale-[0.97] transition-all'>
           🏠 Home
         </button>
         {!isDailyChallenge && (
-          <button onClick={onReset} className='flex-1 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-600 to-amber-600 hover:opacity-90 transition-all shadow-sm'>
+          <button onClick={onReset} className='flex-1 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-600 to-amber-600 hover:opacity-90 active:scale-[0.97] transition-all shadow-sm'>
             Again
           </button>
         )}

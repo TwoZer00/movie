@@ -5,6 +5,8 @@
 html, body {
   overflow-x: hidden;
   font-family: 'Inter', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* Cinema background */
@@ -306,7 +308,6 @@ body {
   animation: spin 1s linear infinite;
 }
 
-/* AdSense Fixed Size Optimization */
 /* Using standard IAB ad sizes for better fill rates and CPM */
 
 .adsbygoogle {

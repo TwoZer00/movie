@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react';
-import { getMoviesByName, getValidMovie, getDailyMovie, getCastFromMovie, getKeywords } from "../api/init";
+import { getMoviesByName, getValidMovie, getDailyMovie, getCastFromMovie, getKeywords } from '../api/init';
 import { IMG_URL, POSTER_SIZE } from '../api/utils/const';
 import { useLocation, useNavigate } from 'react-router-dom';
 import winSound from '../resources/win_sound.wav'
@@ -39,6 +39,7 @@ export default function Home() {
   const [soundEnabled,setSoundEnabled] = useState(localStorage.getItem('soundEnabled') !== 'false');
   const winAudio = useRef(new Audio(winSound));
   const lossAudio = useRef(new Audio(lossSound));
+  const triesEndRef = useRef(null);
   const searchTimeout = useRef(null);
   const [visible,setVisible] = useState(false);
   const [selectedIndex,setSelectedIndex] = useState(-1);
@@ -465,6 +466,10 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [tries.length, gameStatus, isDailyChallenge, showHelp]);
 
+  useEffect(() => {
+    triesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [tries.length]);
+
   const reset = useCallback(async ()=>{
     setLoading(true);
     setTries([]);
@@ -619,37 +624,35 @@ export default function Home() {
         <AdSenseResponsive format='vertical' />
       </div>
       
-      <div className='flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 px-2 sm:px-4 overflow-hidden dark:bg-gray-900 pb-2 max-w-6xl mx-auto w-full'>
-          {/* Left column */}
-          <div className='flex flex-col gap-2 min-h-0'>
-          <div className='py-2 flex flex-row items-start gap-3 sm:gap-4 w-full'>
-            <MovieDisplay
-              movie={movie}
-              posterUrl={posterUrl}
-              blurAmount={blurAmount}
-              imageScale={imageScale}
-              displayTitle={displayTitle}
-              gameStatus={gameStatus}
-              gameStatusVal={gameStatusVal}
-              tries={tries}
-              keywords={keywords}
-              lastTryCount={lastTryCount}
-              director={director}
-            />
-          </div>
-          
-          <div className='bg-white/85 dark:bg-[#1a1a1a]/90 backdrop-blur-sm border border-black/6 dark:border-white/6 rounded-xl shadow-sm p-3 sm:p-4 flex-shrink-0'>
-            <p className='text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3 text-center'>Cast Members</p>
-            <div className="grid grid-cols-5 gap-2 sm:gap-3 w-full">
-              {
-                loading ? 
-                  Array(5).fill(0).map((_, i) => <CastSkeleton key={i} />)
-                :
-                  hints?.map((item,index)=>(
-                    <CastMember 
-                      key={item.id} 
-                      item={item} 
-                      index={index} 
+      {/* Grid: mobile = 2 rows fixed, desktop = 2 columns fixed */}
+      <div className='flex-1 grid grid-rows-[auto_1fr] md:grid-rows-1 md:grid-cols-2 gap-2 md:gap-3 px-2 sm:px-3 md:px-4 overflow-hidden pb-2 md:pb-4 max-w-6xl mx-auto w-full min-h-0 pt-2'>
+
+        {/* LEFT COLUMN — movie info + cast */}
+        <div className='flex flex-col gap-2 min-h-0 overflow-hidden md:overflow-y-auto'>
+          <MovieDisplay
+            movie={movie}
+            posterUrl={posterUrl}
+            blurAmount={blurAmount}
+            imageScale={imageScale}
+            displayTitle={displayTitle}
+            gameStatus={gameStatus}
+            gameStatusVal={gameStatusVal}
+            tries={tries}
+            keywords={keywords}
+            lastTryCount={lastTryCount}
+            director={director}
+          />
+
+          <div className='bg-white/85 dark:bg-[#1a1a1a]/90 backdrop-blur-sm border border-black/6 dark:border-white/6 rounded-xl shadow-sm p-2.5 sm:p-3 flex-shrink-0'>
+            <p className='text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 text-center'>Cast Members</p>
+            <div className='grid grid-cols-5 gap-1.5 sm:gap-2 w-full'>
+              {loading
+                ? Array(5).fill(0).map((_, i) => <CastSkeleton key={i} />)
+                : hints?.map((item, index) => (
+                    <CastMember
+                      key={item.id}
+                      item={item}
+                      index={index}
                       gameStatus={gameStatus}
                       gameStatusVal={gameStatusVal}
                     />
@@ -657,78 +660,92 @@ export default function Home() {
               }
             </div>
           </div>
-          </div>{/* end left column */}
+        </div>
 
-          {/* Right column */}
-          <div className='flex flex-col gap-2 min-h-0'>
-          <div className='flex-1 border border-black/8 dark:border-white/8 px-2 rounded-xl flex flex-col gap-1 overflow-y-auto bg-white/85 dark:bg-[#1a1a1a]/90 backdrop-blur-sm min-h-0'>
-            <div className='py-1 flex items-center justify-between'>
-              <p className='font-semibold dark:text-white'>Tries {5 - tries.length}/5</p>
-              <div className='flex-1 mx-3 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden'>
-                <div 
+        {/* RIGHT COLUMN — tries + search form */}
+        <div className='flex flex-col gap-2 min-h-0'>
+          {/* Tries panel: on desktop fills remaining height; on mobile fixed height */}
+          <div className='flex flex-col border border-black/8 dark:border-white/8 rounded-xl bg-white/85 dark:bg-[#1a1a1a]/90 backdrop-blur-sm flex-1 min-h-0'>
+            <div className='px-3 py-2 flex items-center justify-between flex-shrink-0 border-b border-black/5 dark:border-white/5'>
+              <p className='font-semibold dark:text-white text-sm'>Tries</p>
+              <div className='flex-1 mx-3 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden'>
+                <div
                   className={`h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full transition-all duration-500 ${progressAnimation ? 'animate-progressFill' : ''}`}
                   style={{'--progress-width': `${(tries.length / 5) * 100}%`, width: `${(tries.length / 5) * 100}%`}}
-                ></div>
+                />
               </div>
               <div className='flex items-center gap-2'>
-                <span className={`text-sm font-bold px-2 py-1 rounded ${tries.length >= 4 ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300 animate-countdownPulse' : tries.length >= 3 ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300' : 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300'}`}>
-                  {5 - tries.length}
-                </span>
+                <span className={`text-sm font-bold px-2 py-0.5 rounded ${
+                  tries.length >= 4 ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300 animate-countdownPulse'
+                  : tries.length >= 3 ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300'
+                  : 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300'
+                }`}>{5 - tries.length}</span>
                 {!isDailyChallenge && gameStatus === gameStatusVal.playing && (
                   <button type='button' onClick={handleSkip} className='text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors font-medium'>Give Up</button>
                 )}
               </div>
             </div>
-            {tries.map((item,index)=>(
-              <TryItem 
-                key={item.id} 
-                item={item} 
-                index={index} 
-                movie={movie}
-                expandedTries={expandedTries}
-                setExpandedTries={setExpandedTries}
-              />
-            ))}
+            <div className='flex flex-col gap-1 px-2 py-1 overflow-y-auto flex-1 min-h-0'>
+              {tries.map((item, index) => (
+                <TryItem
+                  key={item.id}
+                  item={item}
+                  index={index}
+                  movie={movie}
+                  expandedTries={expandedTries}
+                  setExpandedTries={setExpandedTries}
+                />
+              ))}
+              <div ref={triesEndRef} />
+            </div>
           </div>
-        <form onSubmit={handleSubmit} className='relative flex flex-col gap-2 pt-2 flex-shrink-0'>
-            <div className='relative flex-1'>
-              <input placeholder='Search for movie title' type="text" className={`rounded-xl w-full text-sm py-3 px-4 bg-black/3 dark:bg-white/5 border border-black/8 dark:border-white/8 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500/30 dark:focus:ring-amber-500/30 transition-all ${shakeInput ? 'animate-shake !border-red-400' : ''}`} onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
-              <ul className={`border border-black/8 dark:border-white/8 rounded-t-xl absolute bottom-full left-0 w-full flex flex-col divide-y divide-black/5 dark:divide-white/5 bg-white dark:bg-[#1a1a1a] max-h-[40vh] overflow-y-auto shadow-xl ${visible ? '' : 'hidden'}`}>
-                {
-                  searchLoading ? (
-                    <li className='p-4 text-center'>
-                      <div className='flex items-center justify-center gap-2'>
-                        <div className='w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin'></div>
-                        <span className='text-sm text-gray-400'>Searching...</span>
-                      </div>
-                    </li>
-                  ) : movieSearchList.length > 0 ? (
-                    movieSearchList.map((item, index) => {
-                      const showOriginal = item.original_title && item.original_title !== item.title;
-                      return (
-                        <li id={`search-result-${index}`} key={item.id} className={`cursor-pointer px-4 py-3 dark:text-white text-sm transition-colors ${selectedIndex === index ? 'bg-red-50 dark:bg-red-900/20' : 'hover:bg-black/3 dark:hover:bg-white/5'}`} onClick={() => setSelectedMovie(item)}>
-                          <div className='font-medium'>{highlightMatch(item.title || item.original_title, selectedMovie.original_title)} <span className='text-gray-400 font-normal'>({new Date(item.release_date).getFullYear()})</span></div>
-                          {showOriginal && <div className='text-xs text-gray-400 italic mt-0.5'>{item.original_title}</div>}
-                        </li>
-                      );
-                    })
-                  ) : (
-                    <li className='p-4 text-center text-sm text-gray-400'>No movies found</li>
-                  )
-                }
+
+          <form onSubmit={handleSubmit} className='relative flex flex-col gap-2 flex-shrink-0'>
+            <div className='relative'>
+              <input
+                placeholder='Search for movie title'
+                type='text' inputMode='search' autoComplete='off' autoCorrect='off' autoCapitalize='off' spellCheck='false'
+                className={`rounded-xl w-full text-base py-3 px-4 bg-black/3 dark:bg-white/5 border border-black/8 dark:border-white/8 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500/30 dark:focus:ring-amber-500/30 transition-all ${shakeInput ? 'animate-shake !border-red-400' : ''}`}
+                onBlur={handleBlur} onKeyDown={handleKeyDown}
+                value={selectedMovie?.title || selectedMovie?.original_title}
+                onChange={handleChange}
+              />
+              <ul className={`border border-black/8 dark:border-white/8 rounded-b-xl absolute top-full left-0 w-full flex flex-col divide-y divide-black/5 dark:divide-white/5 bg-white dark:bg-[#1a1a1a] max-h-48 overflow-y-auto shadow-xl z-20 ${visible ? '' : 'hidden'}`}>
+                {searchLoading ? (
+                  <li className='p-4 text-center'>
+                    <div className='flex items-center justify-center gap-2'>
+                      <div className='w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin'></div>
+                      <span className='text-sm text-gray-400'>Searching...</span>
+                    </div>
+                  </li>
+                ) : movieSearchList.length > 0 ? (
+                  movieSearchList.map((item, index) => {
+                    const showOriginal = item.original_title && item.original_title !== item.title;
+                    return (
+                      <li id={`search-result-${index}`} key={item.id}
+                        className={`cursor-pointer px-4 py-3 dark:text-white text-sm transition-colors active:bg-black/5 dark:active:bg-white/10 ${selectedIndex === index ? 'bg-red-50 dark:bg-red-900/20' : 'hover:bg-black/3 dark:hover:bg-white/5'}`}
+                        onClick={() => setSelectedMovie(item)}>
+                        <div className='font-medium'>{highlightMatch(item.title || item.original_title, selectedMovie.original_title)} <span className='text-gray-400 font-normal'>({new Date(item.release_date).getFullYear()})</span></div>
+                        {showOriginal && <div className='text-xs text-gray-400 italic mt-0.5'>{item.original_title}</div>}
+                      </li>
+                    );
+                  })
+                ) : (
+                  <li className='p-4 text-center text-sm text-gray-400'>No movies found</li>
+                )}
               </ul>
             </div>
-            <div className='flex gap-2 thumb-zone'>
-              <input type="submit" value={"Try"} className={`flex-1 rounded bg-red-600 text-white font-semibold py-4 px-4 hover:bg-red-700 active:bg-red-800 animate-buttonHover touch-target ${successFeedback ? 'animate-successPulse' : ''} ${errorFeedback ? 'animate-errorPulse' : ''} ${hapticFeedback === 'success' ? 'animate-hapticSuccess' : ''} ${hapticFeedback === 'error' ? 'animate-hapticError' : ''}`}/>
-              <button type="button" onClick={handlePass} disabled={tries.length >= 4} className='rounded-xl bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 font-semibold py-4 px-4 hover:bg-black/10 dark:hover:bg-white/12 disabled:opacity-30 disabled:cursor-not-allowed transition-colors touch-target'>Hint</button>
+            <div className='flex gap-2'>
+              <input type='submit' value='Try' className={`flex-1 rounded-xl bg-red-600 text-white font-semibold py-3.5 px-4 hover:bg-red-700 active:bg-red-800 cursor-pointer transition-colors ${successFeedback ? 'animate-successPulse' : ''} ${errorFeedback ? 'animate-errorPulse' : ''}`} />
+              <button type='button' onClick={handlePass} disabled={tries.length >= 4} className='rounded-xl bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 font-semibold py-3.5 px-5 hover:bg-black/10 dark:hover:bg-white/12 disabled:opacity-30 disabled:cursor-not-allowed transition-colors'>Hint</button>
             </div>
-        </form>
-          {/* Ad at the bottom of right column */}
-          <div className='bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm flex-shrink-0'>
-            <p className='text-xs text-gray-400 mb-1 text-center'>Ad</p>
+          </form>
+
+          <div className='hidden md:block flex-shrink-0'>
             <AdSenseResponsive key={location.key || 'home-ad'} format='banner' />
           </div>
-          </div>{/* end right column */}
+        </div>
+
       </div>
     </>
   )

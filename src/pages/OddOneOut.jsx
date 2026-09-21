@@ -386,7 +386,7 @@ export default function OddOneOut() {
         <AdSenseResponsive format='vertical' />
       </div>
       
-      <div className='flex-1 flex flex-col gap-4 p-4 dark:bg-gray-900 max-w-4xl mx-auto w-full pb-4'>
+      <div className='flex-1 flex flex-col gap-3 p-3 sm:p-4 overflow-y-auto max-w-4xl mx-auto w-full'>
       {loading && movies.length > 0 && (
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
           <div className='bg-white dark:bg-gray-800 p-6 rounded-lg'>
@@ -468,10 +468,7 @@ export default function OddOneOut() {
       </div>
 
       {/* Mobile: Fixed size banner ad (320x50) */}
-      <div className='lg:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm'>
-        <p className='text-xs text-gray-400 mb-1 text-center'>Ad</p>
-        <AdSenseResponsive key={adKey} format='banner' />
-      </div>
+      <div className='hidden'></div>
 
       <div className='grid grid-cols-2 gap-2 sm:gap-4'>
         {movies.map((movie, index) => (

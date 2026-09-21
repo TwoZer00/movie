@@ -17,7 +17,7 @@ export default function SearchSection({
           <button
             onClick={onGetHint}
             disabled={loading}
-            className='px-3 py-1 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-semibold hover:bg-amber-200 dark:hover:bg-amber-900/60 disabled:opacity-40 transition-colors'
+            className='px-4 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-semibold hover:bg-amber-200 dark:hover:bg-amber-900/60 disabled:opacity-40 transition-colors active:scale-95'
           >
             Hint {hintsUsed}/3
           </button>
@@ -39,13 +39,18 @@ export default function SearchSection({
         <input
           ref={searchInputRef}
           type='text'
+          inputMode='search'
+          autoComplete='off'
+          autoCorrect='off'
+          autoCapitalize='off'
+          spellCheck='false'
           value={searchQuery}
           onChange={onSearchChange}
           onFocus={onSearchFocus}
           onBlur={onSearchBlur}
           onKeyDown={onSearchKeyDown}
           placeholder={mode === 'guessActor' ? 'Search actor name…' : 'Search movie title…'}
-          className='w-full px-4 py-3 rounded-xl border border-black/8 dark:border-white/8 bg-black/3 dark:bg-white/5 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 dark:focus:ring-amber-500/30 transition-all disabled:opacity-50'
+          className='w-full px-4 py-3.5 rounded-xl border border-black/8 dark:border-white/8 bg-black/3 dark:bg-white/5 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-base focus:outline-none focus:ring-2 focus:ring-red-500/30 dark:focus:ring-amber-500/30 transition-all disabled:opacity-50'
           disabled={loading}
         />
         {searching && (
@@ -55,7 +60,7 @@ export default function SearchSection({
         )}
 
         {searchResults.length > 0 && showResults && (
-          <div className='absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-[#1a1a1a] border border-black/8 dark:border-white/8 rounded-xl shadow-xl max-h-60 overflow-y-auto z-10 divide-y divide-black/5 dark:divide-white/5'>
+          <div className='absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1a1a1a] border border-black/8 dark:border-white/8 rounded-xl shadow-xl max-h-48 sm:max-h-60 overflow-y-auto z-10 divide-y divide-black/5 dark:divide-white/5'>
             {mode === 'guessActor'
               ? searchResults.map((actor, index) => (
                 <button
@@ -63,10 +68,10 @@ export default function SearchSection({
                   key={actor.id}
                   onClick={() => onActorSelect(actor)}
                   disabled={loading}
-                  className={`w-full px-3 py-2.5 flex items-center gap-3 text-left hover:bg-black/3 dark:hover:bg-white/5 transition-colors disabled:opacity-50 ${selectedIndex === index ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
+                  className={`w-full px-3 py-3 flex items-center gap-3 text-left hover:bg-black/3 dark:hover:bg-white/5 transition-colors disabled:opacity-50 active:bg-black/5 dark:active:bg-white/10 ${selectedIndex === index ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
                 >
                   {actor.profile_path
-                    ? <img src={`${IMG_URL}${PROFILE_SIZE.sm}${actor.profile_path}`} alt={actor.name} className='w-9 h-9 rounded-full object-cover flex-shrink-0' />
+                    ? <img src={`${IMG_URL}${PROFILE_SIZE.sm}${actor.profile_path}`} alt={actor.name} className='w-10 h-10 rounded-full object-cover flex-shrink-0' />
                     : <div className='w-9 h-9 rounded-full bg-black/8 dark:bg-white/8 flex items-center justify-center text-sm flex-shrink-0'>👤</div>
                   }
                   <div>
@@ -81,7 +86,7 @@ export default function SearchSection({
                   key={movie.id}
                   onClick={() => onMovieSelect(movie)}
                   disabled={loading}
-                  className={`w-full px-3 py-2.5 flex items-center gap-3 text-left hover:bg-black/3 dark:hover:bg-white/5 transition-colors disabled:opacity-50 ${selectedIndex === index ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
+                  className={`w-full px-3 py-3 flex items-center gap-3 text-left hover:bg-black/3 dark:hover:bg-white/5 transition-colors disabled:opacity-50 active:bg-black/5 dark:active:bg-white/10 ${selectedIndex === index ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
                 >
                   {movie.poster_path
                     ? <img src={`${IMG_URL}${POSTER_SIZE.sm}${movie.poster_path}`} alt={movie.title} className='w-8 h-12 object-cover rounded-lg flex-shrink-0' />

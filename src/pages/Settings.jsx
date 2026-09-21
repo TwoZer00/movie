@@ -6,6 +6,7 @@ export default function Settings() {
   const [soundEnabled, setSoundEnabled] = useState(localStorage.getItem('soundEnabled') !== 'false');
   const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
   const [adultFilter, setAdultFilter] = useState(localStorage.getItem('adultFilter') !== 'false');
+  const [confirmReset, setConfirmReset] = useState(false);
   const stats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"losses":0,"currentStreak":0,"maxStreak":0}');
   const linkStats = JSON.parse(localStorage.getItem('linkChainStats') || '{}');
   const oddStats = JSON.parse(localStorage.getItem('oddOneOutStats') || '{}');
@@ -22,11 +23,11 @@ export default function Settings() {
   };
   const toggleAdultFilter = () => {
     const v = !adultFilter;
-    if (!v && !confirm('Are you sure you want to disable the adult content filter?')) return;
+    if (!v) { if (!window.confirm('Are you sure you want to disable the adult content filter?')) return; }
     setAdultFilter(v); localStorage.setItem('adultFilter', v);
   };
   const resetStats = () => {
-    if (!confirm('Reset all statistics? This cannot be undone.')) return;
+    if (!confirmReset) { setConfirmReset(true); setTimeout(() => setConfirmReset(false), 3000); return; }
     localStorage.setItem('gameStats', JSON.stringify({ wins: 0, losses: 0, currentStreak: 0, maxStreak: 0 }));
     localStorage.setItem('linkChainStats', JSON.stringify({}));
     localStorage.setItem('oddOneOutStats', JSON.stringify({}));
@@ -109,9 +110,13 @@ export default function Settings() {
         {/* Reset */}
         <button
           onClick={resetStats}
-          className='w-full py-3 rounded-2xl font-semibold text-sm text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors'
+          className={`w-full py-3.5 rounded-2xl font-semibold text-sm transition-colors ${
+            confirmReset
+              ? 'bg-red-600 text-white'
+              : 'text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20'
+          }`}
         >
-          🗑️ Reset All Statistics
+          {confirmReset ? '⚠️ Tap again to confirm' : '🗑️ Reset All Statistics'}
         </button>
 
         {/* Attribution */}
@@ -131,16 +136,16 @@ function Toggle({ value, onToggle }) {
   return (
     <button
       onClick={onToggle}
-      className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${value ? 'bg-red-600' : 'bg-black/15 dark:bg-white/15'}`}
+      className={`relative w-12 h-7 rounded-full transition-colors duration-200 flex-shrink-0 ${value ? 'bg-red-600' : 'bg-black/15 dark:bg-white/15'}`}
     >
-      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${value ? 'translate-x-5' : 'translate-x-0'}`} />
+      <span className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${value ? 'translate-x-5' : 'translate-x-0'}`} />
     </button>
   );
 }
 
 function ToggleRow({ icon, label, description, value, onToggle }) {
   return (
-    <div className='flex items-center justify-between py-3 gap-4'>
+    <button className='flex items-center justify-between py-3.5 gap-4 w-full text-left active:bg-black/3 dark:active:bg-white/5 rounded-lg transition-colors' onClick={onToggle}>
       <div className='flex items-center gap-3'>
         <span className='text-lg'>{icon}</span>
         <div>
@@ -148,7 +153,7 @@ function ToggleRow({ icon, label, description, value, onToggle }) {
           {description && <p className='text-xs text-gray-400 dark:text-gray-500'>{description}</p>}
         </div>
       </div>
-      <Toggle value={value} onToggle={onToggle} />
-    </div>
+      <Toggle value={value} onToggle={(e) => { e.stopPropagation(); onToggle(); }} />
+    </button>
   );
 }

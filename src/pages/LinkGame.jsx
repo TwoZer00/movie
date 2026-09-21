@@ -10,12 +10,12 @@ import KeyboardShortcutsModal from '../components/KeyboardShortcutsModal';
 import ChainDisplay from '../components/ChainDisplay';
 import GameOverScreen from '../components/GameOverScreen';
 import SearchSection from '../components/SearchSection';
-import AdSenseResponsive from '../components/AdSenseResponsive';
 import winSound from '../resources/win_sound.wav';
 import lossSound from '../resources/loss_sound.wav';
 import { trackGameStart, trackGameEnd, trackHintUsed, trackShare, trackUndo, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
 import { generateShareImage, downloadImage, shareImageNative } from '../utils/shareImage';
 import { addMovieCooldown, getRecentMovies } from '../utils/movieCooldown';
+import AdSenseResponsive from '../components/AdSenseResponsive';
 
 const debounce = (fn, delay) => {
   let timer;
@@ -571,7 +571,7 @@ export default function LinkGame() {
         <AdSenseResponsive format='vertical' />
       </div>
       
-        <div className='flex-1 flex flex-col gap-2 p-2 sm:p-4 overflow-hidden dark:bg-gray-900 max-w-4xl mx-auto w-full pb-2'>
+        <div className='flex-1 flex flex-col gap-2 p-2 sm:p-3 overflow-hidden max-w-4xl mx-auto w-full min-h-0'>
       {loading && chain.length > 0 && (
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
           <div className='bg-white dark:bg-gray-800 p-6 rounded-lg'>
@@ -581,42 +581,42 @@ export default function LinkGame() {
         </div>
       )}
       {/* Game header */}
-      <div className='card rounded-2xl px-4 py-3 flex justify-between items-center flex-shrink-0'>
-        <div className='flex items-center gap-2'>
+      <div className='card rounded-2xl px-3 py-2.5 flex justify-between items-center flex-shrink-0'>
+        <div className='flex items-center gap-1.5'>
           <button
             onClick={() => setShowHelp(true)}
-            className='w-8 h-8 rounded-lg bg-black/5 dark:bg-white/8 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm flex items-center justify-center transition-colors'
+            className='w-9 h-9 rounded-lg bg-black/5 dark:bg-white/8 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm flex items-center justify-center transition-colors active:scale-95'
             title='Keyboard shortcuts'
           >?</button>
           {!isDailyChallenge && !gameOver && chain.length > 1 && (
             <button
               onClick={handleUndo}
-              className='w-8 h-8 rounded-lg bg-black/5 dark:bg-white/8 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm flex items-center justify-center transition-colors'
+              className='w-9 h-9 rounded-lg bg-black/5 dark:bg-white/8 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm flex items-center justify-center transition-colors active:scale-95'
               title='Undo (U)'
             >↩</button>
           )}
           {!isDailyChallenge && !gameOver && (
             <button
               onClick={reset}
-              className='px-3 h-8 rounded-lg bg-black/5 dark:bg-white/8 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 text-xs font-medium transition-colors'
+              className='px-3 h-9 rounded-lg bg-black/5 dark:bg-white/8 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 text-xs font-medium transition-colors active:scale-95'
               title='Give up (G)'
             >Give Up</button>
           )}
         </div>
-        <div className='flex items-center gap-4'>
+        <div className='flex items-center gap-3'>
           <div className='text-center'>
-            <p className='text-lg font-bold text-gray-900 dark:text-white leading-none'>{Math.floor(chain.length / 2) + 1}</p>
-            <p className='text-[10px] uppercase tracking-wide text-gray-400'>Chain</p>
+            <p className='text-base font-bold text-gray-900 dark:text-white leading-none'>{Math.floor(chain.length / 2) + 1}</p>
+            <p className='text-[9px] uppercase tracking-wide text-gray-400'>Chain</p>
           </div>
-          <div className='w-px h-8 bg-black/8 dark:bg-white/8' />
+          <div className='w-px h-6 bg-black/8 dark:bg-white/8' />
           <div className='text-center'>
-            <p className='text-lg font-bold text-gray-900 dark:text-white leading-none'>{getElapsedTime()}</p>
-            <p className='text-[10px] uppercase tracking-wide text-gray-400'>Time</p>
+            <p className='text-base font-bold text-gray-900 dark:text-white leading-none'>{getElapsedTime()}</p>
+            <p className='text-[9px] uppercase tracking-wide text-gray-400'>Time</p>
           </div>
-          <div className='w-px h-8 bg-black/8 dark:bg-white/8' />
+          <div className='w-px h-6 bg-black/8 dark:bg-white/8' />
           <div className='text-center'>
-            <p className='text-lg font-bold text-amber-500 leading-none'>{getBestChain()}</p>
-            <p className='text-[10px] uppercase tracking-wide text-gray-400'>Best</p>
+            <p className='text-base font-bold text-amber-500 leading-none'>{getBestChain()}</p>
+            <p className='text-[9px] uppercase tracking-wide text-gray-400'>Best</p>
           </div>
         </div>
       </div>
@@ -686,12 +686,6 @@ export default function LinkGame() {
             )}
           </div>
 
-          {/* Mobile ad */}
-          <div className='lg:hidden bg-white dark:bg-gray-800 rounded-lg p-2 shadow-sm'>
-            <p className='text-xs text-gray-400 mb-1 text-center'>Ad</p>
-            <AdSenseResponsive key={location.key || 'link-ad'} format='banner' />
-          </div>
-
           <SearchSection
             mode={mode}
             hintsUsed={hintsUsed}
@@ -740,7 +734,7 @@ export default function LinkGame() {
             onMovieSelect={handleMovieSelect}
           />
           {errorMessage && (
-            <p className='text-red-600 dark:text-red-400 text-center font-medium text-sm'>{errorMessage}</p>
+            <p className='text-red-600 dark:text-red-400 text-center font-medium text-sm animate-shake flex-shrink-0'>{errorMessage}</p>
           )}
         </>
       )}

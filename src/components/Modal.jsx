@@ -85,9 +85,9 @@ Play at: ${window.location.origin}`;
   },[isWin, isDailyChallenge, movie, difficultyLevel]);
   
   return (
-    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn p-4' onClick={onClose}>
+    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 animate-fadeIn p-0 sm:p-4' onClick={onClose}>
       {isWin && <Confetti />}
-      <div className='card rounded-2xl p-4 sm:p-5 max-w-md w-full max-h-[90vh] overflow-y-auto text-center animate-scaleIn' onClick={(e)=>e.stopPropagation()}>
+      <div className='card rounded-t-2xl sm:rounded-2xl p-4 sm:p-5 max-w-md w-full max-h-[85dvh] overflow-y-auto text-center animate-slideIn sm:animate-scaleIn' onClick={(e)=>e.stopPropagation()}>
         <h2 className={`text-3xl font-bold mb-1 ${isWin?'text-green-600':'text-red-600'}`}>
           {isWin ? '🎉 You Won!' : '😔 You Lost!'}
         </h2>
@@ -168,20 +168,20 @@ Play at: ${window.location.origin}`;
         <div className='flex flex-col gap-2'>
           <div className='flex gap-2'>
             {!isDailyChallenge && (
-              <button onClick={() => window.location.href = '/'} className='flex-1 py-2.5 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 transition-colors'>
+              <button onClick={() => window.location.href = '/'} className='flex-1 py-3 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 active:scale-[0.98] transition-all'>
                 🏠 Home
               </button>
             )}
-            <button onClick={onClose} className='flex-1 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-600 to-amber-600 hover:opacity-90 active:scale-[0.98] transition-all shadow-sm'>
+            <button onClick={onClose} className='flex-1 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-600 to-amber-600 hover:opacity-90 active:scale-[0.98] transition-all shadow-sm'>
               {isDailyChallenge ? '🏠 Back to Menu' : '▶ Play Again'}
             </button>
           </div>
           <div className='flex gap-2'>
-            <button onClick={shareResults} className='flex-1 py-2.5 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 transition-colors'>
+            <button onClick={shareResults} className='flex-1 py-3 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 active:scale-[0.98] transition-all'>
               {copied ? '✓ Copied!' : '📋 Share'}
             </button>
             {onShareImage && (
-              <button onClick={onShareImage} className='flex-1 py-2.5 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 transition-colors'>
+              <button onClick={onShareImage} className='flex-1 py-3 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 active:scale-[0.98] transition-all'>
                 📷 Image
               </button>
             )}
