@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getGenres } from '../api/init';
 import { getCountries } from '../api/utils/utils';
+import { trackModeSelect, trackFilterApplied } from '../utils/analytics';
 
 const COLLECTIONS = [
   { id: 'marvel', name: 'Marvel', emoji: '🦸', filters: { with_companies: '420', with_genres: '28' } },
@@ -31,9 +32,15 @@ export default function GuessSetup() {
     }
   }, []);
 
-  const handleStart = (filters = {}) => navigate('/play', { state: filters });
+  const handleStart = (filters = {}) => {
+    const hasFilters = Object.keys(filters).length > 0;
+    if (hasFilters) trackFilterApplied({ genre: selectedGenre || null, decade: selectedDecade || null, region: selectedRegion || null });
+    else trackModeSelect('guess_random');
+    navigate('/play', { state: filters });
+  };
 
   const handleCollection = (collection) => {
+    trackModeSelect(`collection_${collection.id}`);
     const playedKey = `collection_${collection.id}_played`;
     const playedMovies = JSON.parse(localStorage.getItem(playedKey) || '[]');
     navigate('/play', { state: { ...collection.filters, collectionId: collection.id, collectionName: collection.name, playedMovies } });

@@ -12,7 +12,7 @@ import { CastSkeleton } from '../components/Skeleton';
 import { Toast } from '../components/Toast';
 import { gameStatusVal, loadStatus } from '../utils/constants';
 import AdSenseResponsive from '../components/AdSenseResponsive';
-import { trackGameStart, trackGameEnd, trackSkip, trackCollectionStart, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
+import { trackGameStart, trackGameEnd, trackSkip, trackHintUsed, trackShare, trackCollectionStart, trackCollectionComplete, trackDailyChallengeComplete, trackGameDuration, trackSearch, trackPlayAgain, trackAbandoned, trackMovieFailed, trackSearchNoResults } from '../utils/analytics';
 import { generateShareImage, downloadImage, shareImageNative } from '../utils/shareImage';
 import { addMovieCooldown, getRecentMovies } from '../utils/movieCooldown';
 import { getDailyStreak, showStreakNotification } from '../utils/dailyStreak';
@@ -164,6 +164,15 @@ export default function Home() {
     };
   }, [fetchData, navigate]);
 
+  // Track abandonment when leaving mid-game
+  useEffect(() => {
+    return () => {
+      if (gameStatus === gameStatusVal.playing && tries.length > 0) {
+        trackAbandoned(isDailyChallenge ? 'guess_by_cast_daily' : 'guess_by_cast', tries.length);
+      }
+    };
+  }, [gameStatus, tries.length, isDailyChallenge]);
+
   useEffect(() => {
     if(gameStatus === gameStatusVal.playing) {
       const handleKeyDown = (e) => {
@@ -229,6 +238,7 @@ export default function Home() {
       const gameDuration = Math.floor((Date.now() - (startTime || Date.now())) / 1000);
       trackGameDuration(isDailyChallenge ? 'guess_by_cast_daily' : 'guess_by_cast', gameDuration);
       trackGameEnd(isDailyChallenge ? 'guess_by_cast_daily' : 'guess_by_cast', 'win', tries.length + 1);
+      if (collectionId) trackCollectionComplete(collectionId, location.state?.collectionName || 'Custom Collection');
       
       if (isDailyChallenge) {
         trackDailyChallengeComplete('guess_by_cast', 'win', tries.length + 1);
@@ -279,6 +289,7 @@ export default function Home() {
       const gameDuration = Math.floor((Date.now() - (startTime || Date.now())) / 1000);
       trackGameDuration(isDailyChallenge ? 'guess_by_cast_daily' : 'guess_by_cast', gameDuration);
       trackGameEnd(isDailyChallenge ? 'guess_by_cast_daily' : 'guess_by_cast', 'loss', tries.length + 1);
+      trackMovieFailed(movie.id, movie.title || movie.original_title, tries.length + 1);
       
       if (isDailyChallenge) {
         trackDailyChallengeComplete('guess_by_cast', 'loss', tries.length + 1);
@@ -335,6 +346,7 @@ export default function Home() {
       const availableIndices = letters.map((_, i) => i).filter(i => !revealedLetters.includes(i));
       const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
       setRevealedLetters(prev => [...prev, randomIndex]);
+      trackHintUsed(isDailyChallenge ? 'guess_by_cast_daily' : 'guess_by_cast', 'letter_reveal');
     }
     
     e.target.querySelector("input").focus();
@@ -358,8 +370,6 @@ export default function Home() {
           .then(data => {
             let results = data.results;
             
-            trackSearch('guess_by_cast', movie.original_title, results.length);
-            
             // Filter by matched genres
             if (matchedGenres.length > 0) {
               results = results.filter(m => 
@@ -378,6 +388,7 @@ export default function Home() {
             
             setMovieSearchList(results);
             setSearchLoading(false);
+            if (results.length === 0) trackSearchNoResults('guess_by_cast', movie.original_title);
           })
           .catch(error => {
             console.error('Error fetching movies:', error);
@@ -567,10 +578,17 @@ export default function Home() {
       const availableIndices = letters.map((_, i) => i).filter(i => !revealedLetters.includes(i));
       const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
       setRevealedLetters(prev => [...prev, randomIndex]);
+      trackHintUsed(isDailyChallenge ? 'guess_by_cast_daily' : 'guess_by_cast', 'letter_reveal');
     }
-  }, [tries.length, cast, movie, revealedLetters]);
+  }, [tries.length, cast, movie, revealedLetters, isDailyChallenge]);
+
+  const handlePlayAgain = useCallback(() => {
+    trackPlayAgain(isDailyChallenge ? 'guess_by_cast_daily' : 'guess_by_cast');
+    reset();
+  }, [isDailyChallenge, reset]);
 
   const handleShareImage = async () => {
+    trackShare(isDailyChallenge ? 'guess_by_cast_daily' : 'guess_by_cast');
     const stats = JSON.parse(localStorage.getItem('gameStats') || '{"wins":0,"losses":0,"currentStreak":0,"maxStreak":0}');
     
     const imageData = await generateShareImage({
@@ -592,7 +610,7 @@ export default function Home() {
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      {showModal && <Suspense fallback={<div className='fixed inset-0 bg-black/50 z-50'></div>}><Modal isWin={isWin} movie={movie} onClose={isDailyChallenge ? ()=>navigate('/') : reset} isDailyChallenge={isDailyChallenge} triesUsed={tries.length} revealedCast={cast} onShareImage={handleShareImage} /></Suspense>}
+      {showModal && <Suspense fallback={<div className='fixed inset-0 bg-black/50 z-50'></div>}><Modal isWin={isWin} movie={movie} onClose={isDailyChallenge ? ()=>navigate('/') : handlePlayAgain} isDailyChallenge={isDailyChallenge} triesUsed={tries.length} revealedCast={cast} onShareImage={handleShareImage} /></Suspense>}
       {showHelp && <Suspense fallback={<div className='fixed inset-0 bg-black/50 z-50'></div>}><KeyboardShortcutsModal onClose={() => setShowHelp(false)} mode='guess' /></Suspense>}
       {showShareImage && (
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4' onClick={() => setShowShareImage(false)}>
@@ -724,7 +742,7 @@ export default function Home() {
                     return (
                       <li id={`search-result-${index}`} key={item.id}
                         className={`cursor-pointer px-4 py-3 dark:text-white text-sm transition-colors active:bg-black/5 dark:active:bg-white/10 ${selectedIndex === index ? 'bg-red-50 dark:bg-red-900/20' : 'hover:bg-black/3 dark:hover:bg-white/5'}`}
-                        onClick={() => setSelectedMovie(item)}>
+                        onClick={() => { trackSearch('guess_by_cast', selectedMovie.original_title, movieSearchList.length); setSelectedMovie(item); }}>
                         <div className='font-medium'>{highlightMatch(item.title || item.original_title, selectedMovie.original_title)} <span className='text-gray-400 font-normal'>({new Date(item.release_date).getFullYear()})</span></div>
                         {showOriginal && <div className='text-xs text-gray-400 italic mt-0.5'>{item.original_title}</div>}
                       </li>

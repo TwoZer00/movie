@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getDailyStreak, getWeekDays } from '../utils/dailyStreak'
 import PWAInstallBanner from '../components/PWAInstallBanner'
 import PWAFeatures from '../components/PWAFeatures'
+import { trackModeSelect } from '../utils/analytics'
 
 const MODES = [
   {
@@ -85,6 +86,7 @@ export default function Menu() {
     : 'Start your streak today!'
 
   const handlePlay = (key) => {
+    trackModeSelect(key);
     if (key === 'guess') navigate('/play')
     else if (key === 'link') navigate('/link')
     else if (key === 'odd') navigate('/odd')
@@ -154,14 +156,14 @@ export default function Menu() {
                     ? 'bg-white/15 opacity-50 cursor-not-allowed text-white/70'
                     : 'bg-white text-red-700 hover:bg-white/90 active:scale-[0.98] shadow-md font-bold'
                 }`}
-                onClick={() => navigate('/play?daily=true')}
+                onClick={() => { trackModeSelect('guess_daily'); navigate('/play?daily=true'); }}
                 disabled={dailyCompleted}
               >
                 {dailyCompleted ? '🎬 Completed ✓' : '🎬 Play Today\'s Challenge'}
               </button>
               <button
                 className='py-3 px-4 rounded-xl font-semibold text-sm bg-white/15 hover:bg-white/25 transition-all border border-white/20'
-                onClick={() => navigate('/link?daily=true')}
+                onClick={() => { trackModeSelect('link_daily'); navigate('/link?daily=true'); }}
                 title='Daily Link Chain'
               >
                 🔗

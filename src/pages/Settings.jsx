@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { trackStatsReset, trackAdultFilterToggle } from '../utils/analytics';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -25,9 +26,11 @@ export default function Settings() {
     const v = !adultFilter;
     if (!v) { if (!window.confirm('Are you sure you want to disable the adult content filter?')) return; }
     setAdultFilter(v); localStorage.setItem('adultFilter', v);
+    trackAdultFilterToggle(v);
   };
   const resetStats = () => {
     if (!confirmReset) { setConfirmReset(true); setTimeout(() => setConfirmReset(false), 3000); return; }
+    trackStatsReset();
     localStorage.setItem('gameStats', JSON.stringify({ wins: 0, losses: 0, currentStreak: 0, maxStreak: 0 }));
     localStorage.setItem('linkChainStats', JSON.stringify({}));
     localStorage.setItem('oddOneOutStats', JSON.stringify({}));

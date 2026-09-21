@@ -12,7 +12,7 @@ import GameOverScreen from '../components/GameOverScreen';
 import SearchSection from '../components/SearchSection';
 import winSound from '../resources/win_sound.wav';
 import lossSound from '../resources/loss_sound.wav';
-import { trackGameStart, trackGameEnd, trackHintUsed, trackShare, trackUndo, trackDailyChallengeComplete, trackGameDuration, trackSearch } from '../utils/analytics';
+import { trackGameStart, trackGameEnd, trackHintUsed, trackShare, trackUndo, trackDailyChallengeComplete, trackGameDuration, trackSearch, trackPlayAgain, trackAbandoned, trackSearchNoResults } from '../utils/analytics';
 import { generateShareImage, downloadImage, shareImageNative } from '../utils/shareImage';
 import { addMovieCooldown, getRecentMovies } from '../utils/movieCooldown';
 import AdSenseResponsive from '../components/AdSenseResponsive';
@@ -184,6 +184,15 @@ export default function LinkGame() {
     }
   }, [gameOver, startTime]);
 
+  // Track abandonment when leaving mid-game
+  useEffect(() => {
+    return () => {
+      if (!gameOver && chain.length > 1) {
+        trackAbandoned(isDailyChallenge ? 'link_chain_daily' : 'link_chain', chain.length);
+      }
+    };
+  }, [gameOver, chain.length, isDailyChallenge]);
+
   const debouncedSearch = useMemo(
     () => debounce(async (query) => {
       if (!query.trim()) {
@@ -198,11 +207,11 @@ export default function LinkGame() {
         if (mode === 'guessActor') {
           const results = await searchPerson(query);
           setSearchResults(results.results.slice(0, 10));
-          trackSearch('link_chain', query, results.results.length);
+          if (results.results.length === 0) trackSearchNoResults('link_chain', query);
         } else {
           const results = await getMoviesByName(query);
           setSearchResults(results.results.slice(0, 10));
-          trackSearch('link_chain', query, results.results.length);
+          if (results.results.length === 0) trackSearchNoResults('link_chain', query);
         }
       } catch (error) {
         console.error('Search error:', error);
@@ -260,6 +269,7 @@ export default function LinkGame() {
     }
     
     if (soundEnabled) successAudio.current.play();
+    trackSearch('link_chain', actor.name, 1);
     
     // Add actor to chain and switch to movie guessing mode
     setChain(prev => {
@@ -311,6 +321,7 @@ export default function LinkGame() {
     }
     
     if (soundEnabled) successAudio.current.play();
+    trackSearch('link_chain', movie.title || movie.original_title, 1);
     
     // Get cast from selected movie
     const [movieDetails, nextCredits, keywords, images] = await Promise.all([
@@ -394,29 +405,24 @@ export default function LinkGame() {
     if (mode === 'guessActor') {
       // Hints for guessing actor from movie - don't reveal which actor
       if (hints.length === 0) {
-        trackHintUsed('link_chain', 'actor_character');
-        // Hint 1: Show character name or role
+        trackHintUsed('link_chain', 'actor_character', chain.length);
         const randomActor = currentCast[Math.floor(Math.random() * Math.min(5, currentCast.length))];
         const character = randomActor.character || 'Unknown role';
         setHints([`Plays: ${character}`]);
         setActorHints({ actorId: randomActor.id });
       } else if (hints.length === 1 && actorHints) {
-        trackHintUsed('link_chain', 'actor_birth_year');
-        // Hint 2: Birth year
+        trackHintUsed('link_chain', 'actor_birth_year', chain.length);
         const personDetails = await getPersonDetails(actorHints.actorId);
         const birthYear = personDetails.birthday ? new Date(personDetails.birthday).getFullYear() : 'Unknown';
         setHints(prev => [...prev, `Born in: ${birthYear}`]);
       } else if (hints.length === 2 && actorHints) {
-        trackHintUsed('link_chain', 'actor_first_letter');
-        // Hint 3: First letter
+        trackHintUsed('link_chain', 'actor_first_letter', chain.length);
         const actor = currentCast.find(a => a.id === actorHints.actorId);
         setHints(prev => [...prev, `Name starts with: ${actor.name[0]}`]);
       }
     } else {
-      // Hints for guessing movie from actor
       if (hints.length === 0) {
-        trackHintUsed('link_chain', 'movie_year_genre');
-        // Hint 1: Get random movie from actor and show year + genres
+        trackHintUsed('link_chain', 'movie_year_genre', chain.length);
         const actorMovies = await getMoviesByActor(currentActor.id);
         const validMovies = actorMovies.cast.filter(m => !usedMovies.includes(m.id) && m.release_date);
         if (validMovies.length === 0) {
@@ -430,8 +436,7 @@ export default function LinkGame() {
         setHints([`${year} • ${genreNames}`]);
         setActorHints({ movieId: randomMovie.id });
       } else if (hints.length === 1 && actorHints) {
-        trackHintUsed('link_chain', 'movie_cast');
-        // Hint 2: Other cast members
+        trackHintUsed('link_chain', 'movie_cast', chain.length);
         const credits = await getCastFromMovie(actorHints.movieId);
         const otherCast = credits.cast
           .filter(c => c.id !== currentActor.id)
@@ -440,8 +445,7 @@ export default function LinkGame() {
           .join(', ');
         setHints(prev => [...prev, `Also starring: ${otherCast || 'Unknown'}`]);
       } else if (hints.length === 2 && actorHints) {
-        trackHintUsed('link_chain', 'movie_director');
-        // Hint 3: Director
+        trackHintUsed('link_chain', 'movie_director', chain.length);
         const credits = await getCastFromMovie(actorHints.movieId);
         const director = credits.crew.find(p => p.job === 'Director');
         setHints(prev => [...prev, `Director: ${director?.name || 'Unknown'}`]);
@@ -485,6 +489,7 @@ export default function LinkGame() {
   };
 
   const handleShareImage = async () => {
+    trackShare(isDailyChallenge ? 'link_chain_daily' : 'link_chain');
     const chainLength = Math.floor(chain.length / 2) + 1;
     const imageData = await generateShareImage({
       type: 'link',
@@ -503,7 +508,7 @@ export default function LinkGame() {
   };
 
   const reset = () => {
-    if (isDailyChallenge) return; // Can't reset daily challenge
+    if (isDailyChallenge) return;
     
     const finalChainLength = Math.floor(chain.length / 2) + 1;
     updateBestChain(finalChainLength);
@@ -633,7 +638,7 @@ export default function LinkGame() {
           isDailyChallenge={isDailyChallenge}
           onShareResults={shareResults}
           onShareImage={handleShareImage}
-          onReset={reset}
+          onReset={() => { trackPlayAgain('link_chain'); reset(); }}
           onGoHome={() => navigate('/')}
         />
       ) : (
