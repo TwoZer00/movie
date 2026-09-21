@@ -14,161 +14,141 @@ export default function Settings() {
   const avgChain = linkStats.totalGames > 0 ? Math.round(linkStats.totalLinks / linkStats.totalGames) : 0;
 
   const toggleSound = () => {
-    const newValue = !soundEnabled;
-    setSoundEnabled(newValue);
-    localStorage.setItem('soundEnabled', newValue);
+    const v = !soundEnabled; setSoundEnabled(v); localStorage.setItem('soundEnabled', v);
   };
-
   const toggleDarkMode = () => {
-    const newValue = !darkMode;
-    setDarkMode(newValue);
-    localStorage.setItem('darkMode', newValue);
-    document.documentElement.classList.toggle('dark', newValue);
+    const v = !darkMode; setDarkMode(v); localStorage.setItem('darkMode', v);
+    document.documentElement.classList.toggle('dark', v);
   };
-
   const toggleAdultFilter = () => {
-    const newValue = !adultFilter;
-    
-    // Confirm when disabling filter
-    if (!newValue) {
-      if (!confirm('Are you sure you want to disable the adult content filter? This will show adult-rated movies.')) {
-        return;
-      }
-    }
-    
-    setAdultFilter(newValue);
-    localStorage.setItem('adultFilter', newValue);
+    const v = !adultFilter;
+    if (!v && !confirm('Are you sure you want to disable the adult content filter?')) return;
+    setAdultFilter(v); localStorage.setItem('adultFilter', v);
   };
-
   const resetStats = () => {
-    if(confirm('Reset all statistics? This cannot be undone.')) {
-      localStorage.setItem('gameStats', JSON.stringify({wins:0,losses:0,currentStreak:0,maxStreak:0}));
-      localStorage.setItem('linkChainStats', JSON.stringify({}));
-      localStorage.setItem('oddOneOutStats', JSON.stringify({}));
-      window.location.reload();
-    }
+    if (!confirm('Reset all statistics? This cannot be undone.')) return;
+    localStorage.setItem('gameStats', JSON.stringify({ wins: 0, losses: 0, currentStreak: 0, maxStreak: 0 }));
+    localStorage.setItem('linkChainStats', JSON.stringify({}));
+    localStorage.setItem('oddOneOutStats', JSON.stringify({}));
+    window.location.reload();
   };
 
   return (
-    <div className='flex-1 flex flex-col items-center p-4 dark:bg-gray-900'>
-      <div className='w-full max-w-4xl'>
-        
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
-          {/* Preferences Card */}
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6'>
-            <h3 className='text-xl font-bold mb-4 text-red-600 dark:text-red-400'>🎮 Preferences</h3>
-            <div className='space-y-4'>
-              <div className='flex items-center justify-between py-1'>
-                <span className='text-gray-700 dark:text-gray-300'>🔊 Sound Effects</span>
-                <button 
-                  onClick={toggleSound}
-                  className={`min-w-[80px] min-h-[44px] px-6 py-3 rounded-lg font-medium transition-all transform hover:scale-105 active:scale-95 ${
-                    soundEnabled ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' : 'bg-gray-300 text-gray-700 dark:bg-gray-600 dark:text-gray-300'
-                  }`}
-                >
-                  {soundEnabled ? 'On' : 'Off'}
-                </button>
-              </div>
-              <div className='flex items-center justify-between py-1'>
-                <span className='text-gray-700 dark:text-gray-300'>{darkMode ? '☀️' : '🌙'} Dark Mode</span>
-                <button 
-                  onClick={toggleDarkMode}
-                  className={`min-w-[80px] min-h-[44px] px-6 py-3 rounded-lg font-medium transition-all transform hover:scale-105 active:scale-95 ${
-                    darkMode ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-gray-900' : 'bg-gradient-to-r from-gray-600 to-gray-700 text-white'
-                  }`}
-                >
-                  {darkMode ? 'On' : 'Off'}
-                </button>
-              </div>
-              <div className='flex items-center justify-between py-1'>
-                <div>
-                  <span className='text-gray-700 dark:text-gray-300'>🔒 Adult Filter</span>
-                  <p className='text-xs text-gray-500 dark:text-gray-400'>Hide adult content</p>
-                </div>
-                <button 
-                  onClick={toggleAdultFilter}
-                  className={`min-w-[80px] min-h-[44px] px-6 py-3 rounded-lg font-medium transition-all transform hover:scale-105 active:scale-95 ${
-                    adultFilter ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' : 'bg-gradient-to-r from-red-500 to-red-600 text-white'
-                  }`}
-                >
-                  {adultFilter ? 'On' : 'Off'}
-                </button>
-              </div>
-            </div>
-          </div>
+    <div className='flex-1 flex flex-col items-center p-4 pb-6'>
+      <div className='w-full max-w-lg flex flex-col gap-4'>
 
-          {/* Guess by Cast Stats */}
-          <div className='bg-gradient-to-br from-red-50 to-amber-50 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-lg p-6'>
-            <h3 className='text-xl font-bold mb-4 text-red-600 dark:text-red-400'>🎬 Guess by Cast</h3>
-            <div className='grid grid-cols-2 gap-3'>
-              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
-                <p className='text-2xl font-bold text-amber-600'>{totalGames}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Games</p>
-              </div>
-              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
-                <p className='text-2xl font-bold text-amber-600'>{winRate}%</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Win Rate</p>
-              </div>
-              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
-                <p className='text-2xl font-bold text-amber-600'>{stats.currentStreak}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Streak</p>
-              </div>
-              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
-                <p className='text-2xl font-bold text-amber-600'>{stats.maxStreak}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Best</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Link Chain Stats */}
-          <div className='bg-gradient-to-br from-red-50 to-amber-50 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-lg p-6'>
-            <h3 className='text-xl font-bold mb-4 text-red-600 dark:text-red-400'>🔗 Link Chain</h3>
-            <div className='grid grid-cols-3 gap-3'>
-              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
-                <p className='text-2xl font-bold text-amber-600'>{linkStats.totalGames || 0}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Games</p>
-              </div>
-              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
-                <p className='text-2xl font-bold text-amber-600'>{linkStats.bestChain || 0}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Best</p>
-              </div>
-              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
-                <p className='text-2xl font-bold text-amber-600'>{avgChain}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Avg</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Odd One Out Stats */}
-          <div className='bg-gradient-to-br from-red-50 to-amber-50 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-lg p-6'>
-            <h3 className='text-xl font-bold mb-4 text-red-600 dark:text-red-400'>🎯 Odd One Out</h3>
-            <div className='grid grid-cols-3 gap-3'>
-              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
-                <p className='text-2xl font-bold text-amber-600'>{oddStats.totalGames || 0}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Games</p>
-              </div>
-              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
-                <p className='text-2xl font-bold text-amber-600'>{oddStats.bestScore || 0}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Best</p>
-              </div>
-              <div className='bg-white dark:bg-gray-800 p-3 rounded-lg text-center'>
-                <p className='text-2xl font-bold text-amber-600'>{oddStats.bestStreak || 0}</p>
-                <p className='text-xs text-gray-600 dark:text-gray-400'>Streak</p>
-              </div>
-            </div>
+        {/* Preferences */}
+        <div className='card rounded-2xl p-5'>
+          <p className='text-[11px] uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-4'>Preferences</p>
+          <div className='flex flex-col divide-y divide-black/5 dark:divide-white/5'>
+            <ToggleRow
+              label='Sound Effects'
+              icon='🔊'
+              value={soundEnabled}
+              onToggle={toggleSound}
+            />
+            <ToggleRow
+              label='Dark Mode'
+              icon={darkMode ? '☀️' : '🌙'}
+              value={darkMode}
+              onToggle={toggleDarkMode}
+            />
+            <ToggleRow
+              label='Adult Content Filter'
+              icon='🔒'
+              description='Hide adult-rated movies'
+              value={adultFilter}
+              onToggle={toggleAdultFilter}
+            />
           </div>
         </div>
 
-        {/* Reset Button */}
-        <div className='bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6'>
-          <button 
-            onClick={resetStats}
-            className='w-full min-h-[48px] bg-gradient-to-r from-red-500 to-red-600 text-white py-4 rounded-lg font-semibold hover:from-red-600 hover:to-red-700 active:from-red-700 active:to-red-800 transition-all transform hover:scale-105 active:scale-95'
-          >
-            🗑️ Reset All Statistics
-          </button>
+        {/* Stats */}
+        {[
+          {
+            icon: '🎬', title: 'Guess by Cast',
+            stats: [
+              { value: totalGames, label: 'Games' },
+              { value: `${winRate}%`, label: 'Win Rate' },
+              { value: stats.currentStreak, label: 'Streak' },
+              { value: stats.maxStreak, label: 'Best' },
+            ]
+          },
+          {
+            icon: '🔗', title: 'Link Chain',
+            stats: [
+              { value: linkStats.totalGames || 0, label: 'Games' },
+              { value: linkStats.bestChain || 0, label: 'Best Chain' },
+              { value: avgChain, label: 'Avg Chain' },
+            ]
+          },
+          {
+            icon: '🎯', title: 'Odd One Out',
+            stats: [
+              { value: oddStats.totalGames || 0, label: 'Games' },
+              { value: oddStats.bestScore || 0, label: 'Best Score' },
+              { value: oddStats.bestStreak || 0, label: 'Best Streak' },
+            ]
+          },
+        ].map(({ icon, title, stats }) => (
+          <div key={title} className='card rounded-2xl p-5'>
+            <p className='text-[11px] uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3'>
+              {icon} {title}
+            </p>
+            <div className={`grid gap-2 ${stats.length === 4 ? 'grid-cols-4' : 'grid-cols-3'}`}>
+              {stats.map(({ value, label }) => (
+                <div key={label} className='bg-black/3 dark:bg-white/5 rounded-xl p-3 text-center'>
+                  <p className='text-xl font-bold text-gray-900 dark:text-white leading-none'>{value}</p>
+                  <p className='text-[10px] uppercase tracking-wide text-gray-400 mt-0.5'>{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        {/* Reset */}
+        <button
+          onClick={resetStats}
+          className='w-full py-3 rounded-2xl font-semibold text-sm text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors'
+        >
+          🗑️ Reset All Statistics
+        </button>
+
+        {/* Attribution */}
+        <p className='text-center text-xs text-gray-400 dark:text-gray-500'>
+          Data provided by{' '}
+          <a href='https://www.themoviedb.org/' target='_blank' rel='noopener noreferrer' className='hover:text-amber-500 transition-colors'>
+            TMDB
+          </a>
+        </p>
+
+      </div>
+    </div>
+  );
+}
+
+function Toggle({ value, onToggle }) {
+  return (
+    <button
+      onClick={onToggle}
+      className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${value ? 'bg-red-600' : 'bg-black/15 dark:bg-white/15'}`}
+    >
+      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${value ? 'translate-x-5' : 'translate-x-0'}`} />
+    </button>
+  );
+}
+
+function ToggleRow({ icon, label, description, value, onToggle }) {
+  return (
+    <div className='flex items-center justify-between py-3 gap-4'>
+      <div className='flex items-center gap-3'>
+        <span className='text-lg'>{icon}</span>
+        <div>
+          <p className='text-sm font-medium text-gray-900 dark:text-white'>{label}</p>
+          {description && <p className='text-xs text-gray-400 dark:text-gray-500'>{description}</p>}
         </div>
       </div>
+      <Toggle value={value} onToggle={onToggle} />
     </div>
   );
 }

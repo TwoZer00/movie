@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getValidMovie, getCastFromMovie, getMoviesByActor, searchPerson, getMoviesByName, getKeywords, getMovieImages, getMovie, getDailyLinkMovie, getPersonDetails } from '../api/init';
-import { IMG_URL } from '../api/utils/const';
+import { IMG_URL, PROFILE_SIZE } from '../api/utils/const';
 import { Loader } from '../components/UIComponents';
 import genres from '../resources/genre.json';
 import { useLocation } from 'react-router-dom';
@@ -580,40 +580,43 @@ export default function LinkGame() {
           </div>
         </div>
       )}
-      <div className='bg-gradient-to-r from-red-600 to-amber-600 text-white p-2 sm:p-3 rounded-lg'>
-        <div className='flex justify-between items-center'>
-          <div className='flex gap-1'>
-            <button 
-              onClick={() => setShowHelp(true)}
-              className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold'
-              title='Keyboard shortcuts (?)'
-            >
-              ⌨️
-            </button>
-            {!isDailyChallenge && !gameOver && chain.length > 1 && (
-              <button 
-                onClick={handleUndo}
-                className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold'
-                title='Undo last move (U)'
-              >
-                ↩️
-              </button>
-            )}
-            {!isDailyChallenge && !gameOver && (
-              <button 
-                onClick={reset}
-                className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs sm:text-sm font-semibold'
-                title='Give up (G)'
-              >
-                <span className='hidden sm:inline'>Give Up</span>
-                <span className='sm:hidden'>✕</span>
-              </button>
-            )}
+      {/* Game header */}
+      <div className='card rounded-2xl px-4 py-3 flex justify-between items-center flex-shrink-0'>
+        <div className='flex items-center gap-2'>
+          <button
+            onClick={() => setShowHelp(true)}
+            className='w-8 h-8 rounded-lg bg-black/5 dark:bg-white/8 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm flex items-center justify-center transition-colors'
+            title='Keyboard shortcuts'
+          >?</button>
+          {!isDailyChallenge && !gameOver && chain.length > 1 && (
+            <button
+              onClick={handleUndo}
+              className='w-8 h-8 rounded-lg bg-black/5 dark:bg-white/8 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm flex items-center justify-center transition-colors'
+              title='Undo (U)'
+            >↩</button>
+          )}
+          {!isDailyChallenge && !gameOver && (
+            <button
+              onClick={reset}
+              className='px-3 h-8 rounded-lg bg-black/5 dark:bg-white/8 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 text-xs font-medium transition-colors'
+              title='Give up (G)'
+            >Give Up</button>
+          )}
+        </div>
+        <div className='flex items-center gap-4'>
+          <div className='text-center'>
+            <p className='text-lg font-bold text-gray-900 dark:text-white leading-none'>{Math.floor(chain.length / 2) + 1}</p>
+            <p className='text-[10px] uppercase tracking-wide text-gray-400'>Chain</p>
           </div>
-          <div className='flex items-center gap-2 sm:gap-4 text-xs opacity-90'>
-            <span>Chain: <span className='font-bold'>{Math.floor(chain.length / 2) + 1}</span></span>
-            <span>Time: <span className='font-bold'>{getElapsedTime()}</span></span>
-            <span className='hidden sm:inline'>Best: <span className='font-bold'>{getBestChain()}</span></span>
+          <div className='w-px h-8 bg-black/8 dark:bg-white/8' />
+          <div className='text-center'>
+            <p className='text-lg font-bold text-gray-900 dark:text-white leading-none'>{getElapsedTime()}</p>
+            <p className='text-[10px] uppercase tracking-wide text-gray-400'>Time</p>
+          </div>
+          <div className='w-px h-8 bg-black/8 dark:bg-white/8' />
+          <div className='text-center'>
+            <p className='text-lg font-bold text-amber-500 leading-none'>{getBestChain()}</p>
+            <p className='text-[10px] uppercase tracking-wide text-gray-400'>Best</p>
           </div>
         </div>
       </div>
@@ -631,69 +634,55 @@ export default function LinkGame() {
           onShareResults={shareResults}
           onShareImage={handleShareImage}
           onReset={reset}
+          onGoHome={() => navigate('/')}
         />
       ) : (
         <>
           {/* Current Movie or Actor */}
-          <div className='bg-white dark:bg-gray-800 p-2 sm:p-3 rounded-lg text-center flex-shrink-0'>
+          <div className='card rounded-2xl p-4 flex-shrink-0'>
             {mode === 'guessActor' ? (
-              <>
-                <h3 className='text-sm sm:text-base font-semibold mb-2 dark:text-white'>Current Movie:</h3>
-                <div className='flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3'>
-                  <div className='w-24 h-36 sm:w-32 sm:h-48 bg-gradient-to-br from-red-600 to-amber-600 rounded-lg shadow-lg flex items-center justify-center flex-shrink-0 p-2'>
-                    {currentMovie?.logo ? (
-                      <img 
-                        src={`${IMG_URL}w500${currentMovie.logo}`}
-                        alt={currentMovie.title}
-                        className='max-w-full max-h-full object-contain'
-                      />
-                    ) : (
-                      <span className='text-3xl sm:text-4xl'>🎬</span>
-                    )}
-                  </div>
-                  <div className='text-center sm:text-left'>
-                    <p className='text-base sm:text-lg font-bold dark:text-white'>{currentMovie?.title}</p>
-                    {currentMovie?.original_title && currentMovie.original_title !== currentMovie.title && (
-                      <p className='text-xs text-gray-500 dark:text-gray-400 italic'>Original: {currentMovie.original_title}</p>
-                    )}
-                    <p className='text-xs text-gray-500 dark:text-gray-400 mb-1'>
-                      {new Date(currentMovie?.release_date).getFullYear()}
-                      {currentMovie?.origin_country?.[0] && ` • ${currentMovie.origin_country[0]}`}
-                      {currentMovie?.original_language && ` • ${currentMovie.original_language.toUpperCase()}`}
-                    </p>
-                    {currentMovie?.director && (
-                      <p className='text-xs text-gray-600 dark:text-gray-400 mb-1'>🎬 {currentMovie.director}</p>
-                    )}
-                    {currentMovie?.tagline && (
-                      <p className='text-xs italic text-gray-500 dark:text-gray-400 mb-1 hidden sm:block'>"{currentMovie.tagline}"</p>
-                    )}
-                    <div className='flex flex-wrap gap-1 justify-center sm:justify-start'>
-                      {currentMovie?.genre_ids?.slice(0, 2).map(gid => (
-                        <span key={gid} className='px-2 py-0.5 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-full text-xs'>
-                          {genres.find(g => g.id === gid)?.name}
-                        </span>
-                      ))}
-                      {currentMovie?.keywords?.slice(0, 2).map(kw => (
-                        <span key={kw.id} className='px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full text-xs'>
-                          #{kw.name}
-                        </span>
-                      ))}
-                    </div>
+              <div className='flex items-center gap-4'>
+                <div className='w-20 h-28 sm:w-24 sm:h-32 bg-gradient-to-br from-red-700 to-amber-600 rounded-xl shadow-lg flex items-center justify-center flex-shrink-0 p-2 overflow-hidden'>
+                  {currentMovie?.logo ? (
+                    <img src={`${IMG_URL}w500${currentMovie.logo}`} alt={currentMovie.title} className='max-w-full max-h-full object-contain' />
+                  ) : (
+                    <span className='text-3xl'>🎬</span>
+                  )}
+                </div>
+                <div className='flex-1 min-w-0'>
+                  <p className='text-[10px] uppercase tracking-widest text-gray-400 mb-1'>Guess an actor from</p>
+                  <p className='font-bold text-gray-900 dark:text-white text-base leading-tight'>{currentMovie?.title}</p>
+                  {currentMovie?.original_title && currentMovie.original_title !== currentMovie.title && (
+                    <p className='text-xs text-gray-400 italic mt-0.5'>{currentMovie.original_title}</p>
+                  )}
+                  <p className='text-xs text-gray-400 mt-1'>
+                    {new Date(currentMovie?.release_date).getFullYear()}
+                    {currentMovie?.director && ` · ${currentMovie.director}`}
+                  </p>
+                  <div className='flex flex-wrap gap-1 mt-2'>
+                    {currentMovie?.genre_ids?.slice(0, 2).map(gid => (
+                      <span key={gid} className='px-2 py-0.5 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 rounded-full text-[10px] font-medium'>
+                        {genres.find(g => g.id === gid)?.name}
+                      </span>
+                    ))}
+                    {currentMovie?.keywords?.slice(0, 2).map(kw => (
+                      <span key={kw.id} className='px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full text-[10px]'>#{kw.name}</span>
+                    ))}
                   </div>
                 </div>
-              </>
+              </div>
             ) : (
-              <>
-                <h3 className='text-sm sm:text-base font-semibold mb-2 dark:text-white'>Current Actor:</h3>
-                <div className='flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3'>
-                  <img 
-                    src={`${IMG_URL}${PROFILE_SIZE.md}${currentActor?.profile_path}`}
-                    alt={currentActor?.name}
-                    className='w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-full shadow-lg flex-shrink-0'
-                  />
-                  <p className='text-base sm:text-lg font-bold dark:text-white'>{currentActor?.name}</p>
+              <div className='flex items-center gap-4'>
+                <img
+                  src={`${IMG_URL}${PROFILE_SIZE.md}${currentActor?.profile_path}`}
+                  alt={currentActor?.name}
+                  className='w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-full shadow-lg border-2 border-amber-500 flex-shrink-0'
+                />
+                <div>
+                  <p className='text-[10px] uppercase tracking-widest text-gray-400 mb-1'>Guess a movie with</p>
+                  <p className='font-bold text-gray-900 dark:text-white text-base'>{currentActor?.name}</p>
                 </div>
-              </>
+              </div>
             )}
           </div>
 

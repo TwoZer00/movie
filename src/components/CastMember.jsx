@@ -20,10 +20,10 @@ const CastMember = memo(({item, index, gameStatus, gameStatusVal}) => {
 
   return (
     <div className='flex flex-col' style={{animationDelay: `${index * 100}ms`}}>
-      <div className='relative rounded-lg overflow-hidden shadow-md dark:shadow-gray-800 border-2 border-gray-200 dark:border-gray-700 aspect-square' style={{perspective: '1000px'}}>
+      <div className='relative rounded-xl overflow-hidden border border-black/8 dark:border-white/8 aspect-square' style={{perspective: '1000px'}}>
         <div className={`w-full h-full transition-transform duration-[800ms] ease-out ${isFlipped ? '[transform:rotateY(180deg)]' : ''}`} style={{transformStyle: 'preserve-3d'}}>
           {/* Back - Question Mark */}
-          <div className='absolute inset-0 bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-4xl text-gray-400' style={{backfaceVisibility: 'hidden'}}>
+          <div className='absolute inset-0 bg-black/5 dark:bg-white/5 flex items-center justify-center text-3xl text-gray-300 dark:text-gray-600' style={{backfaceVisibility: 'hidden'}}>
             ?
           </div>
           {/* Front - Image */}

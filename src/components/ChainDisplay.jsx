@@ -25,7 +25,7 @@ export default function ChainDisplay({ chain }) {
   
   return (
     <div className='relative'>
-      <div ref={scrollRef} className='w-full overflow-x-auto bg-white dark:bg-gray-800 p-2 sm:p-3 rounded-lg scroll-smooth snap-x snap-mandatory'>
+      <div ref={scrollRef} className='w-full overflow-x-auto card p-2 sm:p-3 rounded-xl scroll-smooth snap-x snap-mandatory'>
       <div className='flex gap-1 sm:gap-2 items-center' style={{ minWidth: 'max-content' }}>
       {chain.map((link, i) => (
         <div key={i} className='flex items-center gap-1 sm:gap-2 animate-fadeIn snap-start'>
@@ -72,8 +72,8 @@ export default function ChainDisplay({ chain }) {
       </div>
       {isScrollable && (
         <>
-          <div className='absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-gray-800 to-transparent pointer-events-none rounded-l-lg' />
-          <div className='absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-gray-800 to-transparent pointer-events-none rounded-r-lg' />
+          <div className='absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#f5f0eb] dark:from-[#0d0d0d] to-transparent pointer-events-none rounded-l-xl' />
+          <div className='absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#f5f0eb] dark:from-[#0d0d0d] to-transparent pointer-events-none rounded-r-xl' />
         </>
       )}
     </div>

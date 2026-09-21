@@ -87,7 +87,7 @@ Play at: ${window.location.origin}`;
   return (
     <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn p-4' onClick={onClose}>
       {isWin && <Confetti />}
-      <div className='bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto text-center animate-scaleIn dark:text-white' onClick={(e)=>e.stopPropagation()}>
+      <div className='card rounded-2xl p-4 sm:p-5 max-w-md w-full max-h-[90vh] overflow-y-auto text-center animate-scaleIn' onClick={(e)=>e.stopPropagation()}>
         <h2 className={`text-3xl font-bold mb-1 ${isWin?'text-green-600':'text-red-600'}`}>
           {isWin ? '🎉 You Won!' : '😔 You Lost!'}
         </h2>
@@ -120,7 +120,7 @@ Play at: ${window.location.origin}`;
         {revealedCast && revealedCast.length > 0 && (
           <div className='flex gap-2 justify-center mb-3'>
             {[revealedCast[4], revealedCast[2], revealedCast[0]].filter(Boolean).map((cast) => (
-              <div key={cast.id} className='flex items-center gap-1.5 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded text-left'>
+              <div key={cast.id} className='flex items-center gap-1.5 bg-black/3 dark:bg-white/5 px-2 py-1 rounded-lg text-left'>
                 <img 
                   src={`https://image.tmdb.org/t/p/w45${cast.profile_path}`}
                   alt={cast.name}
@@ -151,37 +151,41 @@ Play at: ${window.location.origin}`;
           </a>
         </div>
         
-        <div className='grid grid-cols-4 gap-2 mb-4 text-center'>
-          <div className='bg-red-50 dark:bg-red-900/30 p-2 rounded-lg'>
-            <p className='text-xl font-bold text-blue-600 dark:text-blue-400'>{totalGames}</p>
-            <p className='text-xs text-gray-600 dark:text-gray-400'>Played</p>
-          </div>
-          <div className='bg-green-50 dark:bg-green-900/30 p-2 rounded-lg'>
-            <p className='text-xl font-bold text-green-600 dark:text-green-400'>{winRate}%</p>
-            <p className='text-xs text-gray-600 dark:text-gray-400'>Win Rate</p>
-          </div>
-          <div className='bg-amber-50 dark:bg-amber-900/30 p-2 rounded-lg'>
-            <p className='text-xl font-bold text-amber-600 dark:text-amber-400'>{stats.currentStreak}</p>
-            <p className='text-xs text-gray-600 dark:text-gray-400'>Current</p>
-          </div>
-          <div className='bg-orange-50 dark:bg-orange-900/30 p-2 rounded-lg'>
-            <p className='text-xl font-bold text-orange-600 dark:text-orange-400'>{stats.maxStreak}</p>
-            <p className='text-xs text-gray-600 dark:text-gray-400'>Max</p>
-          </div>
+        <div className='grid grid-cols-4 gap-2 mb-4'>
+          {[
+            { value: totalGames, label: 'Played', color: 'text-gray-900 dark:text-white' },
+            { value: `${winRate}%`, label: 'Win Rate', color: 'text-green-600 dark:text-green-400' },
+            { value: stats.currentStreak, label: 'Streak', color: 'text-amber-600 dark:text-amber-400' },
+            { value: stats.maxStreak, label: 'Best', color: 'text-orange-500 dark:text-orange-400' },
+          ].map(({ value, label, color }) => (
+            <div key={label} className='bg-black/3 dark:bg-white/5 p-2 rounded-xl text-center'>
+              <p className={`text-xl font-bold leading-none ${color}`}>{value}</p>
+              <p className='text-[10px] uppercase tracking-wide text-gray-400 mt-1'>{label}</p>
+            </div>
+          ))}
         </div>
 
-        <div className='flex flex-col sm:flex-row gap-2 justify-center'>
-          <button onClick={onClose} className='bg-red-600 dark:bg-red-700 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-red-700 dark:hover:bg-red-600 transition-colors'>
-            {isDailyChallenge ? 'Back to Menu' : 'Play Again'}
-          </button>
-          <button onClick={shareResults} className='bg-green-500 dark:bg-green-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-green-600 dark:hover:bg-green-700 transition-colors'>
-            {copied ? '✓ Copied!' : 'Share Results'}
-          </button>
-          {onShareImage && (
-            <button onClick={onShareImage} className='bg-amber-600 dark:bg-amber-700 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-amber-700 dark:hover:bg-amber-600 transition-colors'>
-              📷 Share Image
+        <div className='flex flex-col gap-2'>
+          <div className='flex gap-2'>
+            {!isDailyChallenge && (
+              <button onClick={() => window.location.href = '/'} className='flex-1 py-2.5 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 transition-colors'>
+                🏠 Home
+              </button>
+            )}
+            <button onClick={onClose} className='flex-1 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-600 to-amber-600 hover:opacity-90 active:scale-[0.98] transition-all shadow-sm'>
+              {isDailyChallenge ? '🏠 Back to Menu' : '▶ Play Again'}
             </button>
-          )}
+          </div>
+          <div className='flex gap-2'>
+            <button onClick={shareResults} className='flex-1 py-2.5 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 transition-colors'>
+              {copied ? '✓ Copied!' : '📋 Share'}
+            </button>
+            {onShareImage && (
+              <button onClick={onShareImage} className='flex-1 py-2.5 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 transition-colors'>
+                📷 Image
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

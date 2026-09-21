@@ -6,8 +6,8 @@ const TryItem = memo(({item, index, movie, expandedTries, setExpandedTries}) => 
   
   if(item.passed) {
     return (
-      <div className='p-2 border-2 dark:border-gray-700 rounded-lg bg-gray-100 dark:bg-gray-700 shadow-sm animate-slideIn' style={{animationDelay: `${index * 100}ms`}}>
-        <p className='font-semibold text-sm text-gray-500 dark:text-gray-400 italic text-center'>{item.original_title}</p>
+      <div className='px-3 py-2 rounded-xl bg-black/3 dark:bg-white/4 border border-black/5 dark:border-white/5 animate-slideIn' style={{animationDelay: `${index * 100}ms`}}>
+        <p className='text-sm text-gray-400 dark:text-gray-500 italic text-center'>— passed —</p>
       </div>
     );
   }
@@ -32,35 +32,36 @@ const TryItem = memo(({item, index, movie, expandedTries, setExpandedTries}) => 
   }, [index, setExpandedTries]);
 
   return (
-    <div className='p-2 border-2 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm animate-slideIn smooth-hover cursor-pointer' style={{animationDelay: `${index * 100}ms`}} onClick={toggleExpand}>
-      <div className='flex justify-between items-center gap-2'>
-        <p className='font-semibold text-sm flex-1 dark:text-white'>{item.title||item.original_title}</p>
-        <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${
-          yearData.isMatch ? "bg-green-500 text-white" : 
-          yearData.isClose ? "bg-yellow-400 text-black" : 
-          "bg-red-400 text-white"
+    <div className='px-3 py-2 rounded-xl bg-white/80 dark:bg-white/4 border border-black/6 dark:border-white/6 animate-slideIn cursor-pointer hover:bg-black/3 dark:hover:bg-white/6 transition-colors' style={{animationDelay: `${index * 100}ms`}} onClick={toggleExpand}>
+      <div className='flex items-center gap-2'>
+        <p className='font-medium text-sm flex-1 dark:text-white truncate'>{item.title||item.original_title}</p>
+        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${
+          yearData.isMatch ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300' :
+          yearData.isClose ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300' :
+          'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300'
         }`}>
-          {yearData.guessYear}
-          {!yearData.isMatch && (yearData.guessYear < yearData.targetYear ? " ↑" : " ↓")}
+          {yearData.guessYear}{!yearData.isMatch && (yearData.guessYear < yearData.targetYear ? ' ↑' : ' ↓')}
         </span>
-        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-          genreData.genreMatches === genreData.totalGenres ? "bg-green-500 text-white" :
-          genreData.genreMatches > 0 ? "bg-yellow-400 text-black" :
-          "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${
+          genreData.genreMatches === genreData.totalGenres && genreData.totalGenres > 0 ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300' :
+          genreData.genreMatches > 0 ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300' :
+          'bg-black/5 dark:bg-white/8 text-gray-500 dark:text-gray-400'
         }`}>
           {genreData.genreMatches}/{genreData.totalGenres}
         </span>
-        <span className='text-gray-400 dark:text-gray-500'>{isExpanded ? '▲' : '▼'}</span>
+        <span className='text-gray-300 dark:text-gray-600 text-xs flex-shrink-0'>{isExpanded ? '▲' : '▼'}</span>
       </div>
       {isExpanded && item.genre_ids && (
-        <div className='flex flex-wrap gap-1 mt-2'>
-          {item.genre_ids.map(genreId=>{
-            const isMatch = genreId===movie?.genre_ids.find(genre=>genre===genreId);
-            return(
-              <span key={genreId} className={`px-2 py-0.5 rounded-full text-xs font-medium ${isMatch?"bg-green-500 text-white":"bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"}`}>
-                {genres.find(genre=>genre.id===genreId)?.name}
+        <div className='flex flex-wrap gap-1 mt-2 pt-2 border-t border-black/5 dark:border-white/5'>
+          {item.genre_ids.map(genreId => {
+            const isMatch = movie?.genre_ids?.includes(genreId);
+            return (
+              <span key={genreId} className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                isMatch ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300' : 'bg-black/5 dark:bg-white/8 text-gray-500 dark:text-gray-400'
+              }`}>
+                {genres.find(g => g.id === genreId)?.name}
               </span>
-            )
+            );
           })}
         </div>
       )}

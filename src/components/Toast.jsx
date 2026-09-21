@@ -9,7 +9,9 @@ export const Toast = ({ message, type = 'error', onClose }) => {
   const bgColor = type === 'error' ? 'bg-red-500' : 'bg-green-600';
 
   return (
-    <div className={`fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slideIn`}>
+    <div className={`fixed top-4 right-4 z-50 animate-slideIn px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${
+      type === 'error' ? 'bg-red-600' : 'bg-green-600'
+    }`}>
       {message}
     </div>
   );

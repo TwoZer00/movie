@@ -396,45 +396,71 @@ export default function OddOneOut() {
         </div>
       )}
       
-      <div className='bg-gradient-to-r from-red-600 to-amber-600 text-white p-3 rounded-lg'>
-        <div className='flex justify-center gap-4 text-sm opacity-90'>
-          <span>Round: <span className='font-bold'>{round}</span></span>
-          <span>Score: <span className='font-bold'>{score}</span></span>
-          <span>Lives: <span className='font-bold'>{'❤️'.repeat(lives)}</span></span>
-          {streak > 0 && <span>Streak: <span className='font-bold'>🔥{streak}</span></span>}
+      <div className='card rounded-2xl px-4 py-3 flex justify-between items-center flex-shrink-0'>
+        <div className='flex items-center gap-4'>
+          <div className='text-center'>
+            <p className='text-lg font-bold text-gray-900 dark:text-white leading-none'>{round}</p>
+            <p className='text-[10px] uppercase tracking-wide text-gray-400'>Round</p>
+          </div>
+          <div className='w-px h-8 bg-black/8 dark:bg-white/8' />
+          <div className='text-center'>
+            <p className='text-lg font-bold text-amber-500 leading-none'>{score}</p>
+            <p className='text-[10px] uppercase tracking-wide text-gray-400'>Score</p>
+          </div>
+          {streak > 0 && (
+            <>
+              <div className='w-px h-8 bg-black/8 dark:bg-white/8' />
+              <div className='text-center'>
+                <p className='text-lg font-bold text-orange-500 leading-none'>🔥{streak}</p>
+                <p className='text-[10px] uppercase tracking-wide text-gray-400'>Streak</p>
+              </div>
+            </>
+          )}
+        </div>
+        <div className='flex gap-1'>
+          {Array(3).fill(0).map((_, i) => (
+            <div key={i} className={`w-6 h-6 rounded-full flex items-center justify-center text-xs transition-all ${
+              i < lives ? 'bg-red-100 dark:bg-red-900/40 text-red-500' : 'bg-black/5 dark:bg-white/5 text-gray-300 dark:text-gray-600'
+            }`}>
+              ♥
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className='bg-white dark:bg-gray-800 p-4 rounded-lg'>
-        <div className='flex justify-between items-center mb-2'>
-          <h3 className='text-lg font-semibold dark:text-white'>Find the movie that doesn't belong!</h3>
+      <div className='card rounded-2xl p-4'>
+        <div className='flex justify-between items-start'>
+          <div>
+            <p className='text-[10px] uppercase tracking-widest text-gray-400 mb-1'>Find the odd one out</p>
+            <h3 className='font-bold text-gray-900 dark:text-white text-sm'>Which movie doesn't belong?</h3>
+          </div>
           {!result && !hintUsed && (
             <button
               onClick={useHint}
-              className='bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm font-semibold'
+              className='px-3 py-1.5 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-semibold hover:bg-amber-200 dark:hover:bg-amber-900/60 transition-colors flex-shrink-0'
             >
-              Hint (-1 pt)
+              Hint −1pt
             </button>
           )}
         </div>
         {hintUsed && !result && (
-          <p className='text-sm text-yellow-600 dark:text-yellow-400 text-center'>
-            Connection type: <span className='font-bold'>{connection.type}</span>
+          <p className='text-xs text-amber-600 dark:text-amber-400 mt-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg px-3 py-2'>
+            Connection type: <span className='font-bold capitalize'>{connection.type}</span>
           </p>
         )}
         {result && (
-          <div className='text-sm text-gray-600 dark:text-gray-400 text-center space-y-2'>
+          <div className='mt-2 text-xs text-gray-600 dark:text-gray-400 bg-black/3 dark:bg-white/4 rounded-lg px-3 py-2 space-y-1'>
             <p>
-              {connection.type === 'actor' && `These 3 movies all star ${connection.info}`}
-              {connection.type === 'director' && `These 3 movies are all directed by ${connection.info}`}
-              {connection.type === 'year' && `These 3 movies were all released in ${connection.info}`}
-              {connection.type === 'genre' && `These 3 movies are all ${connection.info} films`}
-              {connection.type === 'decade' && `These 3 movies are all from the ${connection.info}`}
-              {connection.type === 'franchise' && `These 3 movies are all part of ${connection.info}`}
+              {connection.type === 'actor' && `👤 These 3 star ${connection.info}`}
+              {connection.type === 'director' && `🎬 Directed by ${connection.info}`}
+              {connection.type === 'year' && `📅 All released in ${connection.info}`}
+              {connection.type === 'genre' && `🎥 All ${connection.info} films`}
+              {connection.type === 'decade' && `🗓 All from the ${connection.info}`}
+              {connection.type === 'franchise' && `🏆 All part of ${connection.info}`}
             </p>
             {result === 'wrong' && (
               <p className='text-red-600 dark:text-red-400 font-semibold'>
-                The odd one was: <span className='font-bold'>{movies[oddOneIndex]?.title}</span>
+                Odd one: <span className='font-bold'>{movies[oddOneIndex]?.title}</span>
               </p>
             )}
           </div>
@@ -501,7 +527,7 @@ export default function OddOneOut() {
       {result && (
         <button
           onClick={nextRound}
-          className='bg-gradient-to-r from-red-600 to-amber-600 text-white py-3 rounded-lg font-semibold text-lg hover:from-red-700 hover:to-amber-700'
+          className='w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r from-red-600 to-amber-600 hover:opacity-90 active:scale-[0.98] transition-all shadow-sm'
         >
           Next Round →
         </button>
@@ -512,35 +538,38 @@ export default function OddOneOut() {
       {showConfetti && <Confetti />}
       
       {gameOver && (
-        <div className='fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4'>
-          <div className='bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-8 rounded-2xl shadow-2xl text-center max-w-md border-4 border-red-600 relative'>
-            <button
-              onClick={() => window.location.href = '/'}
-              className='absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold'
-            >
-              ×
-            </button>
-            <div className='text-6xl mb-4'>💔</div>
-            <h2 className='text-3xl font-bold bg-gradient-to-r from-red-600 to-amber-600 bg-clip-text text-transparent mb-6'>Game Over!</h2>
-            <div className='space-y-3 mb-6 bg-white/50 dark:bg-gray-800/50 p-4 rounded-lg'>
-              <p className='text-xl dark:text-white'>Final Score: <span className='font-bold text-amber-600 text-2xl'>{score}</span></p>
-              <p className='text-lg dark:text-white'>Rounds Survived: <span className='font-bold'>{round}</span></p>
-              <div className='border-t border-gray-300 dark:border-gray-600 my-3'></div>
-              <p className='text-sm text-gray-600 dark:text-gray-400'>🏆 Best Score: <span className='font-bold'>{JSON.parse(localStorage.getItem('oddOneOutStats') || '{}').bestScore || 0}</span></p>
-              <p className='text-sm text-gray-600 dark:text-gray-400'>🔥 Best Streak: <span className='font-bold'>{JSON.parse(localStorage.getItem('oddOneOutStats') || '{}').bestStreak || 0}</span></p>
+        <div className='fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
+          <div className='card rounded-2xl p-6 max-w-sm w-full text-center animate-scaleIn'>
+            <div className='text-5xl mb-3'>🏁</div>
+            <h2 className='font-display text-4xl tracking-wide bg-gradient-to-r from-red-600 to-amber-500 bg-clip-text text-transparent mb-1'>GAME OVER</h2>
+            <p className='text-xs text-gray-400 uppercase tracking-widest mb-5'>No lives remaining</p>
+            <div className='grid grid-cols-2 gap-3 mb-5'>
+              <div className='bg-black/3 dark:bg-white/5 rounded-xl p-3'>
+                <p className='text-2xl font-bold text-amber-500 leading-none'>{score}</p>
+                <p className='text-[10px] uppercase tracking-wide text-gray-400 mt-0.5'>Score</p>
+              </div>
+              <div className='bg-black/3 dark:bg-white/5 rounded-xl p-3'>
+                <p className='text-2xl font-bold text-gray-900 dark:text-white leading-none'>{round}</p>
+                <p className='text-[10px] uppercase tracking-wide text-gray-400 mt-0.5'>Rounds</p>
+              </div>
+              <div className='bg-black/3 dark:bg-white/5 rounded-xl p-3'>
+                <p className='text-2xl font-bold text-gray-900 dark:text-white leading-none'>{JSON.parse(localStorage.getItem('oddOneOutStats') || '{}').bestScore || 0}</p>
+                <p className='text-[10px] uppercase tracking-wide text-gray-400 mt-0.5'>Best Score</p>
+              </div>
+              <div className='bg-black/3 dark:bg-white/5 rounded-xl p-3'>
+                <p className='text-2xl font-bold text-orange-500 leading-none'>{JSON.parse(localStorage.getItem('oddOneOutStats') || '{}').bestStreak || 0}</p>
+                <p className='text-[10px] uppercase tracking-wide text-gray-400 mt-0.5'>Best Streak</p>
+              </div>
             </div>
-            <div className='flex gap-3 justify-center'>
-              <button
-                onClick={shareResults}
-                className='bg-green-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-600 shadow-lg transform hover:scale-105 transition-all'
-              >
+            <div className='flex gap-2'>
+              <button onClick={shareResults} className='py-2.5 px-3 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 transition-colors'>
                 📤 Share
               </button>
-              <button
-                onClick={resetGame}
-                className='bg-gradient-to-r from-red-600 to-amber-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-red-700 hover:to-amber-700 shadow-lg transform hover:scale-105 transition-all'
-              >
-                🔄 Play Again
+              <button onClick={() => navigate('/')} className='flex-1 py-2.5 rounded-xl font-semibold text-sm bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/12 transition-colors'>
+                🏠 Home
+              </button>
+              <button onClick={resetGame} className='flex-1 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-600 to-amber-600 hover:opacity-90 transition-all shadow-sm'>
+                Play Again
               </button>
             </div>
           </div>

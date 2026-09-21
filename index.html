@@ -58,6 +58,9 @@
     }
   }
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <title>Filmdle - Guess movies by cast & build chains</title>
   
   <!-- Google Analytics -->
@@ -75,6 +78,7 @@
 </head>
 
 <body>
+  <script>if(localStorage.getItem('darkMode')==='true')document.documentElement.classList.add('dark');</script>
   <noscript>Filmdle - A daily movie guessing game. Guess movies by cast or build actor-movie chains!</noscript>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>

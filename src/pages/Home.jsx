@@ -603,10 +603,10 @@ export default function Home() {
       )}
       {loading && !movie && <Loader />}
       {loading && movie && (
-        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
-          <div className='bg-white dark:bg-gray-800 p-6 rounded-lg'>
-            <div className='w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-3'></div>
-            <p className='text-gray-700 dark:text-gray-300 font-semibold'>Loading next movie...</p>
+        <div className='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50'>
+          <div className='card rounded-2xl px-8 py-6 flex flex-col items-center gap-3'>
+            <div className='w-10 h-10 border-4 border-black/8 dark:border-white/8 border-t-red-600 dark:border-t-amber-500 rounded-full animate-spin'></div>
+            <p className='text-sm text-gray-500 dark:text-gray-400'>Loading next movie...</p>
           </div>
         </div>
       )}
@@ -638,7 +638,7 @@ export default function Home() {
             />
           </div>
           
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-800 p-3 sm:p-4 flex-shrink-0'>
+          <div className='bg-white/85 dark:bg-[#1a1a1a]/90 backdrop-blur-sm border border-black/6 dark:border-white/6 rounded-xl shadow-sm p-3 sm:p-4 flex-shrink-0'>
             <p className='text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3 text-center'>Cast Members</p>
             <div className="grid grid-cols-5 gap-2 sm:gap-3 w-full">
               {
@@ -661,7 +661,7 @@ export default function Home() {
 
           {/* Right column */}
           <div className='flex flex-col gap-2 min-h-0'>
-          <div className='flex-1 border dark:border-gray-700 px-2 rounded flex flex-col gap-1 overflow-y-auto dark:bg-gray-800 min-h-0'>
+          <div className='flex-1 border border-black/8 dark:border-white/8 px-2 rounded-xl flex flex-col gap-1 overflow-y-auto bg-white/85 dark:bg-[#1a1a1a]/90 backdrop-blur-sm min-h-0'>
             <div className='py-1 flex items-center justify-between'>
               <p className='font-semibold dark:text-white'>Tries {5 - tries.length}/5</p>
               <div className='flex-1 mx-3 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden'>
@@ -670,9 +670,14 @@ export default function Home() {
                   style={{'--progress-width': `${(tries.length / 5) * 100}%`, width: `${(tries.length / 5) * 100}%`}}
                 ></div>
               </div>
-              <span className={`text-sm font-bold px-2 py-1 rounded ${tries.length >= 4 ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300 animate-countdownPulse' : tries.length >= 3 ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300' : 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300'}`}>
-                {5 - tries.length}
-              </span>
+              <div className='flex items-center gap-2'>
+                <span className={`text-sm font-bold px-2 py-1 rounded ${tries.length >= 4 ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300 animate-countdownPulse' : tries.length >= 3 ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300' : 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300'}`}>
+                  {5 - tries.length}
+                </span>
+                {!isDailyChallenge && gameStatus === gameStatusVal.playing && (
+                  <button type='button' onClick={handleSkip} className='text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors font-medium'>Give Up</button>
+                )}
+              </div>
             </div>
             {tries.map((item,index)=>(
               <TryItem 
@@ -687,37 +692,35 @@ export default function Home() {
           </div>
         <form onSubmit={handleSubmit} className='relative flex flex-col gap-2 pt-2 flex-shrink-0'>
             <div className='relative flex-1'>
-              <input placeholder='Search for movie title' type="text" className={`rounded w-full text-base sm:text-lg py-3 px-4 border dark:border-gray-600 dark:bg-gray-700 dark:text-white focus-within:outline-none smooth-transition ${shakeInput ? 'animate-shake border-red-500' : ''}`} onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
-              <ul className={`shadow-xl border-2 border-slate-200 dark:border-gray-600 rounded-tl rounded-tr absolute bottom-full left-0 w-full flex flex-col divide-y dark:divide-gray-600 bg-white dark:bg-gray-800 max-h-[40vh] overflow-y-auto ${visible?"":"hidden"}`}>
+              <input placeholder='Search for movie title' type="text" className={`rounded-xl w-full text-sm py-3 px-4 bg-black/3 dark:bg-white/5 border border-black/8 dark:border-white/8 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500/30 dark:focus:ring-amber-500/30 transition-all ${shakeInput ? 'animate-shake !border-red-400' : ''}`} onBlur={handleBlur} onKeyDown={handleKeyDown} value={selectedMovie?.title||selectedMovie?.original_title} onChange={handleChange} />
+              <ul className={`border border-black/8 dark:border-white/8 rounded-t-xl absolute bottom-full left-0 w-full flex flex-col divide-y divide-black/5 dark:divide-white/5 bg-white dark:bg-[#1a1a1a] max-h-[40vh] overflow-y-auto shadow-xl ${visible ? '' : 'hidden'}`}>
                 {
                   searchLoading ? (
-                    <li className='p-4 text-center text-gray-500 dark:text-gray-400'>
+                    <li className='p-4 text-center'>
                       <div className='flex items-center justify-center gap-2'>
-                        <div className='w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin'></div>
-                        <span className='animate-pulse'>Searching movies...</span>
+                        <div className='w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin'></div>
+                        <span className='text-sm text-gray-400'>Searching...</span>
                       </div>
                     </li>
                   ) : movieSearchList.length > 0 ? (
-                    movieSearchList.map((item,index)=>{
+                    movieSearchList.map((item, index) => {
                       const showOriginal = item.original_title && item.original_title !== item.title;
-                      return(
-                        <li id={`search-result-${index}`} key={item.id} className={`cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-4 dark:text-white ${selectedIndex === index ? 'bg-blue-100 dark:bg-blue-900' : ''}`} onClick={()=>setSelectedMovie(item)}>
-                          <div>
-                            <div>{highlightMatch(item.title||item.original_title, selectedMovie.original_title)} ({new Date(item.release_date).getFullYear()})</div>
-                            {showOriginal && <div className='text-xs text-gray-500 dark:text-gray-400 italic'>Original: {item.original_title}</div>}
-                          </div>
+                      return (
+                        <li id={`search-result-${index}`} key={item.id} className={`cursor-pointer px-4 py-3 dark:text-white text-sm transition-colors ${selectedIndex === index ? 'bg-red-50 dark:bg-red-900/20' : 'hover:bg-black/3 dark:hover:bg-white/5'}`} onClick={() => setSelectedMovie(item)}>
+                          <div className='font-medium'>{highlightMatch(item.title || item.original_title, selectedMovie.original_title)} <span className='text-gray-400 font-normal'>({new Date(item.release_date).getFullYear()})</span></div>
+                          {showOriginal && <div className='text-xs text-gray-400 italic mt-0.5'>{item.original_title}</div>}
                         </li>
-                      )
+                      );
                     })
                   ) : (
-                    <li className='p-4 text-center text-gray-500 dark:text-gray-400'>No movies found</li>
+                    <li className='p-4 text-center text-sm text-gray-400'>No movies found</li>
                   )
                 }
               </ul>
             </div>
             <div className='flex gap-2 thumb-zone'>
               <input type="submit" value={"Try"} className={`flex-1 rounded bg-red-600 text-white font-semibold py-4 px-4 hover:bg-red-700 active:bg-red-800 animate-buttonHover touch-target ${successFeedback ? 'animate-successPulse' : ''} ${errorFeedback ? 'animate-errorPulse' : ''} ${hapticFeedback === 'success' ? 'animate-hapticSuccess' : ''} ${hapticFeedback === 'error' ? 'animate-hapticError' : ''}`}/>
-              <button type="button" onClick={handlePass} disabled={tries.length >= 4} className='rounded bg-gray-500 text-white font-semibold py-4 px-4 hover:bg-gray-600 active:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed animate-buttonHover touch-target'>Hint</button>
+              <button type="button" onClick={handlePass} disabled={tries.length >= 4} className='rounded-xl bg-black/5 dark:bg-white/8 text-gray-700 dark:text-gray-200 font-semibold py-4 px-4 hover:bg-black/10 dark:hover:bg-white/12 disabled:opacity-30 disabled:cursor-not-allowed transition-colors touch-target'>Hint</button>
             </div>
         </form>
           {/* Ad at the bottom of right column */}
