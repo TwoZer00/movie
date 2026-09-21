@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Outlet } from 'react-router-dom'
 import AdSenseResponsive from '../components/AdSenseResponsive'
+import ErrorBoundary from '../components/ErrorBoundary'
 
 export default function Init() {
   useEffect(() => {
@@ -18,7 +19,9 @@ export default function Init() {
     <div className='flex flex-col w-dvw h-dvh dark:bg-[#0d0d0d] dark:text-white'>
       <Header />
       <main className='flex-1 overflow-y-auto overflow-x-hidden flex flex-col min-h-0 bg-[#f5f0eb] dark:bg-[#0d0d0d]'>
-        <Outlet/>
+        <ErrorBoundary resetKey={location.pathname}>
+          <Outlet/>
+        </ErrorBoundary>
       </main>
       {/* Mobile: ad banner replaces footer text. Desktop: footer text only */}
       <div className='md:hidden flex-shrink-0 h-[50px] bg-white/90 dark:bg-[#111]/90 flex items-center justify-center overflow-hidden'>
